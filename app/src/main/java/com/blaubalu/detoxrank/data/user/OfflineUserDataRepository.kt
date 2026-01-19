@@ -20,4 +20,5 @@ class OfflineUserDataRepository(private val userDataDao: UserDataDao) : UserData
     override fun updateDailyTasksLastRefreshTime(time: Long) = userDataDao.updateDailyTasksLastRefreshTime(time)
     override fun updateWeeklyTasksLastRefreshTime(time: Long) = userDataDao.updateWeeklyTasksLastRefreshTime(time)
     override fun updateMonthlyTasksLastRefreshTime(time: Long) = userDataDao.updateMonthlyTasksLastRefreshTime(time)
+    override fun updateSelectedTheme(theme: UiTheme) = userDataDao.updateSelectedTheme(theme)
 }

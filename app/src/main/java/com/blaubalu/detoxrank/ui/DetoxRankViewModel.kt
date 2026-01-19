@@ -14,6 +14,7 @@ import com.blaubalu.detoxrank.data.achievements.AchievementRepository
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.data.task.TasksRepository
 import com.blaubalu.detoxrank.data.user.Rank
+import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.data.user.UserDataRepository
 import com.blaubalu.detoxrank.ui.utils.Constants
 import com.blaubalu.detoxrank.ui.utils.Constants.BRONZE_III_LOWER_CAP
@@ -54,6 +55,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.Calendar
+import com.blaubalu.detoxrank.ui.utils.PopupManager
+import com.blaubalu.detoxrank.R
+import androidx.core.content.edit
 
 /**
  * View Model for the main app. Handles task refreshes and rank icons with rank points.
@@ -76,7 +80,16 @@ class DetoxRankViewModel(
     private val _userDataUiState = MutableStateFlow(UserDataUiState())
     val userDataUiState: StateFlow<UserDataUiState> = _userDataUiState.asStateFlow()
 
+    init {
+        userDataRepository.getUserStream()
+            .onEach { user ->
+                _userDataUiState.update { user.toUserDataUiState() }
+            }
+            .launchIn(viewModelScope)
+    }
+
     var achievementUiState by mutableStateOf(AchievementUiState())
+
         private set
 
     /**
@@ -179,7 +192,7 @@ class DetoxRankViewModel(
                 userDataRepository.updateMonthlyTasksLastRefreshTime(System.currentTimeMillis())
                 addTaskRefreshes(5)
             }
-            sharedPrefs.edit().putBoolean("first_run", false).apply()
+            sharedPrefs.edit { putBoolean("first_run", false) }
         }
     }
 
@@ -277,17 +290,61 @@ class DetoxRankViewModel(
     }
 
     suspend fun updateUserRankPoints(toAdd: Int) {
+        // Get current rank before update
+        val currentRankPoints = userDataRepository.getUserStream().first().rankPoints
+        val oldRankInfo = getCurrentRank(currentRankPoints)
+        val oldRank = oldRankInfo.first
+        
+        // Update rank points
         withContext(Dispatchers.IO) {
             userDataRepository.updateRankPoints(toAdd)
+        }
+        
+        // Check if rank changed
+        val newRankPoints = currentRankPoints + toAdd
+        val newRankInfo = getCurrentRank(newRankPoints)
+        val newRank = newRankInfo.first
+        
+        if (newRank != oldRank && toAdd > 0) {
+            // Rank up! Show popup
+            val rankIcon = getRankDrawableId(newRank)
+            PopupManager.showRankUp(newRank, rankIcon)
+        }
+    }
+    
+    /**
+     * Returns drawable ID of a rank
+     */
+    private fun getRankDrawableId(rank: Rank): Int {
+        return when (rank) {
+            Rank.Bronze1 -> R.drawable.bronze1
+            Rank.Bronze2 -> R.drawable.bronze2
+            Rank.Bronze3 -> R.drawable.bronze3
+            Rank.Silver1 -> R.drawable.silver1
+            Rank.Silver2 -> R.drawable.silver2
+            Rank.Silver3 -> R.drawable.silver3
+            Rank.Gold1 -> R.drawable.gold1
+            Rank.Gold2 -> R.drawable.gold2
+            Rank.Gold3 -> R.drawable.gold3
+            Rank.Platinum1 -> R.drawable.plat1
+            Rank.Platinum2 -> R.drawable.plat2
+            Rank.Platinum3 -> R.drawable.plat3
+            Rank.Diamond1 -> R.drawable.diamond1
+            Rank.Diamond2 -> R.drawable.diamond2
+            Rank.Diamond3 -> R.drawable.diamond3
+            Rank.Master -> R.drawable.master
+            Rank.Legend -> R.drawable.legend
         }
     }
 
     suspend fun completeAchievement(achievementId: Int) {
-        achievementRepository.getAchievementById(achievementId).collect { achievement ->
-            if (achievement != null && !achievement.achieved)
-                achievementRepository.update(achievement.copy(achieved = true))
+        val achievement = achievementRepository.getAchievementById(achievementId).first()
+        if (achievement != null && !achievement.achieved) {
+            achievementRepository.update(achievement.copy(achieved = true))
+            PopupManager.showAchievement(achievement.name, achievement.description, achievement.id)
         }
     }
+
 
     suspend fun getUserXPPoints(): Int {
         return userDataRepository.getUserStream().first().xpPoints
@@ -370,6 +427,16 @@ class DetoxRankViewModel(
             )
         }
     }
+
+    fun selectTheme(theme: UiTheme) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDataRepository.updateSelectedTheme(theme)
+            }
+        }
+    }
+
+
 
     suspend fun addTaskRefreshes(refreshesToAdd: Int) {
         val user = userDataRepository.getUserStream().first()

@@ -60,7 +60,7 @@ class TaskColors {
       CardDefaults.cardColors(MaterialTheme.colorScheme.errorContainer)
     } else {
       if (darkTheme) {
-        CardDefaults.cardColors(rank_color_ultra_dark)
+        CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceVariant)
       } else {
         CardDefaults.cardColors(rank_color_ultra_light)
       }

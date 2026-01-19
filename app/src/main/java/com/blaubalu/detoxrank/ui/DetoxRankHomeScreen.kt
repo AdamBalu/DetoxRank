@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -23,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
+import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
 import com.blaubalu.detoxrank.ui.rank.RankHomeScreen
@@ -37,11 +40,14 @@ import com.blaubalu.detoxrank.ui.utils.Constants.LOW_LEVEL_LOWER_CAP
 import com.blaubalu.detoxrank.ui.utils.Constants.LOW_LEVEL_UPPER_CAP
 import com.blaubalu.detoxrank.ui.utils.Constants.MIN_LEVEL_TO_UNLOCK_SPECIAL_TASKS
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
+import com.blaubalu.detoxrank.ui.utils.PopupQueueDisplay
 import com.blaubalu.detoxrank.ui.utils.getCurrentLevelFromXP
 import com.blaubalu.detoxrank.ui.utils.getCurrentProgressBarProgression
 import com.blaubalu.detoxrank.ui.utils.getLevelDrawableId
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.util.Calendar
+
 
 /**
  * Main content of the app. Handles the first run setup together
@@ -91,6 +97,7 @@ fun DetoxRankAppContent(
     }
 
     val detoxRankUiState = detoxRankViewModel.uiState.collectAsState().value
+    val userDataUiState = detoxRankViewModel.userDataUiState.collectAsState().value
     val onTabPressed =
         { section: Section -> detoxRankViewModel.updateCurrentSection(section = section) } // TODO reset home screen states if needed
 
@@ -135,55 +142,62 @@ fun DetoxRankAppContent(
         )
     )
 
-    when (detoxRankUiState.currentSection) {
-        Section.Rank -> {
-            RankHomeScreen(
-                navigationItemContentList = navigationItemContentList,
-                onTabPressed = onTabPressed,
-                navigationType = navigationType,
-                detoxRankUiState = detoxRankUiState,
-                achievementViewModel = achievementViewModel,
-                detoxRankViewModel = detoxRankViewModel
-            )
-        }
+    DetoxRankTheme(theme = userDataUiState.selectedTheme) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            when (detoxRankUiState.currentSection) {
+                Section.Rank -> {
+                    RankHomeScreen(
+                        navigationItemContentList = navigationItemContentList,
+                        onTabPressed = onTabPressed,
+                        navigationType = navigationType,
+                        detoxRankUiState = detoxRankUiState,
+                        achievementViewModel = achievementViewModel,
+                        detoxRankViewModel = detoxRankViewModel
+                    )
+                }
 
-        Section.Tasks -> {
-            TasksHomeScreen(
-                modifier = modifier,
-                timerService = timerService,
-                detoxRankUiState = detoxRankUiState,
-                detoxRankViewModel = detoxRankViewModel,
-                achievementViewModel = achievementViewModel,
-                taskViewModel = taskViewModel,
-                navigationType = navigationType,
-                onTabPressed = onTabPressed,
-                navigationItemContentList = navigationItemContentList
-            )
-        }
+                Section.Tasks -> {
+                    TasksHomeScreen(
+                        modifier = modifier,
+                        timerService = timerService,
+                        detoxRankUiState = detoxRankUiState,
+                        detoxRankViewModel = detoxRankViewModel,
+                        achievementViewModel = achievementViewModel,
+                        taskViewModel = taskViewModel,
+                        navigationType = navigationType,
+                        onTabPressed = onTabPressed,
+                        navigationItemContentList = navigationItemContentList
+                    )
+                }
 
-        Section.Timer -> {
-            TimerHomeScreen(
-                timerService = timerService,
-                onTabPressed = onTabPressed,
-                navigationItemContentList = navigationItemContentList,
-                navigationType = navigationType,
-                detoxRankUiState = detoxRankUiState,
-                detoxRankViewModel = detoxRankViewModel,
-                achievementViewModel = achievementViewModel
-            )
-        }
+                Section.Timer -> {
+                    TimerHomeScreen(
+                        timerService = timerService,
+                        onTabPressed = onTabPressed,
+                        navigationItemContentList = navigationItemContentList,
+                        navigationType = navigationType,
+                        detoxRankUiState = detoxRankUiState,
+                        detoxRankViewModel = detoxRankViewModel,
+                        achievementViewModel = achievementViewModel
+                    )
+                }
 
-        Section.Theory -> {
-            TheoryHomeScreen(
-                modifier = modifier,
-                onTabPressed = onTabPressed,
-                navigationItemContentList = navigationItemContentList,
-                navigationType = navigationType,
-                detoxRankUiState = detoxRankUiState,
-                detoxRankViewModel = detoxRankViewModel
-            )
+                Section.Theory -> {
+                    TheoryHomeScreen(
+                        modifier = modifier,
+                        onTabPressed = onTabPressed,
+                        navigationItemContentList = navigationItemContentList,
+                        navigationType = navigationType,
+                        detoxRankUiState = detoxRankUiState,
+                        detoxRankViewModel = detoxRankViewModel
+                    )
+                }
+            }
         }
     }
+
+    // Popup overlay for rank-ups and achievements
+    PopupQueueDisplay(theme = userDataUiState.selectedTheme)
 }
 
 @Composable
@@ -291,10 +305,23 @@ fun NavigationDrawerContent(
 @Composable
 fun DetoxRankTopAppBar(
     detoxRankViewModel: DetoxRankViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
     val currentLevel = detoxRankViewModel.getCurrentLevel()
     val coroutineScope = rememberCoroutineScope()
+    var showThemeSelector by remember { mutableStateOf(false) }
+    
+    // Get theme state
+    val userState by detoxRankViewModel.userDataUiState.collectAsState()
+    val currentTheme = userState.selectedTheme
+    val purchasedThemesString = userState.purchasedThemes
+    val purchasedThemes = remember(purchasedThemesString) {
+        purchasedThemesString.split(",").mapNotNull { 
+            try { UiTheme.valueOf(it.trim()) } catch (e: Exception) { null }
+        }.toSet()
+    }
+
 
     LaunchedEffect(Unit) {
         val xpPoints = detoxRankViewModel.getUserXPPoints()
@@ -336,38 +363,77 @@ fun DetoxRankTopAppBar(
             xpBarHeight = 45.dp
         }
     }
-    Column(
-        verticalArrangement = Arrangement.Center,
-        modifier = modifier.padding(top = 12.dp, start = 20.dp)
+    
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Box {
-            Image(
-                painterResource(getLevelDrawableId(currentLevel)),
-                null,
-                modifier = Modifier
-                    .size(levelBadgeSize)
-                    .zIndex(1f)
-            )
-
-            if (currentLevel != 25) {
-                LinearProgressIndicator(
-                    progress = animatedProgress,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        Column(
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(start = 20.dp)
+        ) {
+            Box {
+                Image(
+                    painterResource(getLevelDrawableId(currentLevel)),
+                    null,
                     modifier = Modifier
-                        .height(xpBarHeight)
-                        .padding(start = xpBarPaddingStart, end = 16.dp, top = xpBarPaddingTop)
-                        .fillMaxWidth(0.35f)
-                        .clip(RoundedCornerShape(2.dp))
-                        .border(
-                            BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
-                            RoundedCornerShape(2.dp)
-                        )
+                        .size(levelBadgeSize)
+                        .zIndex(1f)
                 )
+
+                if (currentLevel != 25) {
+                    LinearProgressIndicator(
+                        progress = animatedProgress,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .height(xpBarHeight)
+                            .padding(start = xpBarPaddingStart, end = 16.dp, top = xpBarPaddingTop)
+                            .fillMaxWidth(0.35f)
+                            .clip(RoundedCornerShape(2.dp))
+                            .border(
+                                BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
+                                RoundedCornerShape(2.dp)
+                            )
+                    )
+                }
             }
         }
+        
+        // Actions and Theme selector
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(end = 16.dp)
+        ) {
+            actions()
+            ThemeSelectorButton(
+                onClick = { showThemeSelector = true }
+            )
+        }
     }
+    
+    // Theme selector bottom sheet
+    ThemeSelectorSheet(
+        isVisible = showThemeSelector,
+        currentTheme = currentTheme,
+        purchasedThemes = purchasedThemes,
+        onThemeSelected = { theme ->
+            coroutineScope.launch {
+                detoxRankViewModel.selectTheme(theme)
+            }
+            showThemeSelector = false
+        },
+        onPurchaseTheme = { theme ->
+            // TODO: Implement Google Play Billing purchase flow
+            // For now, just show a toast or dialog
+        },
+        onDismiss = { showThemeSelector = false }
+    )
 }
+
 
 data class NavigationItemContent(
     val section: Section,

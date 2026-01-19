@@ -49,5 +49,11 @@ data class UserData(
     @ColumnInfo(name = "available_task_refreshes", defaultValue = "0")
     val availableTaskRefreshes: Int,
     @ColumnInfo(name = "last_timer_rp_gather_time", defaultValue = "0")
-    val lastTimerRpGatherTime: Long = 0
+    val lastTimerRpGatherTime: Long = 0,
+    @param:TypeConverters(Converters::class)
+    @ColumnInfo(name = "selected_theme", defaultValue = "Default")
+    val selectedTheme: UiTheme = UiTheme.Default,
+    @ColumnInfo(name = "purchased_themes", defaultValue = "Default,Light,Dark")
+    val purchasedThemes: String = "Default,Light,Dark"
 )
+

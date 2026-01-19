@@ -107,25 +107,23 @@ fun RankContent(
         }
         Scaffold(
             topBar = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    DetoxRankTopAppBar(detoxRankViewModel = detoxRankViewModel)
-                    IconButton(
-                        onClick = { rankViewModel.setHelpDisplayed(true) },
-                        modifier = Modifier
-                            .padding(end = 15.dp)
-                            .size(27.dp)
-                    ) {
-                        Icon(
-                            Icons.Rounded.Help,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondaryContainer,
-                        )
+                DetoxRankTopAppBar(
+                    detoxRankViewModel = detoxRankViewModel,
+                    actions = {
+                        IconButton(
+                            onClick = { rankViewModel.setHelpDisplayed(true) },
+                            modifier = Modifier
+                                .padding(end = 5.dp)
+                                .size(27.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.Help,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondaryContainer,
+                            )
+                        }
                     }
-                }
+                )
             },
             bottomBar = {
                 if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION)

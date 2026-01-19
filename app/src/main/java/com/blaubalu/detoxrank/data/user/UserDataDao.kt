@@ -49,4 +49,7 @@ interface UserDataDao {
 
     @Query("UPDATE user_data SET timer_difficulty = :value WHERE id = 1")
     fun updateTimerDifficulty(value: TimerDifficulty)
+
+    @Query("UPDATE user_data SET selected_theme = :value WHERE id = 1")
+    fun updateSelectedTheme(value: UiTheme)
 }

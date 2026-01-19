@@ -1,6 +1,7 @@
 package com.blaubalu.detoxrank.ui
 
 import com.blaubalu.detoxrank.data.TimerDifficulty
+import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.data.user.UserData
 
 data class UserDataUiState(
@@ -17,6 +18,8 @@ data class UserDataUiState(
     val pagesRead: Int = 0,
     val availableTaskRefreshes: Int = 0,
     val lastTimerRpGatherTime: Long = 0,
+    val selectedTheme: UiTheme = UiTheme.Default,
+    val purchasedThemes: String = "Default,Light,Dark"
 )
 
 fun UserDataUiState.toUserData(): UserData = UserData(
@@ -32,7 +35,9 @@ fun UserDataUiState.toUserData(): UserData = UserData(
     tasksFinished = tasksFinished,
     pagesRead = pagesRead,
     availableTaskRefreshes = availableTaskRefreshes,
-    lastTimerRpGatherTime = lastTimerRpGatherTime
+    lastTimerRpGatherTime = lastTimerRpGatherTime,
+    selectedTheme = selectedTheme,
+    purchasedThemes = purchasedThemes
 )
 
 fun UserData.toUserDataUiState(): UserDataUiState = UserDataUiState(
@@ -48,5 +53,7 @@ fun UserData.toUserDataUiState(): UserDataUiState = UserDataUiState(
     tasksFinished = tasksFinished,
     pagesRead = pagesRead,
     availableTaskRefreshes = availableTaskRefreshes,
-    lastTimerRpGatherTime = lastTimerRpGatherTime
+    lastTimerRpGatherTime = lastTimerRpGatherTime,
+    selectedTheme = selectedTheme,
+    purchasedThemes = purchasedThemes
 )

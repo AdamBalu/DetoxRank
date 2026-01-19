@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.blaubalu.detoxrank.ui.utils.PopupManager
 
 class AchievementViewModel(
     private val achievementRepository: AchievementRepository,
@@ -96,8 +97,10 @@ class AchievementViewModel(
                     achieved = true
                 )
             )
+            PopupManager.showAchievement(achievement.name, achievement.description, achievement.id)
         }
     }
+
 
     /**
      * Achieves achievements related to timer

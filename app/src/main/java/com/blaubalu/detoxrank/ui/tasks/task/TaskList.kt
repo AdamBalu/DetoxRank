@@ -50,6 +50,7 @@ import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.DetoxRankViewModelProvider
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
 import com.blaubalu.detoxrank.ui.tasks.home.TasksHeading
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
 import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.Constants.DAILY_TASK_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.MONTHLY_TASK_RP_GAIN
@@ -355,10 +356,9 @@ fun Task(
   val uiState = detoxRankViewModel.uiState.collectAsState().value
   val multiplier = getTaskMultiplier(uiState)
   val rankPointsGain = getRPGain(task, multiplier)
-  val darkTheme = isSystemInDarkTheme()
+  val darkTheme = LocalThemeIsDark.current
   val taskToBeEdited = remember { mutableStateOf(false) }
   val taskColors = remember { TaskColors() }
-
 
   val currentModifier = modifier.buildTaskModifier(
     task = task,

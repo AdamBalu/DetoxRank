@@ -184,36 +184,33 @@ fun TasksContent(
           }
         },
         topBar = {
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.SpaceBetween
-          ) {
-            DetoxRankTopAppBar(detoxRankViewModel)
-            Row {
-              Icon(
-                  imageVector = Icons.Filled.Refresh,
-                  contentDescription = null,
-                  tint = MaterialTheme.colorScheme.primary,
-                  modifier = modifier.padding(end = 5.dp)
-              )
-              AnimatedContent(
-                  targetState = userDataUiState.availableTaskRefreshes,
-                  transitionSpec = {
-                    expandVertically() + fadeIn() togetherWith
-                        slideOutVertically() + fadeOut()
-                  },
-                  label = ""
-              ) { targetState ->
-                Text(
-                    "$targetState",
-                    fontWeight = FontWeight.Bold,
-                    modifier = modifier.padding(end = 30.dp)
-                )
+          DetoxRankTopAppBar(
+              detoxRankViewModel = detoxRankViewModel,
+              actions = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                      imageVector = Icons.Filled.Refresh,
+                      contentDescription = null,
+                      tint = MaterialTheme.colorScheme.primary,
+                      modifier = Modifier.padding(end = 5.dp)
+                  )
+                  AnimatedContent(
+                      targetState = userDataUiState.availableTaskRefreshes,
+                      transitionSpec = {
+                        expandVertically() + fadeIn() togetherWith
+                            slideOutVertically() + fadeOut()
+                      },
+                      label = ""
+                  ) { targetState ->
+                    Text(
+                        "$targetState",
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 15.dp)
+                    )
+                  }
+                }
               }
-
-            }
-          }
+          )
         },
         bottomBar = {
           if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION)

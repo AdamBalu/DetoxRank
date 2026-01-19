@@ -30,6 +30,9 @@ import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.service.TimerState
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.theme.Typography
+import com.blaubalu.detoxrank.ui.theme.common_green
+import com.blaubalu.detoxrank.ui.theme.md_theme_light_error
+import com.blaubalu.detoxrank.ui.theme.rare_blue
 import com.blaubalu.detoxrank.ui.utils.Constants.RP_PERCENTAGE_GAIN_TIMER_EASY_DIFFICULTY
 import com.blaubalu.detoxrank.ui.utils.Constants.RP_PERCENTAGE_GAIN_TIMER_HARD_DIFFICULTY
 import com.blaubalu.detoxrank.ui.utils.Constants.RP_PERCENTAGE_GAIN_TIMER_MEDIUM_DIFFICULTY
@@ -106,9 +109,9 @@ fun DifficultyCard(
 
     val cardColor = if (currentDifficulty == card.difficulty) {
         when (card.difficulty) {
-            TimerDifficulty.Easy -> MaterialTheme.colorScheme.tertiary
-            TimerDifficulty.Medium -> MaterialTheme.colorScheme.primary
-            TimerDifficulty.Hard -> MaterialTheme.colorScheme.error
+            TimerDifficulty.Easy -> common_green
+            TimerDifficulty.Medium -> rare_blue
+            TimerDifficulty.Hard -> md_theme_light_error
         }
     } else {
         MaterialTheme.colorScheme.outline

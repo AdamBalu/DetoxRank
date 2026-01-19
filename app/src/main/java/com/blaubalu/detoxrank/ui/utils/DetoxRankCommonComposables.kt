@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
 import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theme.md_theme_dark_tertiary
 import com.blaubalu.detoxrank.ui.theme.md_theme_light_tertiary
@@ -50,7 +52,7 @@ fun RankPointsGain(
     Icon(
         imageVector = Icons.Filled.Add,
         contentDescription = null,
-        tint = if (isSystemInDarkTheme()) md_theme_dark_tertiary else md_theme_light_tertiary,
+        tint = if (LocalThemeIsDark.current) md_theme_dark_tertiary else md_theme_light_tertiary,
         modifier = Modifier
             .size(plusIconSize)
     )
@@ -79,12 +81,19 @@ fun RankPointsGain(
 fun <T> T.AnimationBox(
     enter: EnterTransition = expandHorizontally() + fadeIn(),
     exit: ExitTransition = fadeOut() + slideOutHorizontally(),
+    animateOnAppear: Boolean = true,
     content: @Composable T.() -> Unit
 ) {
   val state = remember {
     MutableTransitionState(false).apply {
-      // start the animation immediately
-      targetState = true
+      // If we don't animate on appear, start in the target state
+      targetState = !animateOnAppear
+    }
+  }
+
+  LaunchedEffect(Unit) {
+    if (animateOnAppear) {
+      state.targetState = true
     }
   }
 

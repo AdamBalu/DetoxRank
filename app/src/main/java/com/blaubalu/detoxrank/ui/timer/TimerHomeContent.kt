@@ -198,7 +198,8 @@ fun TimerBody(
         AnimationBox(
             enter = slideInHorizontally(animationSpec = tween(durationMillis = 700)) + fadeIn(
                 animationSpec = tween(durationMillis = 1200)
-            )
+            ),
+            animateOnAppear = false
         ) {
             TimerFooter(
                 timerService = timerService,
@@ -269,7 +270,7 @@ fun TimerBodyLarge(
             }
         }
 
-        AnimationBox(enter = slideInVertically { x -> x - 400 } + fadeIn()) {
+        AnimationBox(enter = slideInVertically { x -> x - 400 } + fadeIn(), animateOnAppear = false) {
             TimerFooterLarge(
                 timerService = timerService,
                 detoxRankUiState = detoxRankUiState,

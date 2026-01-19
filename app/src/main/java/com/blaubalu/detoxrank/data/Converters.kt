@@ -6,6 +6,7 @@ import com.blaubalu.detoxrank.data.chapter.ChapterDifficulty
 import com.blaubalu.detoxrank.data.chapter.ChapterTag
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.data.task.TaskIconCategory
+import com.blaubalu.detoxrank.data.user.UiTheme
 
 /**
  * Converts the non-trivial data types to setup for database insertion and extraction
@@ -38,4 +39,9 @@ class Converters {
     fun fromAchievementDifficulty(difficulty: AchievementDifficulty): String = difficulty.name
     @TypeConverter
     fun toAchievementDifficulty(difficulty: String): AchievementDifficulty = AchievementDifficulty.valueOf(difficulty)
+
+    @TypeConverter
+    fun fromUiTheme(theme: UiTheme): String = theme.name
+    @TypeConverter
+    fun toUiTheme(theme: String): UiTheme = UiTheme.valueOf(theme)
 }

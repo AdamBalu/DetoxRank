@@ -26,6 +26,7 @@ import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.achievements.AchievementDifficulty
 import com.blaubalu.detoxrank.data.local.LocalAchievementDataProvider
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
 import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theme.common_green
 import com.blaubalu.detoxrank.ui.theme.epic_purple
@@ -127,7 +128,7 @@ fun AchievementsScreen(
                                 if (!achievement.achieved) {
                                     Box(modifier = Modifier.padding(10.dp)) {
                                         Image(
-                                            painterResource(id = getAchievementDrawableFromId(achievement.id, isSystemInDarkTheme())),
+                                            painterResource(id = getAchievementDrawableFromId(achievement.id, LocalThemeIsDark.current)),
                                             contentDescription = null,
                                             colorFilter = ColorFilter.tint(Color.Gray),
                                             modifier = Modifier.size(80.dp)
@@ -142,7 +143,7 @@ fun AchievementsScreen(
                                 } else {
                                     Box(modifier = Modifier.padding(start = 0.dp, end = 10.dp, bottom = 10.dp, top = 2.dp)) {
                                         Image(
-                                            painterResource(id = getAchievementDrawableFromId(achievement.id, isSystemInDarkTheme())),
+                                            painterResource(id = getAchievementDrawableFromId(achievement.id, LocalThemeIsDark.current)),
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(90.dp)
