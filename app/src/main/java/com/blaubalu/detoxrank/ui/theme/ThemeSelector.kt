@@ -124,7 +124,7 @@ fun ThemeSelectorButton(
         Icon(
             imageVector = Icons.Filled.Palette,
             contentDescription = "Select Theme",
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.secondaryContainer
         )
     }
 }

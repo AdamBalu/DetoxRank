@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -92,7 +93,10 @@ fun RankWithProgressBar(
         Image(
             painterResource(id = getRankDrawableId(currentRank)),
             contentDescription = null,
-            modifier = Modifier.padding(bottom = 25.dp, start = 16.dp, end = 16.dp).fillMaxWidth(rankWidthFraction)
+            modifier = Modifier
+                .padding(bottom = 25.dp, start = 16.dp, end = 16.dp)
+                .fillMaxWidth(rankWidthFraction)
+                .clickable { rankViewModel.setRanksDisplayed(true) }
         )
         Box {
             Text(
@@ -180,7 +184,10 @@ fun RankWithProgressBarLarge(
             Image(
                 painterResource(id = getRankDrawableId(currentRank)),
                 contentDescription = null,
-                modifier = Modifier.padding(bottom = 5.dp, start = 16.dp, end = 16.dp).width(rankImageWidth)
+                modifier = Modifier
+                    .padding(bottom = 5.dp, start = 16.dp, end = 16.dp)
+                    .width(rankImageWidth)
+                    .clickable { rankViewModel.setRanksDisplayed(true) }
             )
             Column {
                 Text(

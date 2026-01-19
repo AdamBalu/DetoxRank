@@ -110,7 +110,6 @@ fun RankContent(
       topBar = {
         DetoxRankTopAppBar(
           detoxRankViewModel = detoxRankViewModel,
-          onRankIconClick = { rankViewModel.setRanksDisplayed(true) },
           actions = {
             IconButton(
               onClick = { rankViewModel.setHelpDisplayed(true) },

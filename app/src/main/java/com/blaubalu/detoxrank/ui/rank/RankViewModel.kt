@@ -38,7 +38,7 @@ class RankViewModel(
         private const val TIMEOUT_MILLIS = 5_000L
     }
 
-    private val _ranksDisplayed = mutableStateOf(true)
+    private val _ranksDisplayed = mutableStateOf(false)
     val ranksDisplayed: MutableState<Boolean>
         get() = _ranksDisplayed
 
