@@ -1,6 +1,12 @@
 package com.blaubalu.detoxrank.ui.utils
 
 object Constants {
+    /**
+     * Testing switch: while true, every theme is selectable regardless of level
+     * or purchases. Set to false to re-enable the level wall + per-theme paywall.
+     */
+    const val ALL_THEMES_UNLOCKED_FOR_TESTING = true
+
     const val ACTION_SERVICE_START = "ACTION_SERVICE_START"
     const val ACTION_SERVICE_CANCEL = "ACTION_SERVICE_CANCEL"
 
@@ -145,4 +151,6 @@ object Constants {
     const val LOW_LEVEL_UPPER_CAP = 14
     const val HIGH_LEVEL_LOWER_CAP = 15
     const val HIGH_LEVEL_UPPER_CAP = 25
+
+    const val MAX_LEVEL = 25
 }

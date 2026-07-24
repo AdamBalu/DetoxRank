@@ -20,5 +20,6 @@ interface UserDataRepository {
     fun updateWeeklyTasksLastRefreshTime(time: Long)
     fun updateMonthlyTasksLastRefreshTime(time: Long)
     fun updateSelectedTheme(theme: UiTheme)
+    fun updatePurchasedThemes(themes: String)
 }
 

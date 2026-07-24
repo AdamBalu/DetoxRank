@@ -52,4 +52,7 @@ interface UserDataDao {
 
     @Query("UPDATE user_data SET selected_theme = :value WHERE id = 1")
     fun updateSelectedTheme(value: UiTheme)
+
+    @Query("UPDATE user_data SET purchased_themes = :value WHERE id = 1")
+    fun updatePurchasedThemes(value: String)
 }

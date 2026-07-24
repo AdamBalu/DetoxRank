@@ -1,7 +1,10 @@
 package com.blaubalu.detoxrank.ui.theory.screens.chapter_hedonic_circuit
 
+import androidx.compose.material3.MaterialTheme
+
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theory.TheoryImage
 import com.blaubalu.detoxrank.ui.theory.screens.ContinueIconButton
 
@@ -45,10 +47,10 @@ fun CHHedonicCircuitIntro(
 fun CHHedonicCircuitIntroBody(
     modifier: Modifier = Modifier
 ) {
-    val darkTheme = isSystemInDarkTheme()
+    val darkTheme = LocalThemeIsDark.current
     Text(
         text = stringResource(R.string.chapter_hedonic_circuit_screen_1_pt_1),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 
     Column(
@@ -67,7 +69,7 @@ fun CHHedonicCircuitIntroBody(
 
     Text(
         text = stringResource(R.string.chapter_hedonic_circuit_screen_1_pt_2),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 
     Column(
@@ -86,7 +88,7 @@ fun CHHedonicCircuitIntroBody(
 
     Text(
         text = stringResource(R.string.chapter_hedonic_circuit_screen_1_pt_3),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 }
 

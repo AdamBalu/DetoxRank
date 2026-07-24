@@ -1,7 +1,10 @@
 package com.blaubalu.detoxrank.ui.theory.screens.chapter_solution
 
+import androidx.compose.material3.MaterialTheme
+
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -14,7 +17,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theory.TheoryImage
 import com.blaubalu.detoxrank.ui.theory.TheoryViewModel
 import com.blaubalu.detoxrank.ui.theory.screens.CompleteChapterIconButton
@@ -51,11 +53,11 @@ fun CHSolutionSummary(
 fun CHSolutionSummaryBody() {
     Text(
         text = stringResource(id = R.string.chapter_solution_screen_5_pt_1),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
-    TheoryImage(imageRes = if (isSystemInDarkTheme()) R.drawable.timer else R.drawable.timer_light)
+    TheoryImage(imageRes = if (LocalThemeIsDark.current) R.drawable.timer else R.drawable.timer_light)
     Text(
         text = stringResource(id = R.string.chapter_solution_screen_5_pt_2),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 }

@@ -1,7 +1,10 @@
 package com.blaubalu.detoxrank.ui.theory.screens.chapter_introduction
 
+import androidx.compose.material3.MaterialTheme
+
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -13,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theory.TheoryImage
 import com.blaubalu.detoxrank.ui.theory.screens.ContinueIconButton
 
@@ -45,17 +47,17 @@ fun CHIIntroDilemmaBody(
 ) {
     Text(
         stringResource(id = R.string.chapter_intro_screen_2_pt_1),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
     TheoryImage(
-        imageRes = if (isSystemInDarkTheme())
+        imageRes = if (LocalThemeIsDark.current)
             R.drawable.tasks_with_timer
         else
             R.drawable.tasks_with_timer_light
     )
     Text(
         stringResource(id = R.string.chapter_intro_screen_2_pt_2),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 }
 

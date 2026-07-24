@@ -45,7 +45,6 @@ import com.blaubalu.detoxrank.ui.utils.getCurrentLevelFromXP
 import com.blaubalu.detoxrank.ui.utils.getCurrentProgressBarProgression
 import com.blaubalu.detoxrank.ui.utils.getLevelDrawableId
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import java.util.Calendar
 
 
@@ -144,6 +143,11 @@ fun DetoxRankAppContent(
 
     DetoxRankTheme(theme = userDataUiState.selectedTheme) {
         Surface(color = MaterialTheme.colorScheme.background) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .themeTexture(userDataUiState.selectedTheme)
+            ) {
             when (detoxRankUiState.currentSection) {
                 Section.Rank -> {
                     RankHomeScreen(
@@ -192,6 +196,7 @@ fun DetoxRankAppContent(
                         detoxRankViewModel = detoxRankViewModel
                     )
                 }
+            }
             }
         }
     }
@@ -308,23 +313,23 @@ fun DetoxRankTopAppBar(
     modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
-    val currentLevel = detoxRankViewModel.getCurrentLevel()
-    val coroutineScope = rememberCoroutineScope()
+    val uiState by detoxRankViewModel.uiState.collectAsState()
+    val currentLevel = uiState.currentLevel
     var showThemeSelector by remember { mutableStateOf(false) }
-    
+
     // Get theme state
     val userState by detoxRankViewModel.userDataUiState.collectAsState()
     val currentTheme = userState.selectedTheme
     val purchasedThemesString = userState.purchasedThemes
     val purchasedThemes = remember(purchasedThemesString) {
-        purchasedThemesString.split(",").mapNotNull { 
-            try { UiTheme.valueOf(it.trim()) } catch (e: Exception) { null }
+        purchasedThemesString.split(",").mapNotNull {
+            try { UiTheme.valueOf(it.trim()) } catch (e: IllegalArgumentException) { null }
         }.toSet()
     }
 
 
     LaunchedEffect(Unit) {
-        val xpPoints = detoxRankViewModel.getUserXPPoints()
+        val xpPoints = detoxRankViewModel.getUserXpPoints()
         val currentLevelToUpdate = getCurrentLevelFromXP(xpPoints = xpPoints)
         detoxRankViewModel.setCurrentLevel(currentLevelToUpdate)
 
@@ -333,7 +338,7 @@ fun DetoxRankTopAppBar(
     }
 
     val animatedProgress = animateFloatAsState(
-        targetValue = detoxRankViewModel.getLevelProgressBarValue(),
+        targetValue = uiState.levelProgressBarProgression,
         animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec, label = ""
     ).value
 
@@ -419,16 +424,12 @@ fun DetoxRankTopAppBar(
     ThemeSelectorSheet(
         isVisible = showThemeSelector,
         currentTheme = currentTheme,
+        currentLevel = currentLevel,
+        currentRank = detoxRankViewModel.getCurrentRank(userState.rankPoints).first,
         purchasedThemes = purchasedThemes,
         onThemeSelected = { theme ->
-            coroutineScope.launch {
-                detoxRankViewModel.selectTheme(theme)
-            }
+            detoxRankViewModel.selectTheme(theme)
             showThemeSelector = false
-        },
-        onPurchaseTheme = { theme ->
-            // TODO: Implement Google Play Billing purchase flow
-            // For now, just show a toast or dialog
         },
         onDismiss = { showThemeSelector = false }
     )

@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,7 +31,6 @@ import com.blaubalu.detoxrank.ui.NavigationDrawerContent
 import com.blaubalu.detoxrank.ui.NavigationItemContent
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.ui.*
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.Constants.LEGEND_LOWER_CAP
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
@@ -107,6 +107,7 @@ fun RankContent(
       )
     }
     Scaffold(
+      containerColor = Color.Transparent,
       topBar = {
         DetoxRankTopAppBar(
           detoxRankViewModel = detoxRankViewModel,
@@ -158,6 +159,26 @@ fun RankContent(
 }
 
 /**
+ * Loads the rank, its bounds and the rank progress bar percentage into the ui state
+ */
+private suspend fun initRankScreenState(
+  detoxRankViewModel: DetoxRankViewModel,
+  rankViewModel: RankViewModel
+) {
+  rankViewModel.setLocalRankPoints()
+  val rankPoints = detoxRankViewModel.getUserRankPoints()
+  val (currentRank, rankBounds) = detoxRankViewModel.getCurrentRank(rankPoints)
+  rankViewModel.setLocalRankBounds(rankBounds)
+  detoxRankViewModel.setCurrentRank(currentRank)
+  val progressBarPercentage = if (rankPoints >= LEGEND_LOWER_CAP) {
+    1.0f
+  } else {
+    (rankPoints - rankBounds.first).toFloat() / (rankBounds.second + 1 - rankBounds.first)
+  }
+  detoxRankViewModel.setRankProgressBar(progressBarPercentage)
+}
+
+/**
  * Main screen components of rank section for small screens
  */
 @Composable
@@ -167,8 +188,6 @@ fun RankMainScreenBody(
   rankViewModel: RankViewModel,
   modifier: Modifier = Modifier
 ) {
-  val coroutineScope = rememberCoroutineScope()
-
   val currentScreenHeight = LocalConfiguration.current.screenHeightDp
   val achievementsPadding = if (currentScreenHeight < 500) 4.dp
   else if (currentScreenHeight < 600) 8.dp
@@ -177,18 +196,7 @@ fun RankMainScreenBody(
   else 15.dp
 
   LaunchedEffect(Unit) {
-    rankViewModel.setLocalRankPoints()
-    val rankPoints = detoxRankViewModel.getUserRankPoints()
-    val currRankPair = detoxRankViewModel.getCurrentRank(rankPoints)
-    val currentRank = currRankPair.first
-    rankViewModel.setLocalRankBounds(currRankPair.second)
-    detoxRankViewModel.setCurrentRank(currentRank)
-    val progressBarPercentage = if (rankPoints >= LEGEND_LOWER_CAP) {
-      1.0f
-    } else {
-      (rankPoints - currRankPair.second.first).toFloat() / (currRankPair.second.second - currRankPair.second.first)
-    }
-    detoxRankViewModel.setRankProgressBar(progressBarPercentage)
+    initRankScreenState(detoxRankViewModel, rankViewModel)
   }
 
   Box(
@@ -261,7 +269,7 @@ fun RankMainScreenBody(
               top = achievementsPadding,
               bottom = achievementsPadding + 4.dp
             ),
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
           )
           Icon(
             Icons.Filled.KeyboardArrowUp,
@@ -289,18 +297,7 @@ fun RankMainScreenBodyLarge(
   modifier: Modifier = Modifier
 ) {
   LaunchedEffect(Unit) {
-    rankViewModel.setLocalRankPoints()
-    val rankPoints = detoxRankViewModel.getUserRankPoints()
-    val currRankPair = detoxRankViewModel.getCurrentRank(rankPoints)
-    val currentRank = currRankPair.first
-    rankViewModel.setLocalRankBounds(currRankPair.second)
-    detoxRankViewModel.setCurrentRank(currentRank)
-    val progressBarPercentage = if (rankPoints >= LEGEND_LOWER_CAP) {
-      1.0f
-    } else {
-      (rankPoints - currRankPair.second.first).toFloat() / (currRankPair.second.second - currRankPair.second.first)
-    }
-    detoxRankViewModel.setRankProgressBar(progressBarPercentage)
+    initRankScreenState(detoxRankViewModel, rankViewModel)
   }
 
   Box(
@@ -368,7 +365,7 @@ fun RankMainScreenBodyLarge(
           Text(
             stringResource(R.string.achievements),
             modifier = Modifier.padding(top = 9.dp, bottom = 5.dp),
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
           )
           Icon(
             Icons.Filled.KeyboardArrowUp,

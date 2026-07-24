@@ -51,7 +51,6 @@ import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.data.task.TaskIconCategory
 import com.blaubalu.detoxrank.ui.tasks.task.TaskUiState
 import com.blaubalu.detoxrank.ui.tasks.task.TaskViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.utils.getIcon
 import com.blaubalu.detoxrank.ui.utils.toastShort
 import kotlinx.coroutines.launch
@@ -94,7 +93,7 @@ fun CreateTaskMenu(
       ) {
         Text(
             text = stringResource(R.string.custom_task_label),
-            style = Typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
                 .align(Alignment.CenterVertically)

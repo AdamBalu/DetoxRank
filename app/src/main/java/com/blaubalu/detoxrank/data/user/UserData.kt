@@ -8,7 +8,8 @@ import com.blaubalu.detoxrank.data.Converters
 import com.blaubalu.detoxrank.data.TimerDifficulty
 
 enum class UiTheme {
-    Default, Light, Dark, Monochrome, GreenShades, BlueShades
+    Default, Light, Dark, Monochrome, GreenShades, BlueShades,
+    Luxury, Comic, Sketch, Cartoon, Paper, Blueprint, Pixel, Master
 }
 
 enum class Rank(val rankName: String) {

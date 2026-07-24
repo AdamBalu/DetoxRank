@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.sp
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.user.Rank
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theme.rank_color
 import com.blaubalu.detoxrank.ui.theme.rank_color_shade
 import com.blaubalu.detoxrank.ui.theme.rank_color_ultra_dark
@@ -78,7 +77,7 @@ fun RankWithProgressBar(
         Text(
             stringResource(R.string.rank_label),
             textAlign = TextAlign.Center,
-            style = Typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Bold,
             fontStyle = FontStyle.Normal,
             color = MaterialTheme.colorScheme.outline,
@@ -87,7 +86,7 @@ fun RankWithProgressBar(
         Text(
             currentRank.rankName,
             textAlign = TextAlign.Center,
-            style = Typography.headlineLarge,
+            style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(bottom = 20.dp)
         )
         Image(
@@ -101,7 +100,7 @@ fun RankWithProgressBar(
         Box {
             Text(
                 stringResource(R.string.rank_points_label),
-                style = Typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.outline,
@@ -193,7 +192,7 @@ fun RankWithProgressBarLarge(
                 Text(
                     stringResource(R.string.rank_label),
                     textAlign = TextAlign.Center,
-                    style = Typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold,
                     fontStyle = FontStyle.Normal,
                     color = MaterialTheme.colorScheme.outline,
@@ -202,7 +201,7 @@ fun RankWithProgressBarLarge(
                 Text(
                     currentRank.rankName,
                     textAlign = TextAlign.Center,
-                    style = Typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineLarge,
                     modifier = Modifier.padding(end = 50.dp)
                 )
             }
@@ -211,7 +210,7 @@ fun RankWithProgressBarLarge(
         Box {
             Text(
                 stringResource(R.string.rank_points_label),
-                style = Typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.outline,

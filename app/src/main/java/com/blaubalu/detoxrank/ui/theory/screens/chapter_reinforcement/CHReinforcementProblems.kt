@@ -1,7 +1,10 @@
 package com.blaubalu.detoxrank.ui.theory.screens.chapter_reinforcement
 
+import androidx.compose.material3.MaterialTheme
+
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,7 +22,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theme.md_theme_dark_tertiary
 import com.blaubalu.detoxrank.ui.theme.md_theme_light_tertiary
 import com.blaubalu.detoxrank.ui.theory.TheoryImage
@@ -51,7 +53,7 @@ fun CHReinforcementProblems(
 fun CHReinforcementProblemsBody(
     modifier: Modifier = Modifier
 ) {
-    val darkTheme = isSystemInDarkTheme()
+    val darkTheme = LocalThemeIsDark.current
     val boldStyle = SpanStyle(
         color = if (darkTheme) md_theme_dark_tertiary else md_theme_light_tertiary,
         fontWeight = FontWeight.Bold
@@ -63,7 +65,7 @@ fun CHReinforcementProblemsBody(
             append(".\n")
             append(text = stringResource(id = R.string.chapter_reinforcement_screen_4_pt_2))
         },
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 
     Column(
@@ -82,7 +84,7 @@ fun CHReinforcementProblemsBody(
 
     Text(
         text = stringResource(id = R.string.chapter_reinforcement_screen_4_pt_3),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 
     TheoryImage(
@@ -93,7 +95,7 @@ fun CHReinforcementProblemsBody(
     )
     Text(
         text = stringResource(id = R.string.chapter_reinforcement_screen_4_pt_4),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 }
 

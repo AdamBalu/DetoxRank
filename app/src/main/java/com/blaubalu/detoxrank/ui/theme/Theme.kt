@@ -26,7 +26,8 @@ private val LightColors = lightColorScheme(
     onSecondaryContainer = md_theme_light_onSecondaryContainer,
     tertiary = md_theme_light_tertiary,
     onTertiary = md_theme_light_onTertiary,
-    tertiaryContainer = md_theme_light_tertiaryContainer,
+    // the variant is what weekly task cards render; nothing else reads this slot
+    tertiaryContainer = md_theme_light_tertiaryContainerVariant,
     onTertiaryContainer = md_theme_light_onTertiaryContainer,
     error = md_theme_light_error,
     errorContainer = md_theme_light_errorContainer,
@@ -121,6 +122,176 @@ private val GreenShadesColors = darkColorScheme(
     inversePrimary = Color(0xFF4CAF50)
 )
 
+private val LuxuryColors = darkColorScheme(
+    primary = Color(0xFFE5C558),
+    onPrimary = Color(0xFF1A1403),
+    primaryContainer = Color(0xFF574410),
+    onPrimaryContainer = Color(0xFFF8E8B9),
+    secondary = Color(0xFFD3B36A),
+    onSecondary = Color(0xFF33280F), // Daily background
+    secondaryContainer = Color(0xFF4A3A12), // Nav indicator
+    tertiary = Color(0xFFF3E2AC), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF2A210C), // Weekly background
+    tertiaryContainer = Color(0xFF6B5518),
+    error = Color(0xFFE7C87B),
+    onError = Color(0xFF1D1706), // Monthly background (Darkest)
+    background = Color(0xFF12100A),
+    surface = Color(0xFF12100A),
+    onSurface = Color(0xFFF2EAD5),
+    surfaceVariant = Color(0xFF4D3F1C), // For custom tasks (Brightest)
+    inversePrimary = Color(0xFFE5C558)
+)
+
+private val ComicColors = darkColorScheme(
+    primary = Color(0xFFFF5252),
+    onPrimary = Color(0xFF250505),
+    primaryContainer = Color(0xFF7F1D1D),
+    onPrimaryContainer = Color(0xFFFFD9D9),
+    secondary = Color(0xFFFFD60A),
+    onSecondary = Color(0xFF38300A), // Daily background
+    secondaryContainer = Color(0xFF4A3D00), // Nav indicator
+    tertiary = Color(0xFF4FC3F7), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF0E2A38), // Weekly background
+    tertiaryContainer = Color(0xFF0277BD),
+    error = Color(0xFFFF8A80),
+    onError = Color(0xFF26060E), // Monthly background (Darkest)
+    background = Color(0xFF101B2D),
+    surface = Color(0xFF101B2D),
+    onSurface = Color(0xFFF2F6FF),
+    surfaceVariant = Color(0xFF31415E), // For custom tasks (Brightest)
+    inversePrimary = Color(0xFFFF5252)
+)
+
+private val SketchColors = darkColorScheme(
+    primary = Color(0xFFE8E6E1),
+    onPrimary = Color(0xFF20241F),
+    primaryContainer = Color(0xFF55584F),
+    onPrimaryContainer = Color(0xFFF0EFE9),
+    secondary = Color(0xFFBFC5B9),
+    onSecondary = Color(0xFF333831), // Daily background
+    secondaryContainer = Color(0xFF464B44), // Nav indicator
+    tertiary = Color(0xFFD9D5C8), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF2B2F2A), // Weekly background
+    tertiaryContainer = Color(0xFF6A6E64),
+    error = Color(0xFFCFCBC0),
+    onError = Color(0xFF1F231E), // Monthly background (Darkest)
+    background = Color(0xFF252A24),
+    surface = Color(0xFF252A24),
+    onSurface = Color(0xFFEDEBE4),
+    surfaceVariant = Color(0xFF4C524A), // For custom tasks (Brightest)
+    inversePrimary = Color(0xFFE8E6E1)
+)
+
+private val CartoonColors = darkColorScheme(
+    primary = Color(0xFFFF7AC6),
+    onPrimary = Color(0xFF33001B),
+    primaryContainer = Color(0xFF8E2464),
+    onPrimaryContainer = Color(0xFFFFD9EC),
+    secondary = Color(0xFF7FE3A0),
+    onSecondary = Color(0xFF17371F), // Daily background
+    secondaryContainer = Color(0xFF1F5230), // Nav indicator
+    tertiary = Color(0xFFFFC94D), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF33270B), // Weekly background
+    tertiaryContainer = Color(0xFF8A6A16),
+    error = Color(0xFFFF9E80),
+    onError = Color(0xFF1D0F2A), // Monthly background (Darkest)
+    background = Color(0xFF1A1035),
+    surface = Color(0xFF1A1035),
+    onSurface = Color(0xFFF6F1FF),
+    surfaceVariant = Color(0xFF3D2E63), // For custom tasks (Brightest)
+    inversePrimary = Color(0xFFFF7AC6)
+)
+
+// light variant of Sketch: graphite pencil on warm paper
+private val PaperColors = lightColorScheme(
+    primary = Color(0xFF4A4642),
+    onPrimary = Color(0xFFF7F3EA),
+    primaryContainer = Color(0xFFD8D2C4),
+    onPrimaryContainer = Color(0xFF35322C),
+    secondary = Color(0xFF6B665E),
+    onSecondary = Color(0xFFF7F3EA),
+    secondaryContainer = Color(0xFFE6E0D2), // Daily background + nav indicator
+    onSecondaryContainer = Color(0xFF34302A),
+    tertiary = Color(0xFF55524B), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFFF7F3EA),
+    tertiaryContainer = Color(0xFFDBD4C2), // Weekly background
+    onTertiaryContainer = Color(0xFF322F28),
+    error = Color(0xFF8C4A3F),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFE8CDC2), // Monthly background
+    onErrorContainer = Color(0xFF3A180F),
+    background = Color(0xFFF5F1E8),
+    onBackground = Color(0xFF34312B),
+    surface = Color(0xFFF5F1E8),
+    onSurface = Color(0xFF34312B),
+    surfaceVariant = Color(0xFFDAD5C8), // Completed tasks
+    onSurfaceVariant = Color(0xFF555147),
+    outline = Color(0xFF8A857A),
+    outlineVariant = Color(0xFFCAC4B5),
+    inversePrimary = Color(0xFFB8B2A5)
+)
+
+private val BlueprintColors = darkColorScheme(
+    primary = Color(0xFF7FD1FF),
+    onPrimary = Color(0xFF06263D),
+    primaryContainer = Color(0xFF14476B),
+    onPrimaryContainer = Color(0xFFD6EDFF),
+    secondary = Color(0xFFA8C7E8),
+    onSecondary = Color(0xFF16385C), // Daily background
+    secondaryContainer = Color(0xFF1B4166), // Nav indicator
+    tertiary = Color(0xFFCFE6FF), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF122F4E), // Weekly background
+    tertiaryContainer = Color(0xFF2B587F),
+    error = Color(0xFF9FE8FF),
+    onError = Color(0xFF0B2138), // Monthly background (Darkest)
+    background = Color(0xFF0E2A4A),
+    surface = Color(0xFF0E2A4A),
+    onSurface = Color(0xFFE3F0FF),
+    surfaceVariant = Color(0xFF2A4E74), // Completed tasks
+    inversePrimary = Color(0xFF7FD1FF)
+)
+
+private val PixelColors = darkColorScheme(
+    primary = Color(0xFFFF77A8),
+    onPrimary = Color(0xFF2A0A1A),
+    primaryContainer = Color(0xFF7E2553),
+    onPrimaryContainer = Color(0xFFFFD9E8),
+    secondary = Color(0xFFFFEC27),
+    onSecondary = Color(0xFF37320D), // Daily background
+    secondaryContainer = Color(0xFF4A4210), // Nav indicator
+    tertiary = Color(0xFF00E436), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF10331C), // Weekly background
+    tertiaryContainer = Color(0xFF008751),
+    error = Color(0xFFFF9EBF),
+    onError = Color(0xFF170E28), // Monthly background (Darkest)
+    background = Color(0xFF1A1C2C),
+    surface = Color(0xFF1A1C2C),
+    onSurface = Color(0xFFF4F4F8),
+    surfaceVariant = Color(0xFF3B3F5C), // Completed tasks
+    inversePrimary = Color(0xFFFF77A8)
+)
+
+// the ascension theme for max level + Legend rank: aurora light over the void
+private val MasterColors = darkColorScheme(
+    primary = Color(0xFF7FE7D0),
+    onPrimary = Color(0xFF032620),
+    primaryContainer = Color(0xFF0E4A3E),
+    onPrimaryContainer = Color(0xFFC9FFF1),
+    secondary = Color(0xFFB79CFF),
+    onSecondary = Color(0xFF241A45), // Daily background
+    secondaryContainer = Color(0xFF33245E), // Nav indicator
+    tertiary = Color(0xFFF2D57E), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF191233), // Weekly background
+    tertiaryContainer = Color(0xFF6E5A1E),
+    error = Color(0xFFF2A9C4),
+    onError = Color(0xFF120C22), // Monthly background (Darkest)
+    background = Color(0xFF0A0A14),
+    surface = Color(0xFF0A0A14),
+    onSurface = Color(0xFFF1EEFF),
+    surfaceVariant = Color(0xFF2C2748), // Completed tasks
+    inversePrimary = Color(0xFF7FE7D0)
+)
+
 private val BlueShadesColors = darkColorScheme(
     primary = Color(0xFF2196F3),
     onPrimary = Color(0xFFFFFFFF),
@@ -152,8 +323,8 @@ fun DetoxRankTheme(
 ) {
     val isActuallyDark = when (theme) {
         UiTheme.Default -> useDarkTheme
-        UiTheme.Light -> false
-        else -> true // All custom themes and Dark theme are dark-based
+        UiTheme.Light, UiTheme.Paper -> false
+        else -> true // the remaining custom themes and Dark theme are dark-based
     }
 
     val colors = when (theme) {
@@ -163,11 +334,24 @@ fun DetoxRankTheme(
         UiTheme.Monochrome -> MonochromeColors
         UiTheme.GreenShades -> GreenShadesColors
         UiTheme.BlueShades -> BlueShadesColors
+        UiTheme.Luxury -> LuxuryColors
+        UiTheme.Comic -> ComicColors
+        UiTheme.Sketch -> SketchColors
+        UiTheme.Cartoon -> CartoonColors
+        UiTheme.Paper -> PaperColors
+        UiTheme.Blueprint -> BlueprintColors
+        UiTheme.Pixel -> PixelColors
+        UiTheme.Master -> MasterColors
     }
 
-    CompositionLocalProvider(LocalThemeIsDark provides isActuallyDark) {
+    CompositionLocalProvider(
+        LocalThemeIsDark provides isActuallyDark,
+        LocalThemeStyle provides themeStyleFor(theme)
+    ) {
         MaterialTheme(
             colorScheme = colors,
+            typography = typographyFor(theme),
+            shapes = shapesFor(theme),
             content = content
         )
     }
