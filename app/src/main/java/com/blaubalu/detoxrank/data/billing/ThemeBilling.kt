@@ -34,14 +34,18 @@ object ThemeBilling : PurchasesUpdatedListener {
         "theme_pixel" to UiTheme.Pixel,
         "theme_elements" to UiTheme.Fire, // unlocks Fire, Water, Wind and Earth
         "theme_princess" to UiTheme.Princess,
-        "theme_scorched" to UiTheme.Scorched
+        "theme_scorched" to UiTheme.Scorched,
+        "theme_ninja" to UiTheme.Ninja,
+        "theme_medieval" to UiTheme.Medieval,
+        "theme_cyber" to UiTheme.Cyber
     )
 
     /** every theme coverable by a purchase, including bundled variants */
     val allPurchasableThemes = listOf(
         UiTheme.Luxury, UiTheme.Comic, UiTheme.Sketch, UiTheme.Paper, UiTheme.Cartoon,
         UiTheme.Blueprint, UiTheme.Pixel, UiTheme.Fire, UiTheme.Water, UiTheme.Wind,
-        UiTheme.Earth, UiTheme.Avatar, UiTheme.Princess, UiTheme.Scorched
+        UiTheme.Earth, UiTheme.Avatar, UiTheme.Princess, UiTheme.Scorched,
+        UiTheme.Ninja, UiTheme.Medieval, UiTheme.Cyber
     )
 
     /** supporter bundle products and the number of theme picks they grant (0 = all themes) */

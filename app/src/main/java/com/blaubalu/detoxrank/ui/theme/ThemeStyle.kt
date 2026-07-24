@@ -205,6 +205,9 @@ fun shapesFor(theme: UiTheme): Shapes = when (theme) {
     UiTheme.Water, UiTheme.Wind, UiTheme.Princess -> FluidShapes
     UiTheme.Earth -> SturdyShapes
     UiTheme.Avatar -> MasterShapes
+    UiTheme.Ninja -> FlameShapes
+    UiTheme.Medieval -> SturdyShapes
+    UiTheme.Cyber -> BlueprintShapes
     else -> DefaultShapes
 }
 
@@ -292,19 +295,35 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
         customTaskColor = Color(0xFF4A5A2E)
     )
     UiTheme.Avatar -> ThemeStyle(
-        // all four elements around every card
+        // all four elements circling every card, like the four nations
         cardBorder = BorderStroke(
-            1.5.dp,
-            Brush.linearGradient(
+            2.5.dp,
+            Brush.sweepGradient(
                 listOf(
-                    Color(0x99FF8A50), // fire
-                    Color(0x9955C6D8), // water
-                    Color(0x99C8D8DC), // wind
-                    Color(0x99D9C48C)  // earth
+                    Color(0xFFFF7A3D), // fire
+                    Color(0xFF4CCFE0), // water
+                    Color(0xFFD8E8EC), // wind
+                    Color(0xFFE2CC8F), // earth
+                    Color(0xFFFF7A3D)  // back to fire for a seamless loop
                 )
             )
         ),
-        customTaskColor = Color(0xFF3E505A) // air
+        customTaskColor = Color(0xFF43596B) // air
+    )
+    UiTheme.Ninja -> ThemeStyle(
+        cardBorder = BorderStroke(1.5.dp, Color(0x66E8324A)),
+        customTaskColor = Color(0xFF5A1E28)
+    )
+    UiTheme.Medieval -> ThemeStyle(
+        cardBorder = BorderStroke(2.dp, Color(0x66C9A227)),
+        customTaskColor = Color(0xFF6E2222)
+    )
+    UiTheme.Cyber -> ThemeStyle(
+        cardBorder = BorderStroke(
+            1.5.dp,
+            Brush.linearGradient(listOf(Color(0x9900E5FF), Color(0x99FF3DDB)))
+        ),
+        customTaskColor = Color(0xFF26104A)
     )
     else -> ThemeStyle()
 }
@@ -508,32 +527,88 @@ fun Modifier.themeTexture(theme: UiTheme): Modifier = when (theme) {
         }
     }
 
-    // specks of all four elements
+    // each element claims one quadrant of the screen
     UiTheme.Avatar -> drawBehind {
         fun n(i: Int): Float {
             val x = sin(i * 12.9898f) * 43758.5453f
             return x - floor(x)
         }
-        val palette = listOf(
-            Color(0xFFFF8A50), Color(0xFF55C6D8), Color(0xFFC8D8DC), Color(0xFFD9C48C)
-        )
-        val step = 50.dp.toPx()
-        var row = 0
-        var y = step / 2f
-        while (y < size.height) {
-            var col = 0
-            var x = step / 2f
-            while (x < size.width) {
-                val seed = row * 127 + col * 19
-                val tint = palette[(n(seed) * 4f).toInt().coerceIn(0, 3)]
-                drawCircle(
-                    tint.copy(alpha = 0.03f + n(seed + 1) * 0.06f),
-                    (0.7f + n(seed + 2) * 1.2f) * density,
-                    Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
-                )
-                x += step; col++
+        val midX = size.width / 2f
+        val midY = size.height / 2f
+
+        // top-left: wind gusts
+        for (i in 0 until 14) {
+            val sx = n(i * 3) * midX
+            val sy = n(i * 3 + 1) * midY
+            val len = (40 + n(i * 3 + 2) * 80) * density
+            drawLine(
+                Color(0xFFD8E8EC).copy(alpha = 0.05f + n(i * 7) * 0.06f),
+                Offset(sx, sy),
+                Offset(sx + len, sy - len * 0.2f),
+                (1f + n(i * 5) * 0.8f) * density
+            )
+        }
+
+        // top-right: water waves
+        run {
+            val rowStep = 60.dp.toPx()
+            val amplitude = 4.dp.toPx()
+            val wavelength = 60.dp.toPx()
+            var y = rowStep / 2f
+            var row = 0
+            while (y < midY) {
+                var x = midX
+                var prev = Offset(x, y + amplitude * sin(row * 1.7f))
+                while (x < size.width) {
+                    x += 12f
+                    val next =
+                        Offset(x, y + amplitude * sin(row * 1.7f + x / wavelength * 6.283f))
+                    drawLine(
+                        Color(0xFF4CCFE0).copy(alpha = 0.08f),
+                        prev, next, 1.5.dp.toPx()
+                    )
+                    prev = next
+                }
+                y += rowStep; row++
             }
-            y += step; row++
+        }
+
+        // bottom-left: embers
+        run {
+            val step = 40.dp.toPx()
+            var row = 0
+            var y = midY + step / 2f
+            while (y < size.height) {
+                var col = 0
+                var x = step / 2f
+                while (x < midX) {
+                    val seed = row * 113 + col * 11
+                    val warm = if (n(seed) > 0.5f) Color(0xFFFF7A3D) else Color(0xFFFFC15E)
+                    drawCircle(
+                        warm.copy(alpha = 0.06f + n(seed + 1) * 0.08f),
+                        (0.8f + n(seed + 2) * 1.4f) * density,
+                        Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
+                    )
+                    x += step; col++
+                }
+                y += step; row++
+            }
+        }
+
+        // bottom-right: earth strata
+        run {
+            var y = midY
+            var i = 0
+            while (y < size.height) {
+                y += (20 + n(i) * 18) * density
+                drawLine(
+                    Color(0xFFE2CC8F).copy(alpha = 0.05f + n(i + 1) * 0.05f),
+                    Offset(midX, y),
+                    Offset(size.width, y),
+                    (1f + n(i + 2) * 1.6f) * density
+                )
+                i += 3
+            }
         }
     }
 
@@ -554,6 +629,72 @@ fun Modifier.themeTexture(theme: UiTheme): Modifier = when (theme) {
                 val grey = if (n(seed) > 0.85f) Color(0xFFE85D2F) else Color(0xFFB0A080)
                 drawCircle(
                     grey.copy(alpha = 0.025f + n(seed + 1) * 0.055f),
+                    (0.6f + n(seed + 2) * 1.1f) * density,
+                    Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
+                )
+                x += step; col++
+            }
+            y += step; row++
+        }
+    }
+
+    // blade slashes in the dark
+    UiTheme.Ninja -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        for (i in 0 until 26) {
+            val sx = n(i * 3) * size.width
+            val sy = n(i * 3 + 1) * size.height
+            val len = (50 + n(i * 3 + 2) * 110) * density
+            val tint = if (n(i * 11) > 0.8f) Color(0xFFE8324A) else Color(0xFF8A8F98)
+            drawLine(
+                tint.copy(alpha = 0.04f + n(i * 7) * 0.05f),
+                Offset(sx, sy),
+                Offset(sx + len * 0.5f, sy + len),
+                (1f + n(i * 5) * 0.6f) * density
+            )
+        }
+    }
+
+    // aged parchment lines
+    UiTheme.Medieval -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        var y = 0f
+        var i = 0
+        while (y < size.height) {
+            y += (30 + n(i) * 26) * density
+            drawLine(
+                Color(0xFFE8D5A3).copy(alpha = 0.03f + n(i + 1) * 0.04f),
+                Offset(0f, y),
+                Offset(size.width, y),
+                (1f + n(i + 2) * 1.4f) * density
+            )
+            i += 3
+        }
+    }
+
+    // neon data motes
+    UiTheme.Cyber -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        val step = 48.dp.toPx()
+        var row = 0
+        var y = step / 2f
+        while (y < size.height) {
+            var col = 0
+            var x = step / 2f
+            while (x < size.width) {
+                val seed = row * 139 + col * 23
+                val tint = if (n(seed) > 0.5f) Color(0xFF00E5FF) else Color(0xFFFF3DDB)
+                drawCircle(
+                    tint.copy(alpha = 0.03f + n(seed + 1) * 0.07f),
                     (0.6f + n(seed + 2) * 1.1f) * density,
                     Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
                 )

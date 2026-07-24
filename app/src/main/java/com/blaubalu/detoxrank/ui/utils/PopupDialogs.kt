@@ -1,8 +1,11 @@
 package com.blaubalu.detoxrank.ui.utils
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -31,8 +34,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -57,33 +64,62 @@ import com.blaubalu.detoxrank.ui.theme.legendary_orange
  */
 @Composable
 fun PopupQueueDisplay(theme: UiTheme = UiTheme.Default) {
-    val currentPopup = PopupManager.currentPopup
-    
+    when (PopupManager.currentPopup?.type) {
+        PopupType.RANK_UP -> RankUpPopup(
+            popup = PopupManager.currentPopup!!,
+            theme = theme,
+            onDismiss = { PopupManager.dismiss() }
+        )
+        PopupType.ACHIEVEMENT -> AchievementPopup(
+            popup = PopupManager.currentPopup!!,
+            theme = theme,
+            onDismiss = { PopupManager.dismiss() }
+        )
+        null -> {}
+    }
+}
+
+/**
+ * Animates the popup card into view: it blooms from the center with a soft
+ * overshoot while fading in. Lives inside the dialog window, because the
+ * window itself appears instantly and can't be animated from outside.
+ */
+@Composable
+private fun PopupAppearAnimation(content: @Composable () -> Unit) {
+    val state = remember {
+        MutableTransitionState(false).apply { targetState = true }
+    }
     AnimatedVisibility(
-        visible = currentPopup != null,
-        enter = fadeIn() + scaleIn(
+        visibleState = state,
+        enter = scaleIn(
+            initialScale = 0.55f,
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium
+                stiffness = Spring.StiffnessMediumLow
             )
-        ),
-        exit = fadeOut() + scaleOut()
+        ) + fadeIn(animationSpec = tween(durationMillis = 250))
     ) {
-        currentPopup?.let { popup ->
-            when (popup.type) {
-                PopupType.RANK_UP -> RankUpPopup(
-                    popup = popup,
-                    theme = theme,
-                    onDismiss = { PopupManager.dismiss() }
-                )
-                PopupType.ACHIEVEMENT -> AchievementPopup(
-                    popup = popup,
-                    theme = theme,
-                    onDismiss = { PopupManager.dismiss() }
-                )
-            }
-        }
+        content()
     }
+}
+
+/**
+ * Pops the badge icon in with a delayed overshoot bounce
+ */
+@Composable
+private fun rememberBadgePopScale(): Float {
+    val scale = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(180)
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
+    }
+    return scale.value
 }
 
 
@@ -106,6 +142,7 @@ fun RankUpPopup(
         )
     ) {
         DetoxRankTheme(theme = theme) {
+            PopupAppearAnimation {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -125,6 +162,7 @@ fun RankUpPopup(
                     Box(
                         modifier = Modifier
                             .size(100.dp)
+                            .scale(rememberBadgePopScale())
                             .background(
                                 brush = Brush.radialGradient(
                                     colors = listOf(
@@ -194,6 +232,7 @@ fun RankUpPopup(
                     }
                 }
             }
+            }
         }
     }
 }
@@ -219,6 +258,7 @@ fun AchievementPopup(
         )
     ) {
         DetoxRankTheme(theme = theme) {
+            PopupAppearAnimation {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -238,6 +278,7 @@ fun AchievementPopup(
                     Box(
                         modifier = Modifier
                             .size(100.dp)
+                            .scale(rememberBadgePopScale())
                             .background(
                                 brush = Brush.radialGradient(
                                     colors = listOf(
@@ -318,6 +359,7 @@ fun AchievementPopup(
                         )
                     }
                 }
+            }
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.user.UiTheme
 
 val LocalThemeIsDark = staticCompositionLocalOf { false }
@@ -362,23 +363,23 @@ private val EarthColors = darkColorScheme(
 
 // all four elements at once: each task category carries one element's hue
 private val AvatarColors = darkColorScheme(
-    primary = Color(0xFFFF8A50),
+    primary = Color(0xFFFF7A3D),
     onPrimary = Color(0xFF2A1004),
     primaryContainer = Color(0xFF7A3A14),
     onPrimaryContainer = Color(0xFFFFE0CC),
-    secondary = Color(0xFF55C6D8),
-    onSecondary = Color(0xFF3A1C0E), // Daily background (fire)
-    secondaryContainer = Color(0xFF2A3240), // Nav indicator
-    tertiary = Color(0xFFD9C48C), // Hours, Completed text, Progress bar (earth sand)
-    onTertiary = Color(0xFF0C3038), // Weekly background (water)
+    secondary = Color(0xFF4CCFE0),
+    onSecondary = Color(0xFF4A2410), // Daily background (fire)
+    secondaryContainer = Color(0xFF2C3444), // Nav indicator
+    tertiary = Color(0xFFE2CC8F), // Hours, Completed text, Progress bar (earth sand)
+    onTertiary = Color(0xFF0E3A44), // Weekly background (water)
     tertiaryContainer = Color(0xFF5E4A24),
     error = Color(0xFFE8B487),
-    onError = Color(0xFF241A0C), // Monthly background (earth)
-    background = Color(0xFF10131A),
-    surface = Color(0xFF10131A),
+    onError = Color(0xFF2E2210), // Monthly background (earth)
+    background = Color(0xFF0C0F16),
+    surface = Color(0xFF0C0F16),
     onSurface = Color(0xFFF0F2F5),
-    surfaceVariant = Color(0xFF333A4A), // Completed tasks
-    inversePrimary = Color(0xFFFF8A50)
+    surfaceVariant = Color(0xFF343C50), // Completed tasks
+    inversePrimary = Color(0xFFFF7A3D)
 )
 
 // rose-and-lavender pastels
@@ -431,6 +432,66 @@ private val ScorchedColors = darkColorScheme(
     inversePrimary = Color(0xFFE85D2F)
 )
 
+private val NinjaColors = darkColorScheme(
+    primary = Color(0xFFE8324A),
+    onPrimary = Color(0xFF26060B),
+    primaryContainer = Color(0xFF6E1420),
+    onPrimaryContainer = Color(0xFFFAD2D8),
+    secondary = Color(0xFF8A8F98),
+    onSecondary = Color(0xFF2E1218), // Daily background
+    secondaryContainer = Color(0xFF33141C), // Nav indicator
+    tertiary = Color(0xFFD8DCE2), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF1E2126), // Weekly background
+    tertiaryContainer = Color(0xFF4A4F58),
+    error = Color(0xFFE8A0AC),
+    onError = Color(0xFF121016), // Monthly background (Darkest)
+    background = Color(0xFF0B0B0D),
+    surface = Color(0xFF0B0B0D),
+    onSurface = Color(0xFFEFF0F2),
+    surfaceVariant = Color(0xFF33363E), // Completed tasks
+    inversePrimary = Color(0xFFE8324A)
+)
+
+private val MedievalColors = darkColorScheme(
+    primary = Color(0xFFC9A227),
+    onPrimary = Color(0xFF241A02),
+    primaryContainer = Color(0xFF5E4A0E),
+    onPrimaryContainer = Color(0xFFF5E6B8),
+    secondary = Color(0xFFA83232),
+    onSecondary = Color(0xFF3E2A14), // Daily background
+    secondaryContainer = Color(0xFF4A2E12), // Nav indicator
+    tertiary = Color(0xFFE8D5A3), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF33210F), // Weekly background
+    tertiaryContainer = Color(0xFF6E5518),
+    error = Color(0xFFE0A0A0),
+    onError = Color(0xFF241708), // Monthly background (Darkest)
+    background = Color(0xFF1A130C),
+    surface = Color(0xFF1A130C),
+    onSurface = Color(0xFFF2E8D5),
+    surfaceVariant = Color(0xFF4A3820), // Completed tasks
+    inversePrimary = Color(0xFFC9A227)
+)
+
+private val CyberColors = darkColorScheme(
+    primary = Color(0xFF00E5FF),
+    onPrimary = Color(0xFF00262C),
+    primaryContainer = Color(0xFF00495A),
+    onPrimaryContainer = Color(0xFFC2F5FF),
+    secondary = Color(0xFFFF3DDB),
+    onSecondary = Color(0xFF0C2E3A), // Daily background
+    secondaryContainer = Color(0xFF163A48), // Nav indicator
+    tertiary = Color(0xFF9CFF57), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF2E0C33), // Weekly background
+    tertiaryContainer = Color(0xFF6E1C78),
+    error = Color(0xFFFF9EEB),
+    onError = Color(0xFF081420), // Monthly background (Darkest)
+    background = Color(0xFF060A12),
+    surface = Color(0xFF060A12),
+    onSurface = Color(0xFFE8F8FF),
+    surfaceVariant = Color(0xFF1E3A4A), // Completed tasks
+    inversePrimary = Color(0xFF00E5FF)
+)
+
 // the ascension theme for max level + Legend rank: aurora light over the void
 private val MasterColors = darkColorScheme(
     primary = Color(0xFF7FE7D0),
@@ -475,12 +536,31 @@ private val BlueShadesColors = darkColorScheme(
 
 
 
+/**
+ * The Avatar theme cycles the elements by app section: every screen is a
+ * different nation. Other themes are returned unchanged.
+ */
+fun effectiveUiTheme(theme: UiTheme, section: Section?): UiTheme =
+    if (theme == UiTheme.Avatar && section != null) {
+        when (section) {
+            Section.Rank -> UiTheme.Fire
+            Section.Tasks -> UiTheme.Earth
+            Section.Timer -> UiTheme.Water
+            Section.Theory -> UiTheme.Wind
+        }
+    } else {
+        theme
+    }
+
 @Composable
 fun DetoxRankTheme(
     theme: UiTheme = UiTheme.Default,
     useDarkTheme: Boolean = isSystemInDarkTheme(),
+    section: Section? = null,
     content: @Composable() () -> Unit
 ) {
+    @Suppress("NAME_SHADOWING")
+    val theme = effectiveUiTheme(theme, section)
     val isActuallyDark = when (theme) {
         UiTheme.Default -> useDarkTheme
         UiTheme.Light, UiTheme.Paper, UiTheme.Wind, UiTheme.Princess -> false
@@ -509,6 +589,9 @@ fun DetoxRankTheme(
         UiTheme.Avatar -> AvatarColors
         UiTheme.Princess -> PrincessColors
         UiTheme.Scorched -> ScorchedColors
+        UiTheme.Ninja -> NinjaColors
+        UiTheme.Medieval -> MedievalColors
+        UiTheme.Cyber -> CyberColors
     }
 
     CompositionLocalProvider(

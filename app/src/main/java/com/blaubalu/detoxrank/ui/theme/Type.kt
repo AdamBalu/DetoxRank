@@ -117,5 +117,8 @@ fun typographyFor(theme: UiTheme): Typography = when (theme) {
         buildTypography(display = Philosopher, body = DMSans)
     UiTheme.Princess -> buildTypography(display = GreatVibes, body = Quicksand, displayScale = 1.15f)
     UiTheme.Scorched -> buildTypography(display = BlackOpsOne, body = Oswald, displayScale = 0.9f)
+    UiTheme.Ninja -> buildTypography(display = Oswald, body = Oswald)
+    UiTheme.Medieval -> buildTypography(display = Marcellus, body = EBGaramond)
+    UiTheme.Cyber -> buildTypography(display = ShareTechMono, body = DMSans)
     else -> Typography
 }

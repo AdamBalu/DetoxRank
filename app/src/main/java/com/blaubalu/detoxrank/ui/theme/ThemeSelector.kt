@@ -273,6 +273,30 @@ val themeOptions = listOf(
         isPremium = true
     ),
     ThemeOption(
+        theme = UiTheme.Ninja,
+        name = "Ninja",
+        primaryColor = Color(0xFFE8324A),
+        secondaryColor = Color(0xFF8A8F98),
+        backgroundColor = Color(0xFF0B0B0D),
+        isPremium = true
+    ),
+    ThemeOption(
+        theme = UiTheme.Medieval,
+        name = "Medieval",
+        primaryColor = Color(0xFFC9A227),
+        secondaryColor = Color(0xFFA83232),
+        backgroundColor = Color(0xFF1A130C),
+        isPremium = true
+    ),
+    ThemeOption(
+        theme = UiTheme.Cyber,
+        name = "Cyber",
+        primaryColor = Color(0xFF00E5FF),
+        secondaryColor = Color(0xFFFF3DDB),
+        backgroundColor = Color(0xFF060A12),
+        isPremium = true
+    ),
+    ThemeOption(
         theme = UiTheme.Master,
         name = "Master",
         primaryColor = Color(0xFF7FE7D0),

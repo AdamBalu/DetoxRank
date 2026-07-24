@@ -141,12 +141,20 @@ fun DetoxRankAppContent(
         )
     )
 
-    DetoxRankTheme(theme = userDataUiState.selectedTheme) {
+    DetoxRankTheme(
+        theme = userDataUiState.selectedTheme,
+        section = detoxRankUiState.currentSection
+    ) {
         Surface(color = MaterialTheme.colorScheme.background) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .themeTexture(userDataUiState.selectedTheme)
+                    .themeTexture(
+                        effectiveUiTheme(
+                            userDataUiState.selectedTheme,
+                            detoxRankUiState.currentSection
+                        )
+                    )
             ) {
             when (detoxRankUiState.currentSection) {
                 Section.Rank -> {
