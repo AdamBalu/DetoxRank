@@ -117,11 +117,9 @@ class AchievementViewModel(
     }
 
     suspend fun deleteAllAchievementsInDb() {
-        val allAchievements = achievementRepository.getAllAchievements()
-        allAchievements.collect { achievements ->
-            for (achievement in achievements) {
-                achievementRepository.delete(achievement)
-            }
+        val allAchievements = achievementRepository.getAllAchievements().first()
+        for (achievement in allAchievements) {
+            achievementRepository.delete(achievement)
         }
     }
 

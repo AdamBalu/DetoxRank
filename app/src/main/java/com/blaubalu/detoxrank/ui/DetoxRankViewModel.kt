@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.TimerDifficulty
@@ -53,7 +52,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
 import java.util.Calendar
 import com.blaubalu.detoxrank.ui.utils.PopupManager
 import com.blaubalu.detoxrank.R
@@ -261,7 +259,7 @@ class DetoxRankViewModel(
 
         val isFromYesterday = currYear > yearDaily || (currYear == yearDaily && currDayOfYear > day)
         val isFromLastWeek =
-            currYear > yearDaily || (currYear == yearWeekly && currWeekOfYear > week)
+            currYear > yearWeekly || (currYear == yearWeekly && currWeekOfYear > week)
         val isFromLastMonth =
             currYear > yearMonthly || (currYear == yearMonthly && currMonth > month)
 
@@ -345,10 +343,6 @@ class DetoxRankViewModel(
         }
     }
 
-
-    suspend fun getUserXPPoints(): Int {
-        return userDataRepository.getUserStream().first().xpPoints
-    }
 
     suspend fun getAvailableTaskRefreshes(): Int {
         return userDataRepository.getUserStream().first().availableTaskRefreshes

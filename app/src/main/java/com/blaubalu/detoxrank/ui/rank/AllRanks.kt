@@ -2,17 +2,11 @@ package com.blaubalu.detoxrank.ui.rank
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,41 +21,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardDefaults.cardElevation
-import androidx.compose.material3.CardDefaults.elevatedCardColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.blaubalu.detoxrank.R
-import com.blaubalu.detoxrank.data.achievements.AchievementDifficulty
 import com.blaubalu.detoxrank.data.local.LocalRankDataProvider.ranksSeparated
-import com.blaubalu.detoxrank.data.user.Rank
-import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.theme.JosefinSans
-import com.blaubalu.detoxrank.ui.theme.Typography
-import com.blaubalu.detoxrank.ui.theme.common_green
-import com.blaubalu.detoxrank.ui.theme.epic_purple
-import com.blaubalu.detoxrank.ui.theme.legendary_orange
-import com.blaubalu.detoxrank.ui.theme.rare_blue
-import com.blaubalu.detoxrank.ui.theme.rarer_blue
-import com.blaubalu.detoxrank.ui.theme.very_epic_magenta
-import com.blaubalu.detoxrank.ui.utils.getAchievementDrawableFromId
 
 @Composable
 fun AllRanks(
@@ -81,12 +56,12 @@ fun AllRanks(
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.surface)
     ) {
-      Column(modifier = modifier.align(Alignment.TopCenter)) {
+      Column(modifier = Modifier.align(Alignment.TopCenter)) {
         Icon(
           imageVector = Icons.Filled.Close,
           tint = MaterialTheme.colorScheme.inversePrimary,
           contentDescription = null,
-          modifier = modifier
+          modifier = Modifier
             .fillMaxWidth()
             .padding(top = 8.dp, bottom = 8.dp)
             .size(30.dp)
@@ -98,9 +73,9 @@ fun AllRanks(
           item {
             Text(
               "Ranks",
-              style = Typography.headlineLarge,
+              style = MaterialTheme.typography.headlineLarge,
               textAlign = TextAlign.Center,
-              modifier = modifier
+              modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 10.dp, top = 2.dp)
             )
@@ -121,14 +96,14 @@ fun AllRanks(
               Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
               ) {
                 rankList.forEach { rank ->
-                  Column(modifier = modifier.padding(8.dp)) {
+                  Column(modifier = Modifier.padding(8.dp)) {
                     Image(
                       painterResource(id = getRankDrawableId(rank)),
                       contentDescription = null,
-                      modifier = modifier
+                      modifier = Modifier
                         .size(80.dp)
                         .align(Alignment.CenterHorizontally)
                     )
@@ -137,7 +112,7 @@ fun AllRanks(
                       fontSize = 16.sp,
                       fontFamily = JosefinSans,
                       fontWeight = FontWeight.Bold,
-                      modifier = modifier.align(Alignment.CenterHorizontally)
+                      modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                   }
                 }
@@ -145,7 +120,7 @@ fun AllRanks(
             }
           }
           item {
-            Spacer(modifier = modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
           }
         }
       }

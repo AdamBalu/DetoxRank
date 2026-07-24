@@ -223,9 +223,8 @@ fun getParamDependingOnScreenSizeSp(
   otherwise: TextUnit
 ): TextUnit {
   val configuration = LocalConfiguration.current
-  val (screenHeight, screenWidth) = remember {
-    configuration.screenHeightDp to configuration.screenWidthDp
-  }
+  val screenHeight = configuration.screenHeightDp
+  val screenWidth = configuration.screenWidthDp
 
   return when {
     screenHeight < 600 && screenWidth < 340 -> p1 ?: 0.sp

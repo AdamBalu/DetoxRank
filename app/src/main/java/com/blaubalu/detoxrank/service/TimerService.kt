@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import com.blaubalu.detoxrank.data.AppDatabase
 import com.blaubalu.detoxrank.data.user.OfflineUserDataRepository
 import com.blaubalu.detoxrank.ui.utils.Constants.ACTION_SERVICE_CANCEL
@@ -76,36 +77,27 @@ class TimerService : Service() {
      * Handles the actions when the timer is started
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.getStringExtra(TIMER_STATE)) {
-            TimerState.Started.name -> {
+        // the command arrives either as an extra (notification actions) or as an intent action
+        when (intent?.getStringExtra(TIMER_STATE) ?: intent?.action) {
+            TimerState.Started.name, ACTION_SERVICE_START -> {
                 startForegroundService()
                 startTimer { days, hours, minutes, seconds ->
                     updateNotification(days = days, hours = hours, minutes = minutes, seconds = seconds)
                 }
             }
-            TimerState.Canceled.name -> {
+            TimerState.Canceled.name, ACTION_SERVICE_CANCEL -> {
                 cancelTimer()
                 stopForegroundService()
-            }
-        }
-        intent?.action.let {
-            when (it) {
-                ACTION_SERVICE_START -> {
-                    startForegroundService()
-                    startTimer { days, hours, minutes, seconds ->
-                        updateNotification(days = days, hours = hours, minutes = minutes, seconds = seconds)
-                    }
-                }
-                ACTION_SERVICE_CANCEL -> {
-                    cancelTimer()
-                    stopForegroundService()
-                }
             }
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
     private fun startTimer(onTick: (d: String, h: String, m: String, s: String) -> Unit) {
+        // never leave a previous timer thread running
+        if (this::timer.isInitialized) {
+            timer.cancel()
+        }
         currentState.value = TimerState.Started
         timer = fixedRateTimer(initialDelay = 1000L, period = 1000L) {
             duration = duration.plus(1.seconds)
@@ -140,6 +132,7 @@ class TimerService : Service() {
     }
 
     fun initTaskTimer() {
+        disableTaskTimer()
         taskTimer = fixedRateTimer(initialDelay = 1000L, period = 1000L) {
             taskDuration = taskDuration.minus(1.seconds)
             updateTaskDayTimeUnits()
@@ -186,11 +179,7 @@ class TimerService : Service() {
 
     private fun stopForegroundService() {
         notificationManager.cancel(NOTIFICATION_ID)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            stopForeground(true)
-        }
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 

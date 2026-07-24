@@ -21,6 +21,7 @@ import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_10_KM
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_3_KM
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_5_KM
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_7_KM
+import com.blaubalu.detoxrank.ui.utils.Constants.MONTHLY_TASK_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.MONTHLY_TASK_XP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.NUMBER_OF_TASKS_DAILY
 import com.blaubalu.detoxrank.ui.utils.Constants.NUMBER_OF_TASKS_MONTHLY
@@ -113,7 +114,7 @@ class OfflineTasksRepository(
             TaskDurationCategory.Monthly -> {
                 handleTaskRotation(
                     MONTHLY_TASK_XP_GAIN,
-                    MONTHLY_TASK_XP_GAIN,
+                    MONTHLY_TASK_RP_GAIN,
                     NUMBER_OF_TASKS_MONTHLY,
                     TaskDurationCategory.Monthly,
                     completedTasksNum
@@ -157,44 +158,11 @@ class OfflineTasksRepository(
         val taskList = getCompletedTasksByDuration(taskDurationCategory).first()
         taskList.forEach {
             when (it.specialTaskID) {
-                ID_RUN_3_KM -> {
-                    val achievement = achievementRepository.getAchievementById(ID_RUN_3_KM).first()
+                ID_RUN_3_KM, ID_RUN_5_KM, ID_RUN_7_KM, ID_RUN_10_KM -> {
+                    val achievement =
+                        achievementRepository.getAchievementById(it.specialTaskID).first()
                     if ((achievement != null) && !achievement.achieved) {
-                        achievementRepository.update(
-                            achievement = achievement.copy(
-                                achieved = true
-                            )
-                        )
-                    }
-                }
-                ID_RUN_5_KM -> {
-                    val achievement = achievementRepository.getAchievementById(ID_RUN_5_KM).first()
-                    if ((achievement != null) && !achievement.achieved) {
-                        achievementRepository.update(
-                            achievement = achievement.copy(
-                                achieved = true
-                            )
-                        )
-                    }
-                }
-                ID_RUN_7_KM -> {
-                    val achievement = achievementRepository.getAchievementById(ID_RUN_7_KM).first()
-                    if ((achievement != null) && !achievement.achieved) {
-                        achievementRepository.update(
-                            achievement = achievement.copy(
-                                achieved = true
-                            )
-                        )
-                    }
-                }
-                ID_RUN_10_KM -> {
-                    val achievement = achievementRepository.getAchievementById(ID_RUN_10_KM).first()
-                    if ((achievement != null) && !achievement.achieved) {
-                        achievementRepository.update(
-                            achievement = achievement.copy(
-                                achieved = true
-                            )
-                        )
+                        achievementRepository.update(achievement.copy(achieved = true))
                     }
                 }
                 ID_READ_10_PAGES, ID_READ_50_PAGES, ID_READ_100_PAGES, ID_READ_250_PAGES -> {

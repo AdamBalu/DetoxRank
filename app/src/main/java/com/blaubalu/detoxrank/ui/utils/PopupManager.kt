@@ -19,6 +19,7 @@ data class PopupData(
     val type: PopupType,
     val title: String,
     val description: String = "",
+    val secondaryText: String = "",
     val iconRes: Int? = null,
     val achievementId: Int? = null,
     val rank: Rank? = null
@@ -91,6 +92,7 @@ object PopupManager {
                 type = PopupType.ACHIEVEMENT,
                 title = "Achievement Unlocked!",
                 description = achievementName,
+                secondaryText = achievementDescription,
                 achievementId = achievementId
             )
         )

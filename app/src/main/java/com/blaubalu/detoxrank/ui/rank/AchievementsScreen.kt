@@ -27,7 +27,6 @@ import com.blaubalu.detoxrank.data.achievements.AchievementDifficulty
 import com.blaubalu.detoxrank.data.local.LocalAchievementDataProvider
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theme.common_green
 import com.blaubalu.detoxrank.ui.theme.epic_purple
 import com.blaubalu.detoxrank.ui.theme.legendary_orange
@@ -55,8 +54,8 @@ fun AchievementsScreen(
 
     AnimatedVisibility(
         visible = rankViewModel.achievementsDisplayed.value,
-        enter = slideInVertically(initialOffsetY = { 2 * (it / 2) }, animationSpec = tween(durationMillis = 600)),
-        exit = slideOutVertically(targetOffsetY = {-it * 2}, animationSpec = tween(durationMillis = 600) {x -> -x})
+        enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(durationMillis = 600)),
+        exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(durationMillis = 600))
     ) {
         BackHandler {
             rankViewModel.setAchievementsDisplayed(false)
@@ -95,7 +94,7 @@ fun AchievementsScreen(
                     item {
                         Text(
                             "Achievements",
-                            style = Typography.headlineLarge,
+                            style = MaterialTheme.typography.headlineLarge,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -152,8 +151,8 @@ fun AchievementsScreen(
                                     }
                                 }
                                 Column(modifier = Modifier.padding(end = 10.dp, bottom = 6.dp, start = 10.dp)) {
-                                    Text(achievement.name, style = Typography.headlineSmall, modifier = Modifier.padding(bottom = 7.dp))
-                                    Text(achievement.description, style = Typography.bodyMedium)
+                                    Text(achievement.name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 7.dp))
+                                    Text(achievement.description, style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
                         }

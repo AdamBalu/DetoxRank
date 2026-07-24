@@ -14,7 +14,6 @@ import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,19 +40,21 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private var bound by mutableStateOf(false)
-    private lateinit var timerService: TimerService
+    private var timerService by mutableStateOf<TimerService?>(null)
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as TimerService.StopwatchBinder
             timerService = binder.getService()
-            bound = true
         }
         override fun onServiceDisconnected(arg0: ComponentName?) {
-            bound = false
+            // keep the last instance so the UI stays up; the binding auto-reconnects
         }
     }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) {}
 
     override fun onStart() {
         super.onStart()
@@ -67,11 +68,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val database = AppDatabase.getDatabase(this@MainActivity)
-//            database.userDataDao().insert(UserData())
-//        }
-
         setContent {
             DetoxRankTheme {
                 // A surface container using the 'background' color from the theme
@@ -80,35 +76,23 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val windowSize = calculateWindowSizeClass(activity = this)
-                    if (bound) {
+                    timerService?.let { service ->
                         DetoxRankAppContent(
                             windowSize = windowSize.widthSizeClass,
-                            timerService = timerService
+                            timerService = service
                         )
                     }
                 }
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requestPermissions(Manifest.permission.POST_NOTIFICATIONS)
+            requestPermissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
         }
-    }
-
-    private fun requestPermissions(vararg permissions: String) {
-        val requestPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { result ->
-            result.entries.forEach {
-//                Log.d("MainActivity", "${it.key} = ${it.value}")
-            }
-        }
-        requestPermissionLauncher.launch(permissions.asList().toTypedArray())
     }
 
     override fun onStop() {
         super.onStop()
         unbindService(connection)
-        bound = false
     }
 }
 
