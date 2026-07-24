@@ -105,6 +105,38 @@ class PixelCornerShape(
     }
 }
 
+/**
+ * A rounded rectangle with castle battlements notched along the top edge
+ */
+class CastleShape(private val notchDp: Float = 6f) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val n = min(notchDp * density.density, size.height / 5f)
+        val path = Path().apply {
+            moveTo(0f, n)
+            var x = 0f
+            var up = true
+            while (x < size.width) {
+                val next = min(x + n * 2f, size.width)
+                if (up) {
+                    lineTo(x, 0f); lineTo(next, 0f); lineTo(next, n)
+                } else {
+                    lineTo(next, n)
+                }
+                x = next
+                up = !up
+            }
+            lineTo(size.width, size.height)
+            lineTo(0f, size.height)
+            close()
+        }
+        return Outline.Generic(path)
+    }
+}
+
 private val DefaultShapes = Shapes()
 
 private val ComicShapes = Shapes(
@@ -157,6 +189,15 @@ private val PixelShapes = Shapes(
     extraLarge = RoundedCornerShape(0.dp)
 )
 
+// asymmetric-cut cyberpunk HUD panels
+private val HudShapes = Shapes(
+    extraSmall = CutCornerShape(topStart = 6.dp, bottomEnd = 6.dp),
+    small = CutCornerShape(topStart = 8.dp, bottomEnd = 8.dp),
+    medium = CutCornerShape(topStart = 14.dp, bottomEnd = 14.dp, topEnd = 2.dp, bottomStart = 2.dp),
+    large = CutCornerShape(topStart = 16.dp, bottomEnd = 16.dp, topEnd = 2.dp, bottomStart = 2.dp),
+    extraLarge = CutCornerShape(topStart = 22.dp, bottomEnd = 22.dp, topEnd = 3.dp, bottomStart = 3.dp)
+)
+
 private val MasterShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
@@ -207,7 +248,7 @@ fun shapesFor(theme: UiTheme): Shapes = when (theme) {
     UiTheme.Avatar -> MasterShapes
     UiTheme.Ninja -> FlameShapes
     UiTheme.Medieval -> SturdyShapes
-    UiTheme.Cyber -> BlueprintShapes
+    UiTheme.Cyber -> HudShapes
     else -> DefaultShapes
 }
 
@@ -315,15 +356,16 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
         customTaskColor = Color(0xFF5A1E28)
     )
     UiTheme.Medieval -> ThemeStyle(
-        cardBorder = BorderStroke(2.dp, Color(0x66C9A227)),
-        customTaskColor = Color(0xFF6E2222)
+        cardBorder = BorderStroke(2.dp, Color(0x8CC9A227)),
+        cardShape = CastleShape(notchDp = 6f),
+        customTaskColor = Color(0xFF3E2258) // purpure banner
     )
     UiTheme.Cyber -> ThemeStyle(
         cardBorder = BorderStroke(
             1.5.dp,
-            Brush.linearGradient(listOf(Color(0x9900E5FF), Color(0x99FF3DDB)))
+            Brush.linearGradient(listOf(Color(0x99F5D90A), Color(0x9900E5C7)))
         ),
-        customTaskColor = Color(0xFF26104A)
+        customTaskColor = Color(0xFF4A1030)
     )
     else -> ThemeStyle()
 }
@@ -658,49 +700,51 @@ fun Modifier.themeTexture(theme: UiTheme): Modifier = when (theme) {
         }
     }
 
-    // aged parchment lines
+    // wide heraldic banner stripes
     UiTheme.Medieval -> drawBehind {
-        fun n(i: Int): Float {
-            val x = sin(i * 12.9898f) * 43758.5453f
-            return x - floor(x)
-        }
-        var y = 0f
+        val band = 64.dp.toPx()
+        val tints = listOf(
+            Color(0xFFC9A227).copy(alpha = 0.035f),
+            Color(0xFFC85A5A).copy(alpha = 0.03f),
+            Color(0xFF6A7AB8).copy(alpha = 0.03f)
+        )
         var i = 0
-        while (y < size.height) {
-            y += (30 + n(i) * 26) * density
+        var offset = -size.height
+        while (offset < size.width) {
             drawLine(
-                Color(0xFFE8D5A3).copy(alpha = 0.03f + n(i + 1) * 0.04f),
-                Offset(0f, y),
-                Offset(size.width, y),
-                (1f + n(i + 2) * 1.4f) * density
+                tints[i % 3],
+                Offset(offset, size.height),
+                Offset(offset + size.height, 0f),
+                band * 0.55f
             )
-            i += 3
+            offset += band
+            i++
         }
     }
 
-    // neon data motes
+    // circuit traces with solder-point nodes
     UiTheme.Cyber -> drawBehind {
         fun n(i: Int): Float {
             val x = sin(i * 12.9898f) * 43758.5453f
             return x - floor(x)
         }
-        val step = 48.dp.toPx()
-        var row = 0
-        var y = step / 2f
-        while (y < size.height) {
-            var col = 0
-            var x = step / 2f
-            while (x < size.width) {
-                val seed = row * 139 + col * 23
-                val tint = if (n(seed) > 0.5f) Color(0xFF00E5FF) else Color(0xFFFF3DDB)
-                drawCircle(
-                    tint.copy(alpha = 0.03f + n(seed + 1) * 0.07f),
-                    (0.6f + n(seed + 2) * 1.1f) * density,
-                    Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
-                )
-                x += step; col++
-            }
-            y += step; row++
+        val stroke = 1.2f * density
+        for (i in 0 until 30) {
+            val tint = (if (n(i * 13) > 0.5f) Color(0xFFF5D90A) else Color(0xFF00E5C7))
+                .copy(alpha = 0.04f + n(i * 17) * 0.05f)
+            var x = n(i * 3) * size.width
+            var y = n(i * 3 + 1) * size.height
+            val horizontalFirst = n(i * 7) > 0.5f
+            val l1 = (30 + n(i * 3 + 2) * 90) * density
+            val l2 = (24 + n(i * 5) * 70) * density
+            val midX = if (horizontalFirst) x + l1 else x
+            val midY = if (horizontalFirst) y else y + l1
+            val endX = if (horizontalFirst) midX else midX + l2
+            val endY = if (horizontalFirst) midY + l2 else midY
+            drawLine(tint, Offset(x, y), Offset(midX, midY), stroke)
+            drawLine(tint, Offset(midX, midY), Offset(endX, endY), stroke)
+            drawCircle(tint, 2.2f * density, Offset(x, y))
+            drawCircle(tint, 2.2f * density, Offset(endX, endY))
         }
     }
 
