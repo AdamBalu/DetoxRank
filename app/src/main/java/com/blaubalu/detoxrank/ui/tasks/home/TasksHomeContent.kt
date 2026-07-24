@@ -45,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -57,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.local.LocalTasksDataProvider
+import com.blaubalu.detoxrank.data.task.Task
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
@@ -70,8 +72,6 @@ import com.blaubalu.detoxrank.ui.NavigationItemContent
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
 import com.blaubalu.detoxrank.ui.tasks.task.TaskList
 import com.blaubalu.detoxrank.ui.tasks.task.TaskViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
-import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
 import kotlinx.coroutines.delay
 import java.util.Calendar
@@ -166,6 +166,7 @@ fun TasksContent(
       )
     }
     Scaffold(
+        containerColor = Color.Transparent,
         floatingActionButton = {
           FloatingActionButton(onClick = {
 //                    coroutineScope.launch { // FILLDB uncomment to fill task db
@@ -240,17 +241,15 @@ fun TasksContent(
                   .padding(start = 6.dp, end = 6.dp)
           )
         }
-        AnimationBox {
-          TaskList(
-              timerService = timerService,
-              taskList = tasksHomeUiState.taskList,
-              detoxRankViewModel = detoxRankViewModel,
-              achievementViewModel = achievementViewModel,
-              modifier = Modifier
-                  .padding(paddingValues)
-                  .fillMaxWidth()
-          )
-        }
+        AnimatedTaskList(
+            timerService = timerService,
+            taskList = tasksHomeUiState.taskList,
+            detoxRankViewModel = detoxRankViewModel,
+            achievementViewModel = achievementViewModel,
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxWidth()
+        )
       } else {
         Box(
             contentAlignment = Alignment.BottomCenter,
@@ -271,20 +270,47 @@ fun TasksContent(
                   )
           )
         }
-        AnimationBox {
-          TaskList(
-              timerService = timerService,
-              taskList = tasksHomeUiState.taskList,
-              detoxRankViewModel = detoxRankViewModel,
-              achievementViewModel = achievementViewModel,
-              modifier = Modifier
-                  .padding(paddingValues)
-                  .fillMaxWidth()
-          )
-        }
+        AnimatedTaskList(
+            timerService = timerService,
+            taskList = tasksHomeUiState.taskList,
+            detoxRankViewModel = detoxRankViewModel,
+            achievementViewModel = achievementViewModel,
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxWidth()
+        )
       }
 
     }
+  }
+}
+
+/**
+ * Task list that plays its entrance animation only once the tasks have
+ * actually loaded, so the animation is consistent on every visit
+ */
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun AnimatedTaskList(
+    timerService: TimerService,
+    taskList: List<Task>,
+    detoxRankViewModel: DetoxRankViewModel,
+    achievementViewModel: AchievementViewModel,
+    modifier: Modifier = Modifier
+) {
+  AnimatedVisibility(
+      visible = taskList.isNotEmpty(),
+      enter = expandVertically(
+          animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+      ) { height -> height / 10 } + fadeIn(animationSpec = tween(durationMillis = 400))
+  ) {
+    TaskList(
+        timerService = timerService,
+        taskList = taskList,
+        detoxRankViewModel = detoxRankViewModel,
+        achievementViewModel = achievementViewModel,
+        modifier = modifier
+    )
   }
 }
 
@@ -352,7 +378,7 @@ fun TasksHeading(
     ) {
       Text(
           text = stringResource(headingRes),
-          style = Typography.bodyLarge,
+          style = MaterialTheme.typography.bodyLarge,
           modifier = Modifier.padding(end = 10.dp),
           fontSize = 22.sp
       )
@@ -411,7 +437,7 @@ fun TaskTimer(
                 "${hoursRemaining}h ${minutesRemaining}min ${secondsRemaining}s"
             ),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
       }
 
@@ -424,7 +450,7 @@ fun TaskTimer(
         Text(
             stringResource(id = R.string.tasklist_time_left, formattedTimer),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
       }
 
@@ -437,7 +463,7 @@ fun TaskTimer(
         Text(
             stringResource(id = R.string.tasklist_time_left, formattedTimer),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
       }
 

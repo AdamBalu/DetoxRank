@@ -11,10 +11,8 @@ import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -27,6 +25,7 @@ import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -51,6 +50,7 @@ import com.blaubalu.detoxrank.ui.DetoxRankViewModelProvider
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
 import com.blaubalu.detoxrank.ui.tasks.home.TasksHeading
 import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.Constants.DAILY_TASK_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.MONTHLY_TASK_RP_GAIN
@@ -74,6 +74,11 @@ fun TaskList(
   modifier: Modifier = Modifier,
   taskViewModel: TaskViewModel = viewModel(factory = DetoxRankViewModelProvider.Factory)
 ) {
+  // load the timer state once for the whole list; individual tasks read it from the ui state
+  LaunchedEffect(Unit) {
+    initializeUserTimerState(detoxRankViewModel)
+  }
+
   LazyColumn(
     modifier = modifier
       .fillMaxWidth()
@@ -152,7 +157,7 @@ private fun LazyListScope.getItems(
   achievementViewModel: AchievementViewModel,
   taskViewModel: TaskViewModel,
 ) {
-  return items(filteredTaskList, key = { task -> task.description }) { task ->
+  return items(filteredTaskList, key = { task -> task.id }) { task ->
     Task(
       task = task,
       detoxRankViewModel = detoxRankViewModel,
@@ -204,6 +209,9 @@ private fun Modifier.buildTaskModifier(
   taskToBeEdited: MutableState<Boolean>,
   context: Context
 ): Modifier {
+  // no explicit height: forcing IntrinsicSize here used to reserve phantom space below
+  // short descriptions; wrap-content is always tight and animateContentSize still
+  // animates the completed-state shrink
   return this
     .padding(vertical = 4.dp, horizontal = 16.dp)
     .animateContentSize(
@@ -211,13 +219,6 @@ private fun Modifier.buildTaskModifier(
         dampingRatio = Spring.DampingRatioMediumBouncy,
         stiffness = Spring.StiffnessMediumLow
       )
-    )
-    .height(
-      if (task.completed || taskToBeDeleted(
-          task,
-          taskToBeEdited
-        )
-      ) IntrinsicSize.Min else IntrinsicSize.Max
     )
     .pointerInput(task) {
       if (task.durationCategory == TaskDurationCategory.Uncategorized ||
@@ -349,10 +350,6 @@ fun Task(
   val context = LocalContext.current
   val isVisible = remember { mutableStateOf(true) }
 
-  LaunchedEffect(Unit) {
-    initializeUserTimerState(detoxRankViewModel)
-  }
-
   val uiState = detoxRankViewModel.uiState.collectAsState().value
   val multiplier = getTaskMultiplier(uiState)
   val rankPointsGain = getRPGain(task, multiplier)
@@ -376,8 +373,11 @@ fun Task(
     exit = shrinkOut(),
     enter = expandIn()
   ) {
+    val themeStyle = LocalThemeStyle.current
     Card(
       modifier = currentModifier,
+      shape = themeStyle.cardShape ?: CardDefaults.shape,
+      border = themeStyle.cardBorder,
       colors = taskColors(
         task = task,
         taskColors = taskColors,
@@ -386,11 +386,13 @@ fun Task(
         darkTheme = darkTheme
       )
     ) {
+      // intentionally replays its slide-in every time the item scrolls back into view
       AnimationBox {
         TaskContents(
           task = task,
           taskViewModel = taskViewModel,
           detoxRankViewModel = detoxRankViewModel,
+          achievementViewModel = achievementViewModel,
           taskToBeEdited = taskToBeEdited,
           rankPointsGain = rankPointsGain,
           coroutineScope = coroutineScope,
