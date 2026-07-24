@@ -700,28 +700,37 @@ fun Modifier.themeTexture(theme: UiTheme): Modifier = when (theme) {
         }
     }
 
-    // wide heraldic banner stripes
+    // castle-wall masonry in running bond
     UiTheme.Medieval -> drawBehind {
-        val band = 64.dp.toPx()
-        val tints = listOf(
-            Color(0xFFC9A227).copy(alpha = 0.035f),
-            Color(0xFFC85A5A).copy(alpha = 0.03f),
-            Color(0xFF6A7AB8).copy(alpha = 0.03f)
-        )
-        var i = 0
-        var offset = -size.height
-        while (offset < size.width) {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        val rowH = 42.dp.toPx()
+        val brickW = 82.dp.toPx()
+        val mortar = Color(0xFFE8D5A3)
+        val stroke = 1.2.dp.toPx()
+        var y = 0f
+        var row = 0
+        while (y < size.height) {
             drawLine(
-                tints[i % 3],
-                Offset(offset, size.height),
-                Offset(offset + size.height, 0f),
-                band * 0.55f
+                mortar.copy(alpha = 0.035f + n(row) * 0.02f),
+                Offset(0f, y), Offset(size.width, y), stroke
             )
-            offset += band
-            i++
+            var x = if (row % 2 == 0) 0f else brickW / 2f
+            var col = 0
+            while (x < size.width) {
+                drawLine(
+                    mortar.copy(alpha = 0.03f + n(row * 31 + col) * 0.025f),
+                    Offset(x, y), Offset(x, y + rowH), stroke
+                )
+                x += brickW
+                col++
+            }
+            y += rowH
+            row++
         }
     }
-
     // circuit traces with solder-point nodes
     UiTheme.Cyber -> drawBehind {
         fun n(i: Int): Float {
