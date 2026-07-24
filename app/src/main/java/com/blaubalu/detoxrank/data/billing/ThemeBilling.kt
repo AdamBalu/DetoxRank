@@ -31,8 +31,30 @@ object ThemeBilling : PurchasesUpdatedListener {
         "theme_sketch" to UiTheme.Sketch, // also unlocks the Paper variant
         "theme_cartoon" to UiTheme.Cartoon,
         "theme_blueprint" to UiTheme.Blueprint,
-        "theme_pixel" to UiTheme.Pixel
+        "theme_pixel" to UiTheme.Pixel,
+        "theme_elements" to UiTheme.Fire, // unlocks Fire, Water, Wind and Earth
+        "theme_princess" to UiTheme.Princess,
+        "theme_scorched" to UiTheme.Scorched
     )
+
+    /** every theme coverable by a purchase, including bundled variants */
+    val allPurchasableThemes = listOf(
+        UiTheme.Luxury, UiTheme.Comic, UiTheme.Sketch, UiTheme.Paper, UiTheme.Cartoon,
+        UiTheme.Blueprint, UiTheme.Pixel, UiTheme.Fire, UiTheme.Water, UiTheme.Wind,
+        UiTheme.Earth, UiTheme.Avatar, UiTheme.Princess, UiTheme.Scorched
+    )
+
+    /** supporter bundle products and the number of theme picks they grant (0 = all themes) */
+    val bundlePicks = mapOf(
+        "bundle_supporter_10" to 2,
+        "bundle_supporter_25" to 6,
+        "bundle_supporter_50" to 0
+    )
+
+    /** formatted store price per bundle product */
+    val bundlePrices = mutableStateMapOf<String, String>()
+
+    private var onBundlePurchased: ((String) -> Unit)? = null
 
     /** Formatted store price per premium theme, filled once product details load */
     val themePrices = mutableStateMapOf<UiTheme, String>()
@@ -43,9 +65,14 @@ object ThemeBilling : PurchasesUpdatedListener {
 
     fun isPremium(theme: UiTheme): Boolean = productIdToTheme.containsValue(theme)
 
-    fun init(context: Context, onThemeUnlocked: (UiTheme) -> Unit) {
+    fun init(
+        context: Context,
+        onThemeUnlocked: (UiTheme) -> Unit,
+        onBundlePurchased: (String) -> Unit
+    ) {
         if (billingClient != null) return
         this.onThemeUnlocked = onThemeUnlocked
+        this.onBundlePurchased = onBundlePurchased
         val client = BillingClient.newBuilder(context.applicationContext)
             .setListener(this)
             .enablePendingPurchases(
@@ -72,9 +99,17 @@ object ThemeBilling : PurchasesUpdatedListener {
      * @return false when billing is unavailable (no Play Store / products not loaded)
      */
     fun purchase(activity: Activity, theme: UiTheme): Boolean {
-        val client = billingClient ?: return false
         val productId = productIdToTheme.entries.firstOrNull { it.value == theme }?.key
             ?: return false
+        return purchaseProduct(activity, productId)
+    }
+
+    /**
+     * Launches the Play purchase dialog for any known product (theme or bundle)
+     * @return false when billing is unavailable
+     */
+    fun purchaseProduct(activity: Activity, productId: String): Boolean {
+        val client = billingClient ?: return false
         val details = productDetails[productId] ?: return false
         if (!client.isReady) return false
 
@@ -98,7 +133,7 @@ object ThemeBilling : PurchasesUpdatedListener {
     }
 
     private fun queryThemeProducts() {
-        val products = productIdToTheme.keys.map { id ->
+        val products = (productIdToTheme.keys + bundlePicks.keys).map { id ->
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(id)
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -109,9 +144,12 @@ object ThemeBilling : PurchasesUpdatedListener {
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                 detailsList.forEach { details ->
                     productDetails[details.productId] = details
-                    val theme = productIdToTheme[details.productId] ?: return@forEach
-                    details.oneTimePurchaseOfferDetails?.formattedPrice?.let { price ->
-                        themePrices[theme] = price
+                    val price = details.oneTimePurchaseOfferDetails?.formattedPrice
+                    if (price != null) {
+                        productIdToTheme[details.productId]?.let { themePrices[it] = price }
+                        if (details.productId in bundlePicks) {
+                            bundlePrices[details.productId] = price
+                        }
                     }
                 }
             }
@@ -135,6 +173,9 @@ object ThemeBilling : PurchasesUpdatedListener {
 
         purchase.products.forEach { productId ->
             productIdToTheme[productId]?.let { theme -> onThemeUnlocked?.invoke(theme) }
+            if (productId in bundlePicks) {
+                onBundlePurchased?.invoke(productId)
+            }
         }
 
         if (!purchase.isAcknowledged) {

@@ -11,21 +11,26 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,7 +60,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
+import com.blaubalu.detoxrank.data.billing.ThemeShopState
 import com.blaubalu.detoxrank.data.user.Rank
 import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.ui.utils.Constants.ALL_THEMES_UNLOCKED_FOR_TESTING
@@ -87,6 +94,8 @@ data class ThemeOption(
     val isPremium: Boolean = false,
     /** the theme whose purchase unlocks this one (bundled variants) */
     val purchaseKey: UiTheme = theme,
+    /** human-readable name of the purchase this theme is bundled in */
+    val bundleLabel: String? = null,
     /** unlocked only at max level + Legend rank */
     val requiresMastery: Boolean = false
 )
@@ -171,7 +180,8 @@ val themeOptions = listOf(
         secondaryColor = Color(0xFF8A857A),
         backgroundColor = Color(0xFFF5F1E8),
         isPremium = true,
-        purchaseKey = UiTheme.Sketch // bundled with Sketch
+        purchaseKey = UiTheme.Sketch, // bundled with Sketch
+        bundleLabel = "Sketch theme"
     ),
     ThemeOption(
         theme = UiTheme.Cartoon,
@@ -195,6 +205,71 @@ val themeOptions = listOf(
         primaryColor = Color(0xFFFF77A8),
         secondaryColor = Color(0xFFFFEC27),
         backgroundColor = Color(0xFF1A1C2C),
+        isPremium = true
+    ),
+    ThemeOption(
+        theme = UiTheme.Fire,
+        name = "Fire",
+        primaryColor = Color(0xFFFF6B35),
+        secondaryColor = Color(0xFFFFC15E),
+        backgroundColor = Color(0xFF1C0A05),
+        isPremium = true,
+        bundleLabel = "Elements pack"
+    ),
+    ThemeOption(
+        theme = UiTheme.Water,
+        name = "Water",
+        primaryColor = Color(0xFF4DD0E1),
+        secondaryColor = Color(0xFF80DEEA),
+        backgroundColor = Color(0xFF041F24),
+        isPremium = true,
+        purchaseKey = UiTheme.Fire,
+        bundleLabel = "Elements pack"
+    ),
+    ThemeOption(
+        theme = UiTheme.Wind,
+        name = "Wind",
+        primaryColor = Color(0xFF4A7A8C),
+        secondaryColor = Color(0xFF7FA8B8),
+        backgroundColor = Color(0xFFF2F7F7),
+        isPremium = true,
+        purchaseKey = UiTheme.Fire,
+        bundleLabel = "Elements pack"
+    ),
+    ThemeOption(
+        theme = UiTheme.Earth,
+        name = "Earth",
+        primaryColor = Color(0xFFC77B4A),
+        secondaryColor = Color(0xFF8FA05A),
+        backgroundColor = Color(0xFF171208),
+        isPremium = true,
+        purchaseKey = UiTheme.Fire,
+        bundleLabel = "Elements pack"
+    ),
+    ThemeOption(
+        theme = UiTheme.Avatar,
+        name = "Avatar",
+        primaryColor = Color(0xFFFF8A50),
+        secondaryColor = Color(0xFF55C6D8),
+        backgroundColor = Color(0xFF10131A),
+        isPremium = true,
+        purchaseKey = UiTheme.Fire,
+        bundleLabel = "Elements pack"
+    ),
+    ThemeOption(
+        theme = UiTheme.Princess,
+        name = "Princess",
+        primaryColor = Color(0xFFD6659E),
+        secondaryColor = Color(0xFFB388D9),
+        backgroundColor = Color(0xFFFDF2F7),
+        isPremium = true
+    ),
+    ThemeOption(
+        theme = UiTheme.Scorched,
+        name = "Scorched",
+        primaryColor = Color(0xFFE85D2F),
+        secondaryColor = Color(0xFFB0A080),
+        backgroundColor = Color(0xFF16130F),
         isPremium = true
     ),
     ThemeOption(
@@ -240,6 +315,8 @@ fun ThemeSelectorSheet(
     currentRank: Rank,
     purchasedThemes: Set<UiTheme>,
     onThemeSelected: (UiTheme) -> Unit,
+    onPickRedeemed: (UiTheme) -> Unit,
+    onOpenShop: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -273,8 +350,16 @@ fun ThemeSelectorSheet(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
                 )
+                TextButton(onClick = onOpenShop, modifier = Modifier.padding(bottom = 8.dp)) {
+                    Icon(
+                        imageVector = Icons.Filled.Storefront,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(" Theme Shop", fontWeight = FontWeight.Bold)
+                }
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
@@ -331,8 +416,201 @@ fun ThemeSelectorSheet(
                     previewOption = null
                 }
             },
+            onUsePick = if (option.isPremium) {
+                {
+                    onPickRedeemed(option.purchaseKey)
+                    previewOption = null
+                }
+            } else null,
             onDismiss = { previewOption = null }
         )
+    }
+}
+
+/**
+ * The full theme store: supporter bundles up top, every purchasable theme
+ * below; tapping a theme opens its live preview with buy / pick actions
+ */
+@Composable
+fun ThemeShopDialog(
+    currentTheme: UiTheme,
+    purchasedThemes: Set<UiTheme>,
+    onThemeSelected: (UiTheme) -> Unit,
+    onPickRedeemed: (UiTheme) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
+
+    fun buyProduct(productId: String) {
+        val activity = context.findActivity()
+        val launched = activity != null && ThemeBilling.purchaseProduct(activity, productId)
+        if (!launched) toastShort("Google Play is not available right now", context)
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                item(span = { GridItemSpan(2) }) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Theme Shop",
+                                style = MaterialTheme.typography.headlineMedium
+                            )
+                            IconButton(onClick = onDismiss) {
+                                Icon(Icons.Filled.Close, contentDescription = "Close")
+                            }
+                        }
+                        Text(
+                            text = "Buy themes one by one, or grab a supporter bundle — " +
+                                    "thank you for keeping this app alive! 💛",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 10.dp)
+                        )
+                        if (ThemeShopState.availablePicks > 0) {
+                            Text(
+                                text = "You have ${ThemeShopState.availablePicks} theme " +
+                                        "pick${if (ThemeShopState.availablePicks == 1) "" else "s"} " +
+                                        "left — tap a theme to redeem!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(bottom = 10.dp)
+                            )
+                        }
+                        SupporterBundleCard(
+                            title = "Supporter",
+                            productId = "bundle_supporter_10",
+                            fallbackPrice = "$10",
+                            description = "Pick any 2 themes",
+                            onBuy = ::buyProduct
+                        )
+                        SupporterBundleCard(
+                            title = "Patron",
+                            productId = "bundle_supporter_25",
+                            fallbackPrice = "$25",
+                            description = "Pick any 6 themes",
+                            onBuy = ::buyProduct
+                        )
+                        SupporterBundleCard(
+                            title = "Champion",
+                            productId = "bundle_supporter_50",
+                            fallbackPrice = "$50",
+                            description = "Every theme, forever — including future ones on request",
+                            onBuy = ::buyProduct
+                        )
+                        Text(
+                            text = "Themes",
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
+                        )
+                    }
+                }
+
+                items(themeOptions.filter { it.isPremium }) { option ->
+                    val isUnlocked = purchasedThemes.contains(option.theme) ||
+                            purchasedThemes.contains(option.purchaseKey)
+                    ThemeCard(
+                        option = option,
+                        isSelected = currentTheme == option.theme,
+                        isUnlocked = isUnlocked,
+                        onClick = {
+                            if (isUnlocked) onThemeSelected(option.theme)
+                            else previewOption = option
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    previewOption?.let { option ->
+        ThemePreviewDialog(
+            option = option,
+            onUnlock = {
+                val activity = context.findActivity()
+                val launched = activity != null &&
+                        ThemeBilling.purchase(activity, option.purchaseKey)
+                if (!launched) toastShort("Google Play is not available right now", context)
+                previewOption = null
+            },
+            onUsePick = {
+                onPickRedeemed(option.purchaseKey)
+                previewOption = null
+            },
+            onDismiss = { previewOption = null }
+        )
+    }
+}
+
+/**
+ * One supporter tier row in the shop
+ */
+@Composable
+private fun SupporterBundleCard(
+    title: String,
+    productId: String,
+    fallbackPrice: String,
+    description: String,
+    onBuy: (String) -> Unit
+) {
+    val themeStyle = LocalThemeStyle.current
+    Card(
+        shape = themeStyle.cardShape ?: MaterialTheme.shapes.medium,
+        border = themeStyle.cardBorder,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Button(onClick = { onBuy(productId) }) {
+                Text(
+                    text = ThemeBilling.bundlePrices[productId] ?: fallbackPrice,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 
@@ -345,7 +623,8 @@ fun ThemeSelectorSheet(
 fun ThemePreviewDialog(
     option: ThemeOption,
     onUnlock: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onUsePick: (() -> Unit)? = null
 ) {
     Dialog(onDismissRequest = onDismiss) {
         DetoxRankTheme(theme = option.theme) {
@@ -408,9 +687,17 @@ fun ThemePreviewDialog(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        if (option.purchaseKey != option.theme) {
+                        if (onUsePick != null && ThemeShopState.availablePicks > 0) {
+                            TextButton(onClick = onUsePick) {
+                                Text(
+                                    "Use 1 pick (${ThemeShopState.availablePicks} left)",
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        if (option.bundleLabel != null) {
                             Text(
-                                text = "Included in the ${option.purchaseKey.name} theme",
+                                text = "Included in the ${option.bundleLabel}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 6.dp)

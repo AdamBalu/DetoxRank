@@ -165,6 +165,30 @@ private val MasterShapes = Shapes(
     extraLarge = RoundedCornerShape(30.dp)
 )
 
+private val FlameShapes = Shapes(
+    extraSmall = CutCornerShape(3.dp),
+    small = CutCornerShape(5.dp),
+    medium = CutCornerShape(8.dp),
+    large = CutCornerShape(10.dp),
+    extraLarge = CutCornerShape(16.dp)
+)
+
+private val FluidShapes = Shapes(
+    extraSmall = RoundedCornerShape(12.dp),
+    small = RoundedCornerShape(16.dp),
+    medium = RoundedCornerShape(24.dp),
+    large = RoundedCornerShape(28.dp),
+    extraLarge = RoundedCornerShape(36.dp)
+)
+
+private val SturdyShapes = Shapes(
+    extraSmall = RoundedCornerShape(3.dp),
+    small = RoundedCornerShape(5.dp),
+    medium = RoundedCornerShape(8.dp),
+    large = RoundedCornerShape(10.dp),
+    extraLarge = RoundedCornerShape(14.dp)
+)
+
 /**
  * Per-theme component shapes: comic panels are hard-edged, cartoon is extra
  * round, luxury gets gem-like cut corners and sketch a hand-drawn outline
@@ -177,6 +201,10 @@ fun shapesFor(theme: UiTheme): Shapes = when (theme) {
     UiTheme.Blueprint -> BlueprintShapes
     UiTheme.Pixel -> PixelShapes
     UiTheme.Master -> MasterShapes
+    UiTheme.Fire, UiTheme.Scorched -> FlameShapes
+    UiTheme.Water, UiTheme.Wind, UiTheme.Princess -> FluidShapes
+    UiTheme.Earth -> SturdyShapes
+    UiTheme.Avatar -> MasterShapes
     else -> DefaultShapes
 }
 
@@ -238,6 +266,45 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
             )
         ),
         customTaskColor = Color(0xFF57431A)
+    )
+    UiTheme.Fire -> ThemeStyle(
+        cardBorder = BorderStroke(2.dp, Color(0x66FF6B35)),
+        customTaskColor = Color(0xFF6E3A0E)
+    )
+    UiTheme.Water -> ThemeStyle(
+        cardBorder = BorderStroke(1.5.dp, Color(0x664DD0E1)),
+        customTaskColor = Color(0xFF0E5A50)
+    )
+    UiTheme.Wind -> ThemeStyle(
+        cardBorder = BorderStroke(1.5.dp, Color(0x66559AB0)),
+        customTaskColor = Color(0xFFDCE8C8)
+    )
+    UiTheme.Earth -> ThemeStyle(
+        cardBorder = BorderStroke(2.dp, Color(0x66A98547)),
+        customTaskColor = Color(0xFF5A4A28)
+    )
+    UiTheme.Princess -> ThemeStyle(
+        cardBorder = BorderStroke(1.5.dp, Color(0x66D6659E)),
+        customTaskColor = Color(0xFFF5E3B0)
+    )
+    UiTheme.Scorched -> ThemeStyle(
+        cardBorder = BorderStroke(2.dp, Color(0x66E85D2F)),
+        customTaskColor = Color(0xFF4A5A2E)
+    )
+    UiTheme.Avatar -> ThemeStyle(
+        // all four elements around every card
+        cardBorder = BorderStroke(
+            1.5.dp,
+            Brush.linearGradient(
+                listOf(
+                    Color(0x99FF8A50), // fire
+                    Color(0x9955C6D8), // water
+                    Color(0x99C8D8DC), // wind
+                    Color(0x99D9C48C)  // earth
+                )
+            )
+        ),
+        customTaskColor = Color(0xFF3E505A) // air
     )
     else -> ThemeStyle()
 }
@@ -321,6 +388,178 @@ fun Modifier.themeTexture(theme: UiTheme): Modifier = when (theme) {
         while (y < size.height) {
             drawLine(stroke, Offset(0f, y), Offset(size.width, y), width)
             y += step
+        }
+    }
+
+    // drifting embers
+    UiTheme.Fire -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        val step = 52.dp.toPx()
+        var row = 0
+        var y = step / 2f
+        while (y < size.height) {
+            var col = 0
+            var x = step / 2f
+            while (x < size.width) {
+                val seed = row * 113 + col * 11
+                val warm = if (n(seed) > 0.5f) Color(0xFFFF6B35) else Color(0xFFFFC15E)
+                drawCircle(
+                    warm.copy(alpha = 0.03f + n(seed + 1) * 0.07f),
+                    (0.7f + n(seed + 2) * 1.3f) * density,
+                    Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
+                )
+                x += step; col++
+            }
+            y += step; row++
+        }
+    }
+
+    // rolling waves
+    UiTheme.Water -> drawBehind {
+        val rowStep = 90.dp.toPx()
+        val amplitude = 5.dp.toPx()
+        val wavelength = 70.dp.toPx()
+        val stroke = Color(0xFF4DD0E1).copy(alpha = 0.05f)
+        var y = rowStep / 2f
+        var row = 0
+        while (y < size.height) {
+            val phase = row * 1.7f
+            var x = 0f
+            var prev = Offset(0f, y + amplitude * sin(phase))
+            while (x < size.width) {
+                x += 12f
+                val next = Offset(x, y + amplitude * sin(phase + x / wavelength * 6.283f))
+                drawLine(stroke, prev, next, 1.5.dp.toPx())
+                prev = next
+            }
+            y += rowStep; row++
+        }
+    }
+
+    // streaking gusts
+    UiTheme.Wind -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        val stroke = Color(0xFF4A7A8C)
+        for (i in 0 until 42) {
+            val startX = n(i * 3) * size.width
+            val startY = n(i * 3 + 1) * size.height
+            val len = (60 + n(i * 3 + 2) * 120) * density
+            drawLine(
+                stroke.copy(alpha = 0.03f + n(i * 7) * 0.05f),
+                Offset(startX, startY),
+                Offset(startX + len, startY - len * 0.18f),
+                (1f + n(i * 5) * 0.8f) * density
+            )
+        }
+    }
+
+    // sediment strata
+    UiTheme.Earth -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        val stroke = Color(0xFFD9B98C)
+        var y = 0f
+        var i = 0
+        while (y < size.height) {
+            y += (26 + n(i) * 22) * density
+            drawLine(
+                stroke.copy(alpha = 0.03f + n(i + 1) * 0.03f),
+                Offset(0f, y),
+                Offset(size.width, y),
+                (1f + n(i + 2) * 1.5f) * density
+            )
+            i += 3
+        }
+    }
+
+    // scattered twinkles
+    UiTheme.Princess -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        val step = 64.dp.toPx()
+        var row = 0
+        var y = step / 2f
+        while (y < size.height) {
+            var col = 0
+            var x = step / 2f
+            while (x < size.width) {
+                val seed = row * 97 + col * 13
+                val cx = x + (n(seed) - 0.5f) * step
+                val cy = y + (n(seed + 1) - 0.5f) * step
+                val r = (2f + n(seed + 2) * 3f) * density
+                val tint = if (n(seed + 3) > 0.5f) Color(0xFFD6659E) else Color(0xFFC9A227)
+                val sparkle = tint.copy(alpha = 0.10f + n(seed + 4) * 0.10f)
+                val w = 1.2f * density
+                drawLine(sparkle, Offset(cx - r, cy), Offset(cx + r, cy), w)
+                drawLine(sparkle, Offset(cx, cy - r), Offset(cx, cy + r), w)
+                x += step; col++
+            }
+            y += step; row++
+        }
+    }
+
+    // specks of all four elements
+    UiTheme.Avatar -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        val palette = listOf(
+            Color(0xFFFF8A50), Color(0xFF55C6D8), Color(0xFFC8D8DC), Color(0xFFD9C48C)
+        )
+        val step = 50.dp.toPx()
+        var row = 0
+        var y = step / 2f
+        while (y < size.height) {
+            var col = 0
+            var x = step / 2f
+            while (x < size.width) {
+                val seed = row * 127 + col * 19
+                val tint = palette[(n(seed) * 4f).toInt().coerceIn(0, 3)]
+                drawCircle(
+                    tint.copy(alpha = 0.03f + n(seed + 1) * 0.06f),
+                    (0.7f + n(seed + 2) * 1.2f) * density,
+                    Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
+                )
+                x += step; col++
+            }
+            y += step; row++
+        }
+    }
+
+    // falling ash
+    UiTheme.Scorched -> drawBehind {
+        fun n(i: Int): Float {
+            val x = sin(i * 12.9898f) * 43758.5453f
+            return x - floor(x)
+        }
+        val step = 44.dp.toPx()
+        var row = 0
+        var y = step / 2f
+        while (y < size.height) {
+            var col = 0
+            var x = step / 2f
+            while (x < size.width) {
+                val seed = row * 151 + col * 17
+                val grey = if (n(seed) > 0.85f) Color(0xFFE85D2F) else Color(0xFFB0A080)
+                drawCircle(
+                    grey.copy(alpha = 0.025f + n(seed + 1) * 0.055f),
+                    (0.6f + n(seed + 2) * 1.1f) * density,
+                    Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
+                )
+                x += step; col++
+            }
+            y += step; row++
         }
     }
 

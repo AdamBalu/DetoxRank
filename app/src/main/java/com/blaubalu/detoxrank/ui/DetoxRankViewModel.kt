@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.TimerDifficulty
 import com.blaubalu.detoxrank.data.achievements.AchievementRepository
+import com.blaubalu.detoxrank.data.billing.ThemeShopState
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.data.task.TasksRepository
 import com.blaubalu.detoxrank.data.user.Rank
@@ -426,6 +427,26 @@ class DetoxRankViewModel(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 userDataRepository.updateSelectedTheme(theme)
+            }
+        }
+    }
+
+    /**
+     * Redeems one supporter-bundle pick for the given theme, if any picks remain
+     */
+    fun unlockThemeWithPick(theme: UiTheme) {
+        if (!ThemeShopState.usePick()) return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val user = userDataRepository.getUserStream().first()
+                val owned = user.purchasedThemes
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .toMutableSet()
+                if (owned.add(theme.name)) {
+                    userDataRepository.updatePurchasedThemes(owned.joinToString(","))
+                }
             }
         }
     }

@@ -40,6 +40,11 @@ val PressStart = FontFamily(Font(R.font.press_start))
 val VT323 = FontFamily(Font(R.font.vt323))
 val ShareTechMono = FontFamily(Font(R.font.share_tech_mono))
 val Marcellus = FontFamily(Font(R.font.marcellus))
+val Philosopher = FontFamily(Font(R.font.philosopher_bold, FontWeight.Bold))
+val GreatVibes = FontFamily(Font(R.font.great_vibes))
+val Quicksand = FontFamily(Font(R.font.quicksand))
+val BlackOpsOne = FontFamily(Font(R.font.black_ops_one))
+val Oswald = FontFamily(Font(R.font.oswald))
 
 /**
  * Builds the app's type scale from a display font (headlines/titles) and a body
@@ -108,5 +113,9 @@ fun typographyFor(theme: UiTheme): Typography = when (theme) {
     UiTheme.Blueprint -> buildTypography(display = ShareTechMono, body = ShareTechMono)
     UiTheme.Pixel -> buildTypography(display = PressStart, body = VT323, displayScale = 0.7f)
     UiTheme.Master -> buildTypography(display = Marcellus, body = DMSans)
+    UiTheme.Fire, UiTheme.Water, UiTheme.Wind, UiTheme.Earth, UiTheme.Avatar ->
+        buildTypography(display = Philosopher, body = DMSans)
+    UiTheme.Princess -> buildTypography(display = GreatVibes, body = Quicksand, displayScale = 1.15f)
+    UiTheme.Scorched -> buildTypography(display = BlackOpsOne, body = Oswald, displayScale = 0.9f)
     else -> Typography
 }

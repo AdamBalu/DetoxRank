@@ -9,7 +9,8 @@ import com.blaubalu.detoxrank.data.TimerDifficulty
 
 enum class UiTheme {
     Default, Light, Dark, Monochrome, GreenShades, BlueShades,
-    Luxury, Comic, Sketch, Cartoon, Paper, Blueprint, Pixel, Master
+    Luxury, Comic, Sketch, Cartoon, Paper, Blueprint, Pixel, Master,
+    Fire, Water, Wind, Earth, Avatar, Princess, Scorched
 }
 
 enum class Rank(val rankName: String) {

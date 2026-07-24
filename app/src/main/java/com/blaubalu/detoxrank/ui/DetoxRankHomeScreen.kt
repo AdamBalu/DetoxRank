@@ -316,6 +316,7 @@ fun DetoxRankTopAppBar(
     val uiState by detoxRankViewModel.uiState.collectAsState()
     val currentLevel = uiState.currentLevel
     var showThemeSelector by remember { mutableStateOf(false) }
+    var showThemeShop by remember { mutableStateOf(false) }
 
     // Get theme state
     val userState by detoxRankViewModel.userDataUiState.collectAsState()
@@ -431,8 +432,26 @@ fun DetoxRankTopAppBar(
             detoxRankViewModel.selectTheme(theme)
             showThemeSelector = false
         },
+        onPickRedeemed = { theme -> detoxRankViewModel.unlockThemeWithPick(theme) },
+        onOpenShop = {
+            showThemeSelector = false
+            showThemeShop = true
+        },
         onDismiss = { showThemeSelector = false }
     )
+
+    if (showThemeShop) {
+        ThemeShopDialog(
+            currentTheme = currentTheme,
+            purchasedThemes = purchasedThemes,
+            onThemeSelected = { theme ->
+                detoxRankViewModel.selectTheme(theme)
+                showThemeShop = false
+            },
+            onPickRedeemed = { theme -> detoxRankViewModel.unlockThemeWithPick(theme) },
+            onDismiss = { showThemeShop = false }
+        )
+    }
 }
 
 
