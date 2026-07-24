@@ -1,7 +1,6 @@
 package com.blaubalu.detoxrank.ui.timer
 
 import android.content.Context
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material3.FilledIconButton
@@ -70,7 +68,6 @@ import com.blaubalu.detoxrank.service.TimerState
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theme.rank_color
 import com.blaubalu.detoxrank.ui.theme.rank_color_ultra_dark
 import com.blaubalu.detoxrank.ui.utils.Constants
@@ -86,32 +83,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
-
-/**
- * UI for a single item from the ban list in timer difficulty select
- */
-@Composable
-fun BannedItem(
-  @StringRes item: Int,
-  modifier: Modifier = Modifier
-) {
-  Row(
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    Icon(
-      imageVector = Icons.Filled.ArrowRight,
-      contentDescription = null,
-      modifier = modifier.width(26.dp),
-      tint = MaterialTheme.colorScheme.error
-    )
-    Text(
-      stringResource(item),
-      style = Typography.bodyMedium,
-      fontStyle = FontStyle.Normal,
-      modifier = Modifier.padding(bottom = 4.dp, start = 5.dp, end = 8.dp)
-    )
-  }
-}
 
 @ExperimentalAnimationApi
 @Composable
@@ -416,7 +387,7 @@ fun TimerStartButton(
       )
       Text(
         text = "Start Detox",
-        style = Typography.bodySmall,
+        style = MaterialTheme.typography.bodySmall,
         fontStyle = FontStyle.Normal,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp,
@@ -442,7 +413,7 @@ fun TimerStopButton(handleTimerStopButtonPress: () -> Unit) {
       )
       Text(
         text = "Finish",
-        style = Typography.bodySmall,
+        style = MaterialTheme.typography.bodySmall,
         fontStyle = FontStyle.Normal,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp,
@@ -504,18 +475,18 @@ fun TimerFooter(
       ) {
         Text(
           text = "DAY STREAK",
-          style = Typography.bodySmall,
+          style = MaterialTheme.typography.bodySmall,
           fontSize = getParamDependingOnScreenSizeSp(
             p1 = 10.sp,
             p2 = 12.sp,
             p3 = 14.sp,
-            p4 = Typography.bodySmall.fontSize,
-            otherwise = Typography.bodySmall.fontSize
+            p4 = MaterialTheme.typography.bodySmall.fontSize,
+            otherwise = MaterialTheme.typography.bodySmall.fontSize
           )
         )
         Text(
           days,
-          style = Typography.headlineLarge,
+          style = MaterialTheme.typography.headlineLarge,
           textAlign = TextAlign.Center,
           fontSize = getParamDependingOnScreenSizeSp(
             p1 = 23.sp,
@@ -534,13 +505,13 @@ fun TimerFooter(
       ) {
         Text(
           text = stringResource(R.string.difficulty),
-          style = Typography.bodySmall,
+          style = MaterialTheme.typography.bodySmall,
           fontSize = getParamDependingOnScreenSizeSp(
             p1 = 10.sp,
             p2 = 12.sp,
             p3 = 14.sp,
-            p4 = Typography.bodySmall.fontSize,
-            otherwise = Typography.bodySmall.fontSize
+            p4 = MaterialTheme.typography.bodySmall.fontSize,
+            otherwise = MaterialTheme.typography.bodySmall.fontSize
           )
         )
         DifficultySelect(
@@ -609,10 +580,10 @@ fun AccumulatedRp(
   ) {
     Text(
       stringResource(R.string.timer_accumulated_points_heading),
-      style = Typography.bodySmall,
+      style = MaterialTheme.typography.bodySmall,
       fontSize = getParamDependingOnScreenSizeSp(
-        10.sp, 12.sp, 14.sp, Typography.bodySmall.fontSize,
-        otherwise = Typography.bodySmall.fontSize
+        10.sp, 12.sp, 14.sp, MaterialTheme.typography.bodySmall.fontSize,
+        otherwise = MaterialTheme.typography.bodySmall.fontSize
       )
     )
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -624,7 +595,7 @@ fun AccumulatedRp(
         Text(
           it,
           modifier = Modifier.padding(top = 5.dp, end = 3.dp),
-          style = Typography.headlineLarge,
+          style = MaterialTheme.typography.headlineLarge,
           letterSpacing = 1.sp,
           fontSize = getParamDependingOnScreenSizeSp(21.sp, 25.sp, 40.sp, 45.sp, 45.sp)
         )
@@ -636,7 +607,7 @@ fun AccumulatedRp(
       ) {
         Text(
           ".$it",
-          style = Typography.headlineSmall,
+          style = MaterialTheme.typography.headlineSmall,
           fontSize = 12.sp,
           modifier = Modifier.padding(end = 4.dp)
         )
