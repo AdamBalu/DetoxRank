@@ -1,7 +1,13 @@
 package com.blaubalu.detoxrank.ui
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,15 +16,19 @@ import androidx.compose.material3.*
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
@@ -251,6 +261,11 @@ fun DetoxRankAppContent(
     }
 }
 
+/**
+ * Floating themed dock: the theme's card shape, border and tonal surface with
+ * the section texture peeking around it. The selected section expands into a
+ * labelled pill with a bouncy icon; the rest sit quietly dimmed.
+ */
 @Composable
 fun DetoxRankBottomNavigationBar(
     currentTab: Section,
@@ -258,21 +273,100 @@ fun DetoxRankBottomNavigationBar(
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier
 ) {
-    NavigationBar(modifier = modifier.fillMaxWidth()) {
-        for (navItem in navigationItemContentList) {
-            NavigationBarItem(
-                selected = currentTab == navItem.section,
-                onClick = { onTabPressed(navItem.section) },
-                icon = {
+    val themeStyle = LocalThemeStyle.current
+    Surface(
+        shape = themeStyle.cardShape ?: RoundedCornerShape(26.dp),
+        border = themeStyle.cardBorder ?: BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+        ),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
+            .height(64.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 6.dp)
+        ) {
+            navigationItemContentList.forEach { navItem ->
+                val selected = currentTab == navItem.section
+                val pillColor by animateColorAsState(
+                    targetValue = if (selected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                    } else {
+                        Color.Transparent
+                    },
+                    animationSpec = tween(250),
+                    label = ""
+                )
+                val iconScale by animateFloatAsState(
+                    targetValue = if (selected) 1.15f else 1f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    ),
+                    label = ""
+                )
+                val iconAlpha by animateFloatAsState(
+                    targetValue = if (selected) 1f else 0.55f,
+                    animationSpec = tween(250),
+                    label = ""
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(pillColor)
+                        .then(
+                            if (selected) {
+                                Modifier.border(
+                                    BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+                                    ),
+                                    RoundedCornerShape(50)
+                                )
+                            } else {
+                                Modifier
+                            }
+                        )
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { onTabPressed(navItem.section) }
+                        .animateContentSize(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
+                        )
+                        .padding(horizontal = 13.dp, vertical = 8.dp)
+                ) {
                     Image(
                         imageVector = navItem.image,
                         contentDescription = navItem.text,
                         modifier = Modifier
-                            .padding(top = 4.dp, bottom = 4.dp)
                             .size(25.dp)
+                            .scale(iconScale)
+                            .alpha(iconAlpha)
                     )
+                    if (selected) {
+                        Text(
+                            text = navItem.text,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            modifier = Modifier.padding(start = 7.dp)
+                        )
+                    }
                 }
-            )
+            }
         }
     }
 }
