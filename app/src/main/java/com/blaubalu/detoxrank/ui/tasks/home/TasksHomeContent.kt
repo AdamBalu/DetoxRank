@@ -62,6 +62,7 @@ import com.blaubalu.detoxrank.data.task.Task
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankTopAppBar
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
@@ -241,15 +242,17 @@ fun TasksContent(
                   .padding(start = 6.dp, end = 6.dp)
           )
         }
-        AnimatedTaskList(
-            timerService = timerService,
-            taskList = tasksHomeUiState.taskList,
-            detoxRankViewModel = detoxRankViewModel,
-            achievementViewModel = achievementViewModel,
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-        )
+        SectionContentEntrance {
+          AnimatedTaskList(
+              timerService = timerService,
+              taskList = tasksHomeUiState.taskList,
+              detoxRankViewModel = detoxRankViewModel,
+              achievementViewModel = achievementViewModel,
+              modifier = Modifier
+                  .padding(paddingValues)
+                  .fillMaxWidth()
+          )
+        }
       } else {
         Box(
             contentAlignment = Alignment.BottomCenter,
@@ -270,15 +273,17 @@ fun TasksContent(
                   )
           )
         }
-        AnimatedTaskList(
-            timerService = timerService,
-            taskList = tasksHomeUiState.taskList,
-            detoxRankViewModel = detoxRankViewModel,
-            achievementViewModel = achievementViewModel,
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxWidth()
-        )
+        SectionContentEntrance {
+          AnimatedTaskList(
+              timerService = timerService,
+              taskList = tasksHomeUiState.taskList,
+              detoxRankViewModel = detoxRankViewModel,
+              achievementViewModel = achievementViewModel,
+              modifier = Modifier
+                  .padding(paddingValues)
+                  .fillMaxWidth()
+          )
+        }
       }
 
     }

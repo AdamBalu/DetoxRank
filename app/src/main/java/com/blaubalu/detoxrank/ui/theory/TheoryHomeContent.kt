@@ -27,6 +27,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.NavigationDrawerContent
@@ -143,12 +144,14 @@ fun TheoryContent(
                 }
             }
         ) { paddingValues ->
-            TheoryMainNavigation(
-                theoryViewModel = theoryViewModel,
-                detoxRankViewModel = detoxRankViewModel,
-                navController = navController,
-                modifier = Modifier.padding(paddingValues)
-            )
+            SectionContentEntrance {
+                TheoryMainNavigation(
+                    theoryViewModel = theoryViewModel,
+                    detoxRankViewModel = detoxRankViewModel,
+                    navController = navController,
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
         }
     }
 }

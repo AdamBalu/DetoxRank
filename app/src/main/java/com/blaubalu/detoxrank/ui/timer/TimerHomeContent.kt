@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankTopAppBar
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
@@ -131,25 +132,27 @@ fun TimerContent(
                     }
             }
         ) { paddingValues ->
-            // keep everything centered when on mobile screen size
-            if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
-                TimerBody(
-                    timerService = timerService,
-                    detoxRankUiState = detoxRankUiState,
-                    timerViewModel = timerViewModel,
-                    detoxRankViewModel = detoxRankViewModel,
-                    achievementViewModel = achievementViewModel,
-                    modifier = Modifier.padding(paddingValues),
-                )
-            } else {
-                TimerBodyLarge(
-                    timerService = timerService,
-                    detoxRankUiState = detoxRankUiState,
-                    achievementViewModel = achievementViewModel,
-                    timerViewModel = timerViewModel,
-                    detoxRankViewModel = detoxRankViewModel,
-                    modifier = Modifier.padding(paddingValues)
-                )
+            SectionContentEntrance {
+                // keep everything centered when on mobile screen size
+                if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
+                    TimerBody(
+                        timerService = timerService,
+                        detoxRankUiState = detoxRankUiState,
+                        timerViewModel = timerViewModel,
+                        detoxRankViewModel = detoxRankViewModel,
+                        achievementViewModel = achievementViewModel,
+                        modifier = Modifier.padding(paddingValues),
+                    )
+                } else {
+                    TimerBodyLarge(
+                        timerService = timerService,
+                        detoxRankUiState = detoxRankUiState,
+                        achievementViewModel = achievementViewModel,
+                        timerViewModel = timerViewModel,
+                        detoxRankViewModel = detoxRankViewModel,
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                }
             }
         }
     }

@@ -23,6 +23,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankTopAppBar
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
@@ -140,23 +141,24 @@ fun RankContent(
           )
       }
     ) { paddingValues ->
-      // keep everything centered when on mobile screen size
-      if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
-        RankMainScreenBody(
-          detoxRankViewModel = detoxRankViewModel,
-          achievementViewModel = achievementViewModel,
-          rankViewModel = rankViewModel,
-          modifier = Modifier.padding(paddingValues)
-        )
-      } else {
-        RankMainScreenBodyLarge(
-          detoxRankViewModel = detoxRankViewModel,
-          achievementViewModel = achievementViewModel,
-          rankViewModel = rankViewModel,
-          modifier = Modifier.padding(paddingValues)
-        )
+      SectionContentEntrance {
+        // keep everything centered when on mobile screen size
+        if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
+          RankMainScreenBody(
+            detoxRankViewModel = detoxRankViewModel,
+            achievementViewModel = achievementViewModel,
+            rankViewModel = rankViewModel,
+            modifier = Modifier.padding(paddingValues)
+          )
+        } else {
+          RankMainScreenBodyLarge(
+            detoxRankViewModel = detoxRankViewModel,
+            achievementViewModel = achievementViewModel,
+            rankViewModel = rankViewModel,
+            modifier = Modifier.padding(paddingValues)
+          )
+        }
       }
-
     }
   }
 }

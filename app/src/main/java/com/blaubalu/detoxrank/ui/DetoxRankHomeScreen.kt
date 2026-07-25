@@ -1,8 +1,13 @@
 package com.blaubalu.detoxrank.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -156,6 +161,13 @@ fun DetoxRankAppContent(
         )
     )
 
+    // which side each freshly opened section slides in from: navigating to a
+    // tab further right slides in from the right, and vice versa
+    val currentSection = detoxRankUiState.currentSection
+    val previousSection = remember { mutableStateOf(currentSection) }
+    val slideDirection = if (currentSection.ordinal >= previousSection.value.ordinal) 1 else -1
+    LaunchedEffect(currentSection) { previousSection.value = currentSection }
+
     DetoxRankTheme(
         theme = userDataUiState.selectedTheme,
         section = detoxRankUiState.currentSection
@@ -171,6 +183,7 @@ fun DetoxRankAppContent(
                         )
                     )
             ) {
+            CompositionLocalProvider(LocalSectionSlideDirection provides slideDirection) {
             when (detoxRankUiState.currentSection) {
                 Section.Rank -> {
                     RankHomeScreen(
@@ -221,6 +234,7 @@ fun DetoxRankAppContent(
                 }
             }
             }
+            }
         }
     }
 
@@ -257,6 +271,35 @@ fun DetoxRankAppContent(
                 }
             )
         }
+    }
+}
+
+/** -1 or +1: which side the freshly opened section's content slides in from */
+val LocalSectionSlideDirection = staticCompositionLocalOf { 1 }
+
+/**
+ * Unified screen entrance: every section's content slides in from the side
+ * the user navigated from, giving switches a consistent sense of direction.
+ * Plays exactly once per section change (the screen composable is fresh),
+ * so it cannot misfire the way per-item scroll animations did.
+ */
+@Composable
+fun SectionContentEntrance(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val direction = LocalSectionSlideDirection.current
+    val appear = remember {
+        MutableTransitionState(false).apply { targetState = true }
+    }
+    AnimatedVisibility(
+        visibleState = appear,
+        enter = slideInHorizontally(
+            animationSpec = tween(320, easing = FastOutSlowInEasing)
+        ) { fullWidth -> direction * fullWidth / 3 } + fadeIn(animationSpec = tween(260)),
+        modifier = modifier
+    ) {
+        content()
     }
 }
 
