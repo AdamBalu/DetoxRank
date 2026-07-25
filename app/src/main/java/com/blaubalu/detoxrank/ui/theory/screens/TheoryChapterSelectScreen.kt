@@ -247,31 +247,31 @@ fun ContinueIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val themeStyle = LocalThemeStyle.current
-    OutlinedIconButton(
+    FilledIconButton(
         onClick = onClick,
         shape = MaterialTheme.shapes.large,
-        border = themeStyle.cardBorder ?: IconButtonDefaults.outlinedIconButtonBorder(true),
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 35.dp, start = 16.dp, end = 16.dp, bottom = 25.dp)
             .height(60.dp)
     ) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(R.string.button_continue),
                 style = MaterialTheme.typography.bodyMedium,
                 letterSpacing = 1.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
+                maxLines = 1
             )
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowRight,
                 contentDescription = null
             )
         }
-
     }
 }
 

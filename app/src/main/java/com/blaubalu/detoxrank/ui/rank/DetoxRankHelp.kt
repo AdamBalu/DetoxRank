@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -81,11 +82,10 @@ fun DetoxRankHelp(
                             modifier = Modifier.padding(start = 12.dp)
                         )
                     }
-                    IconButton(onClick = { rankViewModel.setHelpDisplayed(false) }) {
+                    FilledTonalIconButton(onClick = { rankViewModel.setHelpDisplayed(false) }) {
                         Icon(
                             Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.close),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            contentDescription = stringResource(R.string.close)
                         )
                     }
                 }

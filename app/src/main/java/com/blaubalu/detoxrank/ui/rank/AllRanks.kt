@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blaubalu.detoxrank.data.local.LocalRankDataProvider.ranksSeparated
@@ -57,29 +56,25 @@ fun AllRanks(
         .background(MaterialTheme.colorScheme.surface)
     ) {
       Column(modifier = Modifier.align(Alignment.TopCenter)) {
-        Icon(
-          imageVector = Icons.Filled.Close,
-          tint = MaterialTheme.colorScheme.inversePrimary,
-          contentDescription = null,
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween,
           modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp)
-            .size(30.dp)
-            .clickable {
-              rankViewModel.setRanksDisplayed(false)
-            }
-        )
-        LazyColumn {
-          item {
-            Text(
-              "Ranks",
-              style = MaterialTheme.typography.headlineLarge,
-              textAlign = TextAlign.Center,
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 10.dp, top = 2.dp)
+            .padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 4.dp)
+        ) {
+          Text(
+            "Ranks",
+            style = MaterialTheme.typography.headlineLarge
+          )
+          FilledTonalIconButton(onClick = { rankViewModel.setRanksDisplayed(false) }) {
+            Icon(
+              imageVector = Icons.Filled.Close,
+              contentDescription = "Close"
             )
           }
+        }
+        LazyColumn {
           items(ranksSeparated) { rankList ->
             Card(
               colors = CardDefaults.cardColors(

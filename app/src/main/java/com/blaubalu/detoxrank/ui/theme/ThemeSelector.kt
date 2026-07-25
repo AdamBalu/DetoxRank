@@ -559,7 +559,7 @@ fun ThemeShopDialog(
                                 text = "Theme Shop",
                                 style = MaterialTheme.typography.headlineMedium
                             )
-                            IconButton(onClick = onDismiss) {
+                            FilledTonalIconButton(onClick = onDismiss) {
                                 Icon(Icons.Filled.Close, contentDescription = "Close")
                             }
                         }
