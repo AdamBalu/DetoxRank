@@ -418,27 +418,14 @@ fun TaskTimer(
 
     else -> 7 - (dayOfWeekEu - 1)
   }
-  var isVisible by remember { mutableStateOf(false) }
   val hoursRemaining by timerService.hoursDay
   val minutesRemaining by timerService.minutesDay
   val secondsRemaining by timerService.secondsDay
 
   val daysRemainingMonth by timerService.daysMonth
 
-  LaunchedEffect(Unit) {
-    delay(800)
-    isVisible = true
-  }
-
-  AnimatedVisibility(
-      visible = isVisible,
-      enter = fadeIn() + slideInVertically(
-          tween(
-              700,
-              easing = LinearOutSlowInEasing
-          )
-      ) { height -> height / 5 }
-  ) {
+  // no delayed drop-from-top: the labels ride the unified section slide
+  run {
     when (category) {
       TaskDurationCategory.Daily -> {
         Text(

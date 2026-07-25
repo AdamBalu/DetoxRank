@@ -64,6 +64,7 @@ import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
 import com.blaubalu.detoxrank.ui.tasks.home.TasksHeading
 import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
 import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
+import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.Constants.DAILY_TASK_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.MONTHLY_TASK_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.RP_PERCENTAGE_GAIN_TIMER_EASY_DIFFICULTY
@@ -465,20 +466,22 @@ fun Task(
         darkTheme = darkTheme
       )
     ) {
-      // no per-item scroll-re-entry animation: it kept replaying at the wrong
-      // times, and this Compose version has no reliable primitive for it
-      TaskContents(
-        task = task,
-        taskViewModel = taskViewModel,
-        detoxRankViewModel = detoxRankViewModel,
-        achievementViewModel = achievementViewModel,
-        taskToBeEdited = taskToBeEdited,
-        rankPointsGain = rankPointsGain,
-        coroutineScope = coroutineScope,
-        isVisible = isVisible,
-        context = context,
-        modifier = modifier
-      )
+      // replays its slide-in whenever the item scrolls back into view — the
+      // signature task-list motion
+      AnimationBox {
+        TaskContents(
+          task = task,
+          taskViewModel = taskViewModel,
+          detoxRankViewModel = detoxRankViewModel,
+          achievementViewModel = achievementViewModel,
+          taskToBeEdited = taskToBeEdited,
+          rankPointsGain = rankPointsGain,
+          coroutineScope = coroutineScope,
+          isVisible = isVisible,
+          context = context,
+          modifier = modifier
+        )
+      }
     }
     }
   }

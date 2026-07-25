@@ -2,11 +2,14 @@ package com.blaubalu.detoxrank.ui.theory.screens
 
 import androidx.compose.material3.MaterialTheme
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,6 +31,7 @@ import com.blaubalu.detoxrank.data.chapter.Chapter
 import com.blaubalu.detoxrank.data.chapter.ChapterDifficulty
 import com.blaubalu.detoxrank.data.chapter.ChapterTag
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
+import com.blaubalu.detoxrank.ui.LocalSectionSlideDirection
 import com.blaubalu.detoxrank.ui.theme.rank_color
 import com.blaubalu.detoxrank.ui.theme.*
 import com.blaubalu.detoxrank.ui.theory.TheoryViewModel
@@ -61,6 +65,15 @@ fun TheoryChapterSelectScreen(
     modifier: Modifier = Modifier
 ) {
     val theoryUiState by theoryViewModel.theoryHomeUiState.collectAsState()
+    // chapters load async: slide them in from the navigation direction once
+    // ready, so a late load still matches the unified section motion
+    val slideDirection = LocalSectionSlideDirection.current
+    AnimatedVisibility(
+        visible = theoryUiState.chapterList.isNotEmpty(),
+        enter = slideInHorizontally(
+            animationSpec = tween(320, easing = FastOutSlowInEasing)
+        ) { fullWidth -> slideDirection * fullWidth / 3 } + fadeIn(animationSpec = tween(260))
+    ) {
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
@@ -85,6 +98,7 @@ fun TheoryChapterSelectScreen(
         item {
             Spacer(modifier = Modifier.height(15.dp))
         }
+    }
     }
 }
 
