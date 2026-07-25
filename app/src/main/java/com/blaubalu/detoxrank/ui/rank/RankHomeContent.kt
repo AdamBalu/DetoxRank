@@ -123,7 +123,7 @@ fun RankContent(
               Icon(
                 Icons.AutoMirrored.Rounded.Help,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondaryContainer,
+                tint = MaterialTheme.colorScheme.primary,
               )
             }
           }
