@@ -64,7 +64,7 @@ import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
 import com.blaubalu.detoxrank.ui.tasks.home.TasksHeading
 import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
 import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
-import com.blaubalu.detoxrank.ui.utils.AnimationBox
+import com.blaubalu.detoxrank.ui.utils.ScrollReEntry
 import com.blaubalu.detoxrank.ui.utils.Constants.DAILY_TASK_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.MONTHLY_TASK_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.RP_PERCENTAGE_GAIN_TIMER_EASY_DIFFICULTY
@@ -467,8 +467,8 @@ fun Task(
       )
     ) {
       // replays its slide-in whenever the item scrolls back into view — the
-      // signature task-list motion
-      AnimationBox {
+      // signature task-list motion, draw-layer only so scrolling stays smooth
+      ScrollReEntry {
         TaskContents(
           task = task,
           taskViewModel = taskViewModel,
