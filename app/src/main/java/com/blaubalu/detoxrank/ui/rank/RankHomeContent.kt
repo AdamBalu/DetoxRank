@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Help
@@ -249,8 +250,10 @@ fun RankMainScreenBody(
 //                    }
         },
         shape = LocalThemeStyle.current.cardShape
-          ?: RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-        border = LocalThemeStyle.current.cardBorder,
+          ?: MaterialTheme.shapes.extraLarge.copy(
+            bottomStart = CornerSize(0.dp),
+            bottomEnd = CornerSize(0.dp)
+          ),
         modifier = Modifier
           .padding(top = 5.dp)
           .fillMaxWidth(0.75f),
@@ -349,8 +352,10 @@ fun RankMainScreenBodyLarge(
           rankViewModel.setAchievementsDisplayed(true)
         },
         shape = LocalThemeStyle.current.cardShape
-          ?: RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-        border = LocalThemeStyle.current.cardBorder,
+          ?: MaterialTheme.shapes.extraLarge.copy(
+            bottomStart = CornerSize(0.dp),
+            bottomEnd = CornerSize(0.dp)
+          ),
         modifier = Modifier
           .padding(top = 5.dp)
           .fillMaxWidth(0.55f)
