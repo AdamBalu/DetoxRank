@@ -1,7 +1,7 @@
 package com.blaubalu.detoxrank.ui
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -354,10 +354,16 @@ fun DetoxRankTopAppBar(
         detoxRankViewModel.setLevelProgressBar(progress)
     }
 
-    val animatedProgress = animateFloatAsState(
-        targetValue = uiState.levelProgressBarProgression,
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec, label = ""
-    ).value
+    // restart the fill animation on level-up so the fresh bar fills upward from
+    // zero instead of sliding backwards from the previous level's progress
+    val progressAnim = remember(currentLevel) { Animatable(0f) }
+    LaunchedEffect(currentLevel, uiState.levelProgressBarProgression) {
+        progressAnim.animateTo(
+            uiState.levelProgressBarProgression,
+            ProgressIndicatorDefaults.ProgressAnimationSpec
+        )
+    }
+    val animatedProgress = progressAnim.value
 
     val levelBadgeSize: Dp
     val xpBarPaddingStart: Dp
@@ -407,16 +413,23 @@ fun DetoxRankTopAppBar(
                 )
 
                 if (currentLevel != 25) {
+                    val angledBars = LocalThemeStyle.current.angledBars
                     ThemedProgressBar(
                         progress = animatedProgress,
                         color = MaterialTheme.colorScheme.tertiary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                        angled = LocalThemeStyle.current.angledBars,
+                        angled = angledBars,
                         straightShape = RoundedCornerShape(2.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
                         modifier = Modifier
                             .height(xpBarHeight)
-                            .padding(start = xpBarPaddingStart, end = 16.dp, top = xpBarPaddingTop)
+                            .padding(
+                                // the slanted start corner needs a nudge left to stay
+                                // tucked under the level badge
+                                start = xpBarPaddingStart - if (angledBars) 8.dp else 0.dp,
+                                end = 16.dp,
+                                top = xpBarPaddingTop
+                            )
                             .fillMaxWidth(0.35f)
                     )
                 }
