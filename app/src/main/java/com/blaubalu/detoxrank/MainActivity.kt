@@ -70,12 +70,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // GDPR: silently refresh consent info; the form itself only appears
-        // when the user first taps "watch ad". Ads start now if already allowed.
-        AdsConsentManager.refreshConsentInfo(this) {
-            RewardedAdManager.startAds(this)
-        }
-
         setContent {
             DetoxRankTheme {
                 // A surface container using the 'background' color from the theme
@@ -95,6 +89,17 @@ class MainActivity : ComponentActivity() {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+        }
+
+        // GDPR: silently refresh consent info; the form itself only appears
+        // when the user first taps "watch ad". Ads start now if already
+        // allowed. Posted after the first frame — UMP can answer from cache
+        // synchronously, and the ad SDK must never initialize inside
+        // onCreate before setContent (it corrupts the activity window).
+        window.decorView.post {
+            AdsConsentManager.refreshConsentInfo(this) {
+                RewardedAdManager.startAds(this)
+            }
         }
     }
 

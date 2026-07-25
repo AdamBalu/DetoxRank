@@ -87,6 +87,8 @@ fun AchievementsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .fillMaxWidth()
+                        // edge-to-edge (target SDK 36): stay below the status bar
+                        .statusBarsPadding()
                         .padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 4.dp)
                 ) {
                     Text(

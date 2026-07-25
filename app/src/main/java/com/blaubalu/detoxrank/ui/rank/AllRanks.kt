@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -55,7 +56,12 @@ fun AllRanks(
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.surface)
     ) {
-      Column(modifier = Modifier.align(Alignment.TopCenter)) {
+      Column(
+        modifier = Modifier
+          .align(Alignment.TopCenter)
+          // edge-to-edge (target SDK 36): keep the header below the status bar
+          .statusBarsPadding()
+      ) {
         Row(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.SpaceBetween,

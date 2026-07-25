@@ -386,6 +386,8 @@ fun DetoxRankBottomNavigationBar(
         color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
         modifier = modifier
             .fillMaxWidth()
+            // edge-to-edge (target SDK 36): float above the gesture/nav bar
+            .navigationBarsPadding()
             .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)
             .height(64.dp)
     ) {
@@ -605,6 +607,8 @@ fun DetoxRankTopAppBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            // edge-to-edge (target SDK 36): keep the bar below the status bar
+            .statusBarsPadding()
             .padding(top = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
