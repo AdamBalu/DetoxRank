@@ -6,8 +6,12 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -18,6 +22,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -62,6 +68,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
@@ -339,14 +348,41 @@ fun CollectAccumulatedRpButton(
   // 0 = lid closed, 1 = lid fully open
   val lidOpen = remember { Animatable(0f) }
   val chestEnabled = ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0
+  // breathing glow behind the chest: the "this is tappable loot" signal
+  val glowTransition = rememberInfiniteTransition(label = "")
+  val glowPulse by glowTransition.animateFloat(
+    initialValue = 0.8f,
+    targetValue = 1.15f,
+    animationSpec = infiniteRepeatable(
+      animation = tween(900, easing = FastOutSlowInEasing),
+      repeatMode = RepeatMode.Reverse
+    ),
+    label = ""
+  )
+  val chestColor = if (chestEnabled) {
+    MaterialTheme.colorScheme.onPrimaryContainer
+  } else {
+    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+  }
+  val platformColor = if (chestEnabled) {
+    MaterialTheme.colorScheme.primaryContainer
+  } else {
+    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+  }
+  val platformStroke = if (chestEnabled) {
+    MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
+  } else {
+    Color.Transparent
+  }
+  val glowColor = MaterialTheme.colorScheme.primary
   Box(
     contentAlignment = Alignment.Center,
     modifier = Modifier
-      .padding(top = 12.dp)
+      .padding(top = 8.dp)
       .scale(scale.value)
-  ) {
-    FilledIconButton(
-      onClick = {
+      .size(64.dp)
+      .clip(CircleShape)
+      .clickable(enabled = chestEnabled) {
         onCollected()
         coroutineScope.launch {
           scale.animateTo(
@@ -373,95 +409,99 @@ fun CollectAccumulatedRpButton(
             )
           )
         }
-      },
-      enabled = chestEnabled,
-      shape = CircleShape,
-      colors = IconButtonDefaults.filledIconButtonColors(
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-      ),
-      modifier = Modifier
-        .size(58.dp)
-        .then(
-          LocalThemeStyle.current.cardBorder?.let {
-            Modifier.border(it, CircleShape)
-          } ?: Modifier.border(
-            BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
-            CircleShape
-          )
-        )
-    ) {}
-    // hand-drawn treasure chest, drawn as an overlay ABOVE the button so the
-    // open lid isn't clipped by the button's circular bounds; touches fall
-    // through to the button underneath
-    val chestColor = if (chestEnabled) {
-      MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-      MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-    }
-    val cutoutColor = if (chestEnabled) {
-      MaterialTheme.colorScheme.primaryContainer
-    } else {
-      MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    }
-    Canvas(modifier = Modifier.size(27.dp)) {
+      }
+  ) {
+    Canvas(modifier = Modifier.size(52.dp)) {
       val w = size.width
       val h = size.height
-      val open = lidOpen.value
-
-      // dark opening revealed while the lid is up
-      if (open > 0.05f) {
-        drawRoundRect(
-          color = Color.Black.copy(alpha = 0.45f * open),
-          topLeft = Offset(w * 0.10f, h * 0.40f),
-          size = Size(w * 0.80f, h * 0.18f),
-          cornerRadius = CornerRadius(w * 0.08f, w * 0.08f)
+      // pulsing halo while there is something to collect
+      if (chestEnabled) {
+        drawCircle(
+          brush = Brush.radialGradient(
+            colors = listOf(glowColor.copy(alpha = 0.38f * glowPulse), Color.Transparent),
+            center = Offset(w * 0.5f, h * 0.45f),
+            radius = w * 0.62f * glowPulse
+          ),
+          radius = w * 0.62f * glowPulse,
+          center = Offset(w * 0.5f, h * 0.45f)
         )
       }
-      // chest base
-      drawPath(
-        Path().apply {
-          addRoundRect(
-            RoundRect(
-              rect = Rect(w * 0.04f, h * 0.54f, w * 0.96f, h),
-              bottomLeft = CornerRadius(w * 0.12f, w * 0.12f),
-              bottomRight = CornerRadius(w * 0.12f, w * 0.12f)
-            )
-          )
-        },
-        chestColor
+      // the dais the chest sits on
+      drawOval(
+        color = platformColor,
+        topLeft = Offset(0f, h * 0.80f),
+        size = Size(w, h * 0.18f)
       )
-      // lid + clasp swing together on a hinge at the lid's bottom-left
-      withTransform({
-        rotate(degrees = -80f * open, pivot = Offset(w * 0.02f, h * 0.46f))
-      }) {
-        // domed lid
-        drawPath(
-          Path().apply {
-            addRoundRect(
-              RoundRect(
-                rect = Rect(0f, 0f, w, h * 0.46f),
-                topLeft = CornerRadius(w * 0.30f, h * 0.42f),
-                topRight = CornerRadius(w * 0.30f, h * 0.42f)
-              )
-            )
-          },
-          chestColor
-        )
-        // clasp bridging the lid gap, with a keyhole punched out
-        drawRoundRect(
-          color = chestColor,
-          topLeft = Offset(w * 0.38f, h * 0.34f),
-          size = Size(w * 0.24f, h * 0.38f),
-          cornerRadius = CornerRadius(w * 0.07f, w * 0.07f)
-        )
-        drawCircle(
-          color = cutoutColor,
-          radius = w * 0.055f,
-          center = Offset(w * 0.50f, h * 0.52f)
-        )
+      drawOval(
+        color = platformStroke,
+        topLeft = Offset(0f, h * 0.80f),
+        size = Size(w, h * 0.18f),
+        style = Stroke(width = 1.5.dp.toPx())
+      )
+      // the chest itself, resting slightly into the dais
+      inset(left = w * 0.14f, top = h * 0.10f, right = w * 0.14f, bottom = h * 0.14f) {
+        drawChest(open = lidOpen.value, chestColor = chestColor)
       }
     }
+  }
+}
+
+/** Draws the treasure chest; [open] 0 = lid closed, 1 = lid fully open */
+private fun DrawScope.drawChest(open: Float, chestColor: Color) {
+  val w = size.width
+  val h = size.height
+
+  // dark opening revealed while the lid is up
+  if (open > 0.05f) {
+    drawRoundRect(
+      color = Color.Black.copy(alpha = 0.45f * open),
+      topLeft = Offset(w * 0.10f, h * 0.40f),
+      size = Size(w * 0.80f, h * 0.18f),
+      cornerRadius = CornerRadius(w * 0.08f, w * 0.08f)
+    )
+  }
+  // chest base
+  drawPath(
+    Path().apply {
+      addRoundRect(
+        RoundRect(
+          rect = Rect(w * 0.04f, h * 0.54f, w * 0.96f, h),
+          bottomLeft = CornerRadius(w * 0.12f, w * 0.12f),
+          bottomRight = CornerRadius(w * 0.12f, w * 0.12f)
+        )
+      )
+    },
+    chestColor
+  )
+  // lid + clasp swing together on a hinge at the lid's bottom-left
+  withTransform({
+    rotate(degrees = -80f * open, pivot = Offset(w * 0.02f, h * 0.46f))
+  }) {
+    // domed lid
+    drawPath(
+      Path().apply {
+        addRoundRect(
+          RoundRect(
+            rect = Rect(0f, 0f, w, h * 0.46f),
+            topLeft = CornerRadius(w * 0.30f, h * 0.42f),
+            topRight = CornerRadius(w * 0.30f, h * 0.42f)
+          )
+        )
+      },
+      chestColor
+    )
+    // clasp bridging the lid gap, with a dark keyhole
+    drawRoundRect(
+      color = chestColor,
+      topLeft = Offset(w * 0.38f, h * 0.34f),
+      size = Size(w * 0.24f, h * 0.38f),
+      cornerRadius = CornerRadius(w * 0.07f, w * 0.07f)
+    )
+    drawCircle(
+      color = Color.Black.copy(alpha = 0.5f),
+      radius = w * 0.055f,
+      center = Offset(w * 0.50f, h * 0.52f)
+    )
   }
 }
 
