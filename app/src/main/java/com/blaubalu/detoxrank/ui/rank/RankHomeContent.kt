@@ -141,23 +141,22 @@ fun RankContent(
           )
       }
     ) { paddingValues ->
-      SectionContentEntrance {
-        // keep everything centered when on mobile screen size
-        if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
-          RankMainScreenBody(
-            detoxRankViewModel = detoxRankViewModel,
-            achievementViewModel = achievementViewModel,
-            rankViewModel = rankViewModel,
-            modifier = Modifier.padding(paddingValues)
-          )
-        } else {
-          RankMainScreenBodyLarge(
-            detoxRankViewModel = detoxRankViewModel,
-            achievementViewModel = achievementViewModel,
-            rankViewModel = rankViewModel,
-            modifier = Modifier.padding(paddingValues)
-          )
-        }
+      // the section slide is applied inside the bodies so the achievements
+      // handle can keep its own always-from-the-navbar entrance
+      if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
+        RankMainScreenBody(
+          detoxRankViewModel = detoxRankViewModel,
+          achievementViewModel = achievementViewModel,
+          rankViewModel = rankViewModel,
+          modifier = Modifier.padding(paddingValues)
+        )
+      } else {
+        RankMainScreenBodyLarge(
+          detoxRankViewModel = detoxRankViewModel,
+          achievementViewModel = achievementViewModel,
+          rankViewModel = rankViewModel,
+          modifier = Modifier.padding(paddingValues)
+        )
       }
     }
   }
@@ -229,13 +228,15 @@ fun RankMainScreenBody(
     verticalArrangement = Arrangement.SpaceBetween,
     modifier = modifier.fillMaxSize()
   ) {
-    AnimationBox(enter = slideInVertically { x -> x / 40 } + fadeIn()) {
+    SectionContentEntrance {
       RankWithProgressBar(
         detoxRankViewModel = detoxRankViewModel,
         rankViewModel = rankViewModel
       )
     }
 
+    // exception to the directional slide: the achievements handle always
+    // rises from the navbar it tucks under
     AnimationBox(enter = slideInVertically { x -> x / 2 }) {
       Button(
         onClick = {
@@ -333,13 +334,15 @@ fun RankMainScreenBodyLarge(
     verticalArrangement = Arrangement.SpaceBetween,
     modifier = modifier.fillMaxSize()
   ) {
-    AnimationBox(enter = slideInVertically() { x -> x / 40 } + fadeIn()) {
+    SectionContentEntrance {
       RankWithProgressBarLarge(
         detoxRankViewModel = detoxRankViewModel,
         rankViewModel = rankViewModel
       )
     }
 
+    // exception to the directional slide: the achievements handle always
+    // rises from the navbar it tucks under
     AnimationBox(enter = slideInVertically { x -> x / 2 }) {
       Button(
         onClick = {

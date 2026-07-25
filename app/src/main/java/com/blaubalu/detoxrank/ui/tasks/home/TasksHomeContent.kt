@@ -5,11 +5,13 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -62,6 +64,7 @@ import com.blaubalu.detoxrank.data.task.Task
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.LocalSectionSlideDirection
 import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankTopAppBar
@@ -292,7 +295,8 @@ fun TasksContent(
 
 /**
  * Task list that plays its entrance animation only once the tasks have
- * actually loaded, so the animation is consistent on every visit
+ * actually loaded — sliding in from the same direction as the section
+ * change, so a late load still matches the unified motion
  */
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -303,11 +307,12 @@ private fun AnimatedTaskList(
     achievementViewModel: AchievementViewModel,
     modifier: Modifier = Modifier
 ) {
+  val direction = LocalSectionSlideDirection.current
   AnimatedVisibility(
       visible = taskList.isNotEmpty(),
-      enter = expandVertically(
-          animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
-      ) { height -> height / 10 } + fadeIn(animationSpec = tween(durationMillis = 400))
+      enter = slideInHorizontally(
+          animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
+      ) { fullWidth -> direction * fullWidth / 3 } + fadeIn(animationSpec = tween(durationMillis = 260))
   ) {
     TaskList(
         timerService = timerService,

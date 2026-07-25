@@ -31,7 +31,6 @@ import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.theme.rank_color
 import com.blaubalu.detoxrank.ui.theme.*
 import com.blaubalu.detoxrank.ui.theory.TheoryViewModel
-import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.Constants.CHAPTER_DIFFICULTY_EASY_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.CHAPTER_DIFFICULTY_EASY_XP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.CHAPTER_DIFFICULTY_HARD_RP_GAIN
@@ -75,15 +74,13 @@ fun TheoryChapterSelectScreen(
                 ChapterTag.HedonicCircuit -> onCHHedonicCircuitSelected
                 ChapterTag.Solutions -> onCHSolutionSelected
             }
-            AnimationBox(
-                enter = expandHorizontally() + fadeIn()
-            ) {
-                TheoryChapter(
-                    onChapterSelected = chapterButtonBehavior,
-                    theoryViewModel = theoryViewModel,
-                    chapter = chapter
-                )
-            }
+            // no per-chapter entrance: the unified section slide-in is the
+            // only screen-change motion
+            TheoryChapter(
+                onChapterSelected = chapterButtonBehavior,
+                theoryViewModel = theoryViewModel,
+                chapter = chapter
+            )
         }
         item {
             Spacer(modifier = Modifier.height(15.dp))
