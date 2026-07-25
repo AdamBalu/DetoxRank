@@ -160,7 +160,7 @@ fun TheoryChapter(
                             theoryViewModel.setCurrentChapterScreenNum()
                         }
                     },
-                    shape = LocalThemeStyle.current.cardShape ?: MaterialTheme.shapes.medium,
+                    shape = MaterialTheme.shapes.medium,
                     modifier = Modifier
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
@@ -250,7 +250,7 @@ fun ContinueIconButton(
     val themeStyle = LocalThemeStyle.current
     OutlinedIconButton(
         onClick = onClick,
-        shape = themeStyle.cardShape ?: MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.large,
         border = themeStyle.cardBorder ?: IconButtonDefaults.outlinedIconButtonBorder(true),
         modifier = modifier
             .fillMaxWidth()

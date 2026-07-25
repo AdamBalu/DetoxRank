@@ -343,7 +343,7 @@ fun CollectAccumulatedRpButton(
       }
     },
     enabled = ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0,
-    shape = LocalThemeStyle.current.cardShape ?: CircleShape,
+    shape = CircleShape,
     colors = IconButtonDefaults.filledIconButtonColors(
       containerColor = MaterialTheme.colorScheme.primaryContainer,
       disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -396,7 +396,7 @@ fun TimerStartButton(
   val themeStyle = LocalThemeStyle.current
   Button(
     onClick = { startTimerService() },
-    shape = themeStyle.cardShape ?: MaterialTheme.shapes.large,
+    shape = MaterialTheme.shapes.large,
     border = themeStyle.cardBorder,
     modifier = Modifier
       .fillMaxWidth()
@@ -427,7 +427,7 @@ fun TimerStopButton(handleTimerStopButtonPress: () -> Unit) {
   val themeStyle = LocalThemeStyle.current
   OutlinedIconButton(
     onClick = { handleTimerStopButtonPress() },
-    shape = themeStyle.cardShape ?: MaterialTheme.shapes.large,
+    shape = MaterialTheme.shapes.large,
     border = themeStyle.cardBorder ?: IconButtonDefaults.outlinedIconButtonBorder(true),
     modifier = Modifier
       .fillMaxWidth()

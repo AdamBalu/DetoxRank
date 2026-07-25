@@ -174,7 +174,7 @@ fun TheoryImage(
     ) {
         // illustrations sit in a themed frame so they feel like part of the page
         Card(
-            shape = themeStyle.cardShape ?: MaterialTheme.shapes.medium,
+            shape = MaterialTheme.shapes.medium,
             border = themeStyle.cardBorder,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
