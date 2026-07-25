@@ -381,36 +381,42 @@ fun CollectAccumulatedRpButton(
       .padding(top = 8.dp)
       .scale(scale.value)
       .size(64.dp)
-      .clip(CircleShape)
-      .clickable(enabled = chestEnabled) {
-        onCollected()
-        coroutineScope.launch {
-          scale.animateTo(
-            0.85f,
-            animationSpec = tween(200),
-          )
-          scale.animateTo(
-            1f,
-            animationSpec = tween(200),
-          )
-
-          detoxRankViewModel.updateLastRpGatherTime()
-          detoxRankViewModel.updateUserRankPoints(timerRpGain.toInt())
-        }
-        coroutineScope.launch {
-          // lid swings open, waits for the shields to fly in, then snaps shut
-          lidOpen.animateTo(1f, tween(220, easing = FastOutSlowInEasing))
-          delay(800)
-          lidOpen.animateTo(
-            0f,
-            spring(
-              dampingRatio = Spring.DampingRatioMediumBouncy,
-              stiffness = Spring.StiffnessMedium
-            )
-          )
-        }
-      }
   ) {
+    // circular ripple pad UNDER the drawing, so the tap feedback stays round
+    // while the chest itself is never clipped (the open lid swings past it)
+    Box(
+      modifier = Modifier
+        .size(64.dp)
+        .clip(CircleShape)
+        .clickable(enabled = chestEnabled) {
+          onCollected()
+          coroutineScope.launch {
+            scale.animateTo(
+              0.85f,
+              animationSpec = tween(200),
+            )
+            scale.animateTo(
+              1f,
+              animationSpec = tween(200),
+            )
+
+            detoxRankViewModel.updateLastRpGatherTime()
+            detoxRankViewModel.updateUserRankPoints(timerRpGain.toInt())
+          }
+          coroutineScope.launch {
+            // lid swings open, waits for the shields to fly in, then snaps shut
+            lidOpen.animateTo(1f, tween(220, easing = FastOutSlowInEasing))
+            delay(800)
+            lidOpen.animateTo(
+              0f,
+              spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium
+              )
+            )
+          }
+        }
+    )
     Canvas(modifier = Modifier.size(52.dp)) {
       val w = size.width
       val h = size.height
