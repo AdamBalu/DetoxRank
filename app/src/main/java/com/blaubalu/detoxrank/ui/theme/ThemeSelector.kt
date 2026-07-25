@@ -402,14 +402,12 @@ fun ThemeSelectorSheet(
     coins: Int,
     onCoinsEarned: (Int) -> Unit,
     onCoinUnlock: (UiTheme) -> Unit,
-    onRedeemCode: (String, (String) -> Unit) -> Unit,
     onThemeSelected: (UiTheme) -> Unit,
     onOpenShop: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
-    var showRedeemDialog by remember { mutableStateOf(false) }
 
     if (isVisible) {
         Dialog(
@@ -453,23 +451,13 @@ fun ThemeSelectorSheet(
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
                 )
                 CoinBalanceRow(coins = coins, onCoinsEarned = onCoinsEarned)
-                Row(modifier = Modifier.padding(bottom = 8.dp)) {
-                    TextButton(onClick = onOpenShop) {
-                        Icon(
-                            imageVector = Icons.Filled.Storefront,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(" Theme Shop", fontWeight = FontWeight.Bold)
-                    }
-                    TextButton(onClick = { showRedeemDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.Redeem,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(" Redeem code", fontWeight = FontWeight.Bold)
-                    }
+                TextButton(onClick = onOpenShop, modifier = Modifier.padding(bottom = 8.dp)) {
+                    Icon(
+                        imageVector = Icons.Filled.Storefront,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(" Theme Shop", fontWeight = FontWeight.Bold)
                 }
 
                 LazyVerticalGrid(
@@ -537,13 +525,6 @@ fun ThemeSelectorSheet(
                 }
             } else null,
             onDismiss = { previewOption = null }
-        )
-    }
-
-    if (showRedeemDialog) {
-        RedeemCodeDialog(
-            onRedeem = onRedeemCode,
-            onDismiss = { showRedeemDialog = false }
         )
     }
 }

@@ -447,9 +447,6 @@ fun DetoxRankTopAppBar(
         coins = userState.coins,
         onCoinsEarned = { amount -> detoxRankViewModel.addCoins(amount) },
         onCoinUnlock = { theme -> detoxRankViewModel.buyThemeWithCoins(theme) },
-        onRedeemCode = { code, onResult ->
-            detoxRankViewModel.redeemPromoCode(code, onResult)
-        },
         onThemeSelected = { theme ->
             detoxRankViewModel.selectTheme(theme)
             showThemeSelector = false
