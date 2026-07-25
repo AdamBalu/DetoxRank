@@ -338,57 +338,68 @@ fun CollectAccumulatedRpButton(
   }
   // 0 = lid closed, 1 = lid fully open
   val lidOpen = remember { Animatable(0f) }
-  FilledIconButton(
-    onClick = {
-      onCollected()
-      coroutineScope.launch {
-        scale.animateTo(
-          0.85f,
-          animationSpec = tween(200),
-        )
-        scale.animateTo(
-          1f,
-          animationSpec = tween(200),
-        )
-
-        detoxRankViewModel.updateLastRpGatherTime()
-        detoxRankViewModel.updateUserRankPoints(timerRpGain.toInt())
-      }
-      coroutineScope.launch {
-        // lid swings open, waits for the shields to fly in, then snaps shut
-        lidOpen.animateTo(1f, tween(220, easing = FastOutSlowInEasing))
-        delay(800)
-        lidOpen.animateTo(
-          0f,
-          spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-          )
-        )
-      }
-    },
-    enabled = ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0,
-    shape = CircleShape,
-    colors = IconButtonDefaults.filledIconButtonColors(
-      containerColor = MaterialTheme.colorScheme.primaryContainer,
-      disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    ),
+  val chestEnabled = ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0
+  Box(
+    contentAlignment = Alignment.Center,
     modifier = Modifier
       .padding(top = 12.dp)
       .scale(scale.value)
-      .size(58.dp)
-      .then(
-        LocalThemeStyle.current.cardBorder?.let {
-          Modifier.border(it, CircleShape)
-        } ?: Modifier.border(
-          BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
-          CircleShape
-        )
-      )
   ) {
-    // hand-drawn treasure chest: the shields from "accumulated RP" fly into it
-    val chestColor = LocalContentColor.current
-    val cutoutColor = if (ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0) {
+    FilledIconButton(
+      onClick = {
+        onCollected()
+        coroutineScope.launch {
+          scale.animateTo(
+            0.85f,
+            animationSpec = tween(200),
+          )
+          scale.animateTo(
+            1f,
+            animationSpec = tween(200),
+          )
+
+          detoxRankViewModel.updateLastRpGatherTime()
+          detoxRankViewModel.updateUserRankPoints(timerRpGain.toInt())
+        }
+        coroutineScope.launch {
+          // lid swings open, waits for the shields to fly in, then snaps shut
+          lidOpen.animateTo(1f, tween(220, easing = FastOutSlowInEasing))
+          delay(800)
+          lidOpen.animateTo(
+            0f,
+            spring(
+              dampingRatio = Spring.DampingRatioMediumBouncy,
+              stiffness = Spring.StiffnessMedium
+            )
+          )
+        }
+      },
+      enabled = chestEnabled,
+      shape = CircleShape,
+      colors = IconButtonDefaults.filledIconButtonColors(
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+      ),
+      modifier = Modifier
+        .size(58.dp)
+        .then(
+          LocalThemeStyle.current.cardBorder?.let {
+            Modifier.border(it, CircleShape)
+          } ?: Modifier.border(
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
+            CircleShape
+          )
+        )
+    ) {}
+    // hand-drawn treasure chest, drawn as an overlay ABOVE the button so the
+    // open lid isn't clipped by the button's circular bounds; touches fall
+    // through to the button underneath
+    val chestColor = if (chestEnabled) {
+      MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+      MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    }
+    val cutoutColor = if (chestEnabled) {
       MaterialTheme.colorScheme.primaryContainer
     } else {
       MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
