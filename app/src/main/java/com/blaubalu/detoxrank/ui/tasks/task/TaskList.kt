@@ -222,9 +222,6 @@ private fun Modifier.buildTaskModifier(
   taskToBeEdited: MutableState<Boolean>,
   context: Context
 ): Modifier {
-  // no explicit height: forcing IntrinsicSize here used to reserve phantom space below
-  // short descriptions; wrap-content is always tight and animateContentSize still
-  // animates the completed-state shrink
   return this
     .padding(vertical = 4.dp, horizontal = 16.dp)
     .animateContentSize(
@@ -432,9 +429,6 @@ fun Task(
     enter = expandIn()
   ) {
     val themeStyle = LocalThemeStyle.current
-    // replays its slide-in whenever the item scrolls back into view — wraps
-    // the whole task (card, border, swipe layer) and is draw-layer only, so
-    // scrolling stays smooth
     ScrollReEntry {
     SwipeToDismissBox(
       state = dismissState,

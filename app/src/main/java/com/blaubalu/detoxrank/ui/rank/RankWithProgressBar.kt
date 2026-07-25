@@ -54,8 +54,7 @@ fun RankWithProgressBar(
 ) {
     val currentRank = detoxRankViewModel.getCurrentRank()
 
-    // restart the fill animation whenever the rank changes, so ranking up fills
-    // the fresh bar upward from zero instead of sliding backwards from ~100%
+    // keyed on the rank so a rank-up fills the fresh bar from zero
     val progressAnim = remember(currentRank) { Animatable(0f) }
     LaunchedEffect(currentRank, detoxRankViewModel.getRankProgressBarValue()) {
         progressAnim.animateTo(
@@ -184,8 +183,7 @@ fun RankWithProgressBarLarge(
 ) {
     val currentRank = detoxRankViewModel.getCurrentRank()
 
-    // restart the fill animation whenever the rank changes, so ranking up fills
-    // the fresh bar upward from zero instead of sliding backwards from ~100%
+    // keyed on the rank so a rank-up fills the fresh bar from zero
     val progressAnim = remember(currentRank) { Animatable(0f) }
     LaunchedEffect(currentRank, detoxRankViewModel.getRankProgressBarValue()) {
         progressAnim.animateTo(

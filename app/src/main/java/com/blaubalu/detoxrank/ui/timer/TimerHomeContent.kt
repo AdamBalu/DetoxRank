@@ -183,8 +183,6 @@ fun TimerBody(
             .fillMaxHeight(),
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        // no internal entrance animations: the unified section slide-in
-        // (SectionContentEntrance) is the only screen-change motion
         Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.height(320.dp)) {
             TimerClock(timerService)
             TimerStartStopButton(

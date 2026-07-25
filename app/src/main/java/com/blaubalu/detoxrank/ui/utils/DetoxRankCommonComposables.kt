@@ -77,9 +77,8 @@ fun RankPointsGain(
 /**
  * Replays a subtle fade + slide whenever the wrapped content re-enters
  * composition, i.e. every time a lazy-list item scrolls back into view.
- * Draw-layer only (alpha + translation), so it never touches layout or the
- * list's scroll math — size-based enters like expandHorizontally caused the
- * jumpy, inconsistent list animation this replaces.
+ * Draw-layer only (alpha + translation) so it never touches layout or the
+ * list's scroll math — size-based enter transitions make lazy lists jumpy.
  */
 @Composable
 fun ScrollReEntry(

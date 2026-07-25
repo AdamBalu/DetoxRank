@@ -87,8 +87,6 @@ fun TheoryChapterSelectScreen(
                 ChapterTag.HedonicCircuit -> onCHHedonicCircuitSelected
                 ChapterTag.Solutions -> onCHSolutionSelected
             }
-            // no per-chapter entrance: the unified section slide-in is the
-            // only screen-change motion
             TheoryChapter(
                 onChapterSelected = chapterButtonBehavior,
                 theoryViewModel = theoryViewModel,

@@ -309,7 +309,7 @@ object ThemeBilling : PurchasesUpdatedListener {
             val bundle = themeBundles.firstOrNull { it.productId == productId }
             if (bundle != null) {
                 // an empty theme list means "everything, forever" — the app stores
-                // a permanent all-themes flag instead of a snapshot of today's themes
+                // a permanent all-themes flag so future themes unlock too
                 onBundleUnlocked?.invoke(bundle.title, bundle.themes)
             } else {
                 productIdToTheme[productId]?.let { theme -> onThemeUnlocked?.invoke(theme) }

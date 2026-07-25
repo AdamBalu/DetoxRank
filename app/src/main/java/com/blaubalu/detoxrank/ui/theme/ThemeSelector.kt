@@ -59,6 +59,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -73,6 +74,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
@@ -360,7 +362,9 @@ val themeOptions = listOf(
     ),
     ThemeOption(
         theme = UiTheme.Master,
-        name = "Master",
+        // internally UiTheme.Master, but the highest rank is Legend — named
+        // after the rank that actually unlocks it
+        name = "Legend",
         primaryColor = Color(0xFF7FE7D0),
         secondaryColor = Color(0xFFB79CFF),
         backgroundColor = Color(0xFF0A0A14),
@@ -623,16 +627,21 @@ fun ThemeShopDialog(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        FilledTonalButton(
+                        TextButton(
                             onClick = { showRedeemDialog = true },
-                            modifier = Modifier.padding(top = 12.dp)
+                            modifier = Modifier.padding(top = 8.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Redeem,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
                             )
-                            Text(" Redeem promo code", fontWeight = FontWeight.Bold)
+                            Text(
+                                text = " Redeem promo code",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                         // EEA users must be able to revisit their ad consent choice
                         if (AdsConsentManager.privacyOptionsRequired.value) {
@@ -757,10 +766,11 @@ private fun CoinBalanceRow(
     val coinColor = Color(0xFFE5C558)
     val adsLeft =
         (MAX_REWARDED_ADS_PER_DAY - RewardedAdManager.watchedToday.intValue).coerceAtLeast(0)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(bottom = 8.dp)
     ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(
             shape = CircleShape,
             color = coinColor.copy(alpha = 0.15f),
@@ -825,12 +835,13 @@ private fun CoinBalanceRow(
             )
             Text(" +$COINS_PER_AD", fontWeight = FontWeight.Bold)
         }
-        Text(
-            text = if (adsLeft > 0) "$adsLeft ads left today" else "back tomorrow!",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 8.dp)
-        )
+    }
+    Text(
+        text = if (adsLeft > 0) "$adsLeft ads left today" else "no ads left — back tomorrow!",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 3.dp)
+    )
     }
 }
 
@@ -865,8 +876,12 @@ private fun ThemeBundleCard(
     onBuy: (String) -> Unit
 ) {
     val themeStyle = LocalThemeStyle.current
+    val isDark = LocalThemeIsDark.current
     val accent = bundleAccent(bundle.productId)
+    // the raw accents are tuned for dark surfaces; ink them down on light ones
+    val accentInk = if (isDark) accent else lerp(accent, Color.Black, 0.35f)
     val isEverything = bundle.themes.isEmpty()
+    val tintAlpha = if (isDark) 0.16f else 0.10f
     Card(
         shape = themeStyle.cardShape ?: MaterialTheme.shapes.medium,
         border = if (isEverything) {
@@ -880,14 +895,10 @@ private fun ThemeBundleCard(
                 )
             )
         } else {
-            themeStyle.cardBorder
+            BorderStroke(1.5.dp, accentInk.copy(alpha = if (isDark) 0.5f else 0.6f))
         },
         colors = CardDefaults.cardColors(
-            containerColor = if (isEverything) {
-                accent.copy(alpha = 0.12f)
-            } else {
-                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
-            },
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
         modifier = Modifier
@@ -898,6 +909,20 @@ private fun ThemeBundleCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
+                // each bundle sweeps its accent across the card, fading out
+                .background(
+                    Brush.horizontalGradient(
+                        if (isEverything) {
+                            listOf(
+                                Color(0xFFE5C558).copy(alpha = tintAlpha),
+                                Color(0xFFFF7AC6).copy(alpha = tintAlpha * 0.7f),
+                                Color(0xFF4FC3F7).copy(alpha = tintAlpha)
+                            )
+                        } else {
+                            listOf(accent.copy(alpha = tintAlpha * 1.6f), Color.Transparent)
+                        }
+                    )
+                )
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
             Box(
@@ -905,12 +930,12 @@ private fun ThemeBundleCard(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(accent.copy(alpha = 0.18f))
+                    .background(accent.copy(alpha = if (isDark) 0.20f else 0.16f))
             ) {
                 Icon(
                     imageVector = bundleIcon(bundle.productId),
                     contentDescription = null,
-                    tint = accent,
+                    tint = accentInk,
                     modifier = Modifier.size(26.dp)
                 )
             }
@@ -922,7 +947,7 @@ private fun ThemeBundleCard(
                 Text(
                     text = bundle.title,
                     style = MaterialTheme.typography.headlineSmall,
-                    color = accent
+                    color = accentInk
                 )
                 Text(
                     text = bundle.tagline,

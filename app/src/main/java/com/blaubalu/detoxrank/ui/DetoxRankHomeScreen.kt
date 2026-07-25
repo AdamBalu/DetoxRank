@@ -345,8 +345,7 @@ val LocalSectionSlideDirection = staticCompositionLocalOf { 1 }
 /**
  * Unified screen entrance: every section's content slides in from the side
  * the user navigated from, giving switches a consistent sense of direction.
- * Plays exactly once per section change (the screen composable is fresh),
- * so it cannot misfire the way per-item scroll animations did.
+ * Plays exactly once per section change (the screen composable is fresh).
  */
 @Composable
 fun SectionContentEntrance(
@@ -369,9 +368,9 @@ fun SectionContentEntrance(
 }
 
 /**
- * Floating themed dock: the theme's card shape, border and tonal surface with
- * the section texture peeking around it. The selected section expands into a
- * labelled pill with a bouncy icon; the rest sit quietly dimmed.
+ * Floating themed dock: the theme's card shape and tonal surface with the
+ * section texture peeking around it. The selected section sits in a tinted
+ * pill with a bouncy icon; the rest are dimmed.
  */
 @Composable
 fun DetoxRankBottomNavigationBar(
@@ -566,8 +565,7 @@ fun DetoxRankTopAppBar(
         detoxRankViewModel.setLevelProgressBar(progress)
     }
 
-    // restart the fill animation on level-up so the fresh bar fills upward from
-    // zero instead of sliding backwards from the previous level's progress
+    // keyed on the level so a level-up fills the fresh bar from zero
     val progressAnim = remember(currentLevel) { Animatable(0f) }
     LaunchedEffect(currentLevel, uiState.levelProgressBarProgression) {
         progressAnim.animateTo(

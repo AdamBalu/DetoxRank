@@ -116,7 +116,6 @@ fun AchievementsScreen(
                         }
                         Card(
                             shape = LocalThemeStyle.current.cardShape ?: CardDefaults.shape,
-                            // tonal separation instead of drop shadows
                             elevation = cardElevation(0.dp),
                             colors = elevatedCardColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),

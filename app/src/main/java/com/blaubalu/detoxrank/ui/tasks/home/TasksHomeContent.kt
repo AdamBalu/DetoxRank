@@ -424,9 +424,7 @@ fun TaskTimer(
 
   val daysRemainingMonth by timerService.daysMonth
 
-  // no delayed drop-from-top: the labels ride the unified section slide
-  run {
-    when (category) {
+  when (category) {
       TaskDurationCategory.Daily -> {
         Text(
             stringResource(
@@ -468,7 +466,6 @@ fun TaskTimer(
         Icon(Icons.Filled.AllInclusive, contentDescription = null)
       }
 
-      else -> {}
-    }
+    else -> {}
   }
 }

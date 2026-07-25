@@ -109,8 +109,7 @@ class OfflineTasksRepository(
     }
 
     override suspend fun refreshTask(oldTask: Task) {
-        // the replacement inherits the swiped task's display slot, so it shows
-        // up exactly where the old one was instead of reshuffling the list
+        // the replacement inherits the swiped task's display slot
         val slot = if (oldTask.sortOrder != 0) oldTask.sortOrder else oldTask.id
         taskDao.selectReplacementTask(
             oldTask.durationCategory,
