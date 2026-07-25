@@ -525,6 +525,8 @@ class DetoxRankViewModel(
      * @return false - if there are no available task refreshes
      */
     suspend fun decrementTaskRefreshes(): Boolean {
+        // testing mode: refresh away without burning through the stock
+        if (Constants.ALL_THEMES_UNLOCKED_FOR_TESTING) return true
         val user = userDataRepository.getUserStream().first()
         if (user.availableTaskRefreshes <= 0) {
             return false
