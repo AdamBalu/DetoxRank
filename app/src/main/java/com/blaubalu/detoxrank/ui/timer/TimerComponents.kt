@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
@@ -50,8 +52,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -361,12 +369,55 @@ fun CollectAccumulatedRpButton(
         )
       )
   ) {
-    Text(
-      text = "+RP",
-      style = MaterialTheme.typography.titleMedium,
-      fontWeight = FontWeight.ExtraBold,
-      maxLines = 1
-    )
+    // hand-drawn treasure chest: the shields from "accumulated RP" fly into it
+    val chestColor = LocalContentColor.current
+    val cutoutColor = if (ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0) {
+      MaterialTheme.colorScheme.primaryContainer
+    } else {
+      MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    }
+    Canvas(modifier = Modifier.size(27.dp)) {
+      val w = size.width
+      val h = size.height
+      // domed lid
+      drawPath(
+        Path().apply {
+          addRoundRect(
+            RoundRect(
+              rect = Rect(0f, 0f, w, h * 0.46f),
+              topLeft = CornerRadius(w * 0.30f, h * 0.42f),
+              topRight = CornerRadius(w * 0.30f, h * 0.42f)
+            )
+          )
+        },
+        chestColor
+      )
+      // chest base
+      drawPath(
+        Path().apply {
+          addRoundRect(
+            RoundRect(
+              rect = Rect(w * 0.04f, h * 0.54f, w * 0.96f, h),
+              bottomLeft = CornerRadius(w * 0.12f, w * 0.12f),
+              bottomRight = CornerRadius(w * 0.12f, w * 0.12f)
+            )
+          )
+        },
+        chestColor
+      )
+      // clasp bridging the lid gap, with a keyhole punched out
+      drawRoundRect(
+        color = chestColor,
+        topLeft = Offset(w * 0.38f, h * 0.34f),
+        size = Size(w * 0.24f, h * 0.38f),
+        cornerRadius = CornerRadius(w * 0.07f, w * 0.07f)
+      )
+      drawCircle(
+        color = cutoutColor,
+        radius = w * 0.055f,
+        center = Offset(w * 0.50f, h * 0.52f)
+      )
+    }
   }
 }
 
