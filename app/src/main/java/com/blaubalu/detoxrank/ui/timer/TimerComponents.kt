@@ -6,7 +6,9 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -60,6 +62,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -333,6 +336,8 @@ fun CollectAccumulatedRpButton(
   val scale = remember {
     Animatable(1f)
   }
+  // 0 = lid closed, 1 = lid fully open
+  val lidOpen = remember { Animatable(0f) }
   FilledIconButton(
     onClick = {
       onCollected()
@@ -348,6 +353,18 @@ fun CollectAccumulatedRpButton(
 
         detoxRankViewModel.updateLastRpGatherTime()
         detoxRankViewModel.updateUserRankPoints(timerRpGain.toInt())
+      }
+      coroutineScope.launch {
+        // lid swings open, waits for the shields to fly in, then snaps shut
+        lidOpen.animateTo(1f, tween(220, easing = FastOutSlowInEasing))
+        delay(800)
+        lidOpen.animateTo(
+          0f,
+          spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+          )
+        )
       }
     },
     enabled = ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0,
@@ -379,19 +396,17 @@ fun CollectAccumulatedRpButton(
     Canvas(modifier = Modifier.size(27.dp)) {
       val w = size.width
       val h = size.height
-      // domed lid
-      drawPath(
-        Path().apply {
-          addRoundRect(
-            RoundRect(
-              rect = Rect(0f, 0f, w, h * 0.46f),
-              topLeft = CornerRadius(w * 0.30f, h * 0.42f),
-              topRight = CornerRadius(w * 0.30f, h * 0.42f)
-            )
-          )
-        },
-        chestColor
-      )
+      val open = lidOpen.value
+
+      // dark opening revealed while the lid is up
+      if (open > 0.05f) {
+        drawRoundRect(
+          color = Color.Black.copy(alpha = 0.45f * open),
+          topLeft = Offset(w * 0.10f, h * 0.40f),
+          size = Size(w * 0.80f, h * 0.18f),
+          cornerRadius = CornerRadius(w * 0.08f, w * 0.08f)
+        )
+      }
       // chest base
       drawPath(
         Path().apply {
@@ -405,18 +420,36 @@ fun CollectAccumulatedRpButton(
         },
         chestColor
       )
-      // clasp bridging the lid gap, with a keyhole punched out
-      drawRoundRect(
-        color = chestColor,
-        topLeft = Offset(w * 0.38f, h * 0.34f),
-        size = Size(w * 0.24f, h * 0.38f),
-        cornerRadius = CornerRadius(w * 0.07f, w * 0.07f)
-      )
-      drawCircle(
-        color = cutoutColor,
-        radius = w * 0.055f,
-        center = Offset(w * 0.50f, h * 0.52f)
-      )
+      // lid + clasp swing together on a hinge at the lid's bottom-left
+      withTransform({
+        rotate(degrees = -80f * open, pivot = Offset(w * 0.02f, h * 0.46f))
+      }) {
+        // domed lid
+        drawPath(
+          Path().apply {
+            addRoundRect(
+              RoundRect(
+                rect = Rect(0f, 0f, w, h * 0.46f),
+                topLeft = CornerRadius(w * 0.30f, h * 0.42f),
+                topRight = CornerRadius(w * 0.30f, h * 0.42f)
+              )
+            )
+          },
+          chestColor
+        )
+        // clasp bridging the lid gap, with a keyhole punched out
+        drawRoundRect(
+          color = chestColor,
+          topLeft = Offset(w * 0.38f, h * 0.34f),
+          size = Size(w * 0.24f, h * 0.38f),
+          cornerRadius = CornerRadius(w * 0.07f, w * 0.07f)
+        )
+        drawCircle(
+          color = cutoutColor,
+          radius = w * 0.055f,
+          center = Offset(w * 0.50f, h * 0.52f)
+        )
+      }
     }
   }
 }
