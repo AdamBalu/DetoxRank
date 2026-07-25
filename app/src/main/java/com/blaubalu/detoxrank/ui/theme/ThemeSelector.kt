@@ -88,7 +88,6 @@ import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.ui.utils.Constants.ALL_THEMES_UNLOCKED_FOR_TESTING
 import com.blaubalu.detoxrank.ui.utils.Constants.COINS_PER_AD
 import com.blaubalu.detoxrank.ui.utils.Constants.MAX_REWARDED_ADS_PER_DAY
-import com.blaubalu.detoxrank.ui.utils.Constants.THEME_COIN_COST
 import com.blaubalu.detoxrank.ui.utils.toastShort
 
 /**
@@ -986,7 +985,8 @@ fun ThemePreviewDialog(
                             )
                         }
                         if (onCoinUnlock != null) {
-                            val canAfford = coins >= THEME_COIN_COST
+                            val coinCost = ThemeBilling.coinCostFor(option.purchaseKey)
+                            val canAfford = coins >= coinCost
                             OutlinedButton(
                                 onClick = onCoinUnlock,
                                 enabled = canAfford,
@@ -1001,7 +1001,7 @@ fun ThemePreviewDialog(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = " or $THEME_COIN_COST coins (you have $coins)",
+                                    text = " or $coinCost coins (you have $coins)",
                                     fontWeight = FontWeight.Bold
                                 )
                             }

@@ -134,6 +134,24 @@ object ThemeBilling : PurchasesUpdatedListener {
     /** the display price for a theme purchase: live Play price or the fallback */
     fun priceFor(theme: UiTheme): String? = themePrices[theme] ?: fallbackThemePrices[theme]
 
+    /** coin price per theme purchase, ~100 coins for each EUR of the cash price */
+    private val themeCoinCosts = mapOf(
+        UiTheme.Luxury to 500,
+        UiTheme.Comic to 400,
+        UiTheme.Sketch to 500, // includes Paper
+        UiTheme.Cartoon to 400,
+        UiTheme.Blueprint to 300,
+        UiTheme.Pixel to 400,
+        UiTheme.Fire to 1500, // the whole Avatar Bundle
+        UiTheme.Princess to 500,
+        UiTheme.Scorched to 400,
+        UiTheme.Ninja to 400,
+        UiTheme.Medieval to 500,
+        UiTheme.Cyber to 500
+    )
+
+    fun coinCostFor(theme: UiTheme): Int = themeCoinCosts[theme] ?: 400
+
     /** formatted store price per bundle product */
     val bundlePrices = mutableStateMapOf<String, String>()
 

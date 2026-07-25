@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.TimerDifficulty
 import com.blaubalu.detoxrank.data.achievements.AchievementRepository
+import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.data.task.TasksRepository
 import com.blaubalu.detoxrank.data.user.Rank
@@ -441,21 +442,22 @@ class DetoxRankViewModel(
     }
 
     /**
-     * Unlocks a premium theme for [Constants.THEME_COIN_COST] coins,
+     * Unlocks a premium theme for its coin price (mirrors the cash price),
      * if the balance covers it
      */
     fun buyThemeWithCoins(theme: UiTheme) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
+                val cost = ThemeBilling.coinCostFor(theme)
                 val user = userDataRepository.getUserStream().first()
-                if (user.coins < Constants.THEME_COIN_COST) return@withContext
+                if (user.coins < cost) return@withContext
                 val owned = user.purchasedThemes
                     .split(",")
                     .map { it.trim() }
                     .filter { it.isNotEmpty() }
                     .toMutableSet()
                 if (owned.add(theme.name)) {
-                    userDataRepository.updateCoins(-Constants.THEME_COIN_COST)
+                    userDataRepository.updateCoins(-cost)
                     userDataRepository.updatePurchasedThemes(owned.joinToString(","))
                     PopupManager.showThemeUnlock(theme.name)
                 }
