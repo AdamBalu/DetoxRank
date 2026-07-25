@@ -189,6 +189,15 @@ private val PixelShapes = Shapes(
     extraLarge = RoundedCornerShape(0.dp)
 )
 
+// symmetric gem facets for the diamond rank
+private val FacetShapes = Shapes(
+    extraSmall = CutCornerShape(6.dp),
+    small = CutCornerShape(9.dp),
+    medium = CutCornerShape(14.dp),
+    large = CutCornerShape(16.dp),
+    extraLarge = CutCornerShape(22.dp)
+)
+
 // asymmetric-cut cyberpunk HUD panels
 private val HudShapes = Shapes(
     extraSmall = CutCornerShape(topStart = 6.dp, bottomEnd = 6.dp),
@@ -249,6 +258,11 @@ fun shapesFor(theme: UiTheme): Shapes = when (theme) {
     UiTheme.Ninja -> FlameShapes
     UiTheme.Medieval -> SturdyShapes
     UiTheme.Cyber -> HudShapes
+    UiTheme.Bronze -> SturdyShapes
+    UiTheme.Silver -> FluidShapes
+    UiTheme.Gold -> LuxuryShapes
+    UiTheme.Platinum -> MasterShapes
+    UiTheme.Diamond -> FacetShapes
     else -> DefaultShapes
 }
 
@@ -366,6 +380,29 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
             Brush.linearGradient(listOf(Color(0x99F5D90A), Color(0x9900E5C7)))
         ),
         customTaskColor = Color(0xFF4A1030)
+    )
+    UiTheme.Bronze -> ThemeStyle(
+        cardBorder = BorderStroke(2.dp, Color(0x80CD7F32)),
+        customTaskColor = Color(0xFF5E3A1E)
+    )
+    UiTheme.Silver -> ThemeStyle(
+        cardBorder = BorderStroke(1.5.dp, Color(0x73C0C8D0)),
+        customTaskColor = Color(0xFF4A545E)
+    )
+    UiTheme.Gold -> ThemeStyle(
+        cardBorder = BorderStroke(2.dp, Color(0x8CFFD24A)),
+        customTaskColor = Color(0xFF6E5A14)
+    )
+    UiTheme.Platinum -> ThemeStyle(
+        cardBorder = BorderStroke(1.5.dp, Color(0x66D8E8E8)),
+        customTaskColor = Color(0xFF3E5458)
+    )
+    UiTheme.Diamond -> ThemeStyle(
+        cardBorder = BorderStroke(
+            1.5.dp,
+            Brush.linearGradient(listOf(Color(0xCCFFFFFF), Color(0x997FE8FF), Color(0x99B8D8FF)))
+        ),
+        customTaskColor = Color(0xFF164A6A)
     )
     else -> ThemeStyle()
 }
@@ -754,6 +791,102 @@ fun Modifier.themeTexture(theme: UiTheme): Modifier = when (theme) {
             drawLine(tint, Offset(midX, midY), Offset(endX, endY), stroke)
             drawCircle(tint, 2.2f * density, Offset(x, y))
             drawCircle(tint, 2.2f * density, Offset(endX, endY))
+        }
+    }
+
+    // hammered copper dimples
+    UiTheme.Bronze -> drawBehind {
+        fun n(i: Int): Float { val x = sin(i * 12.9898f) * 43758.5453f; return x - floor(x) }
+        val step = 40.dp.toPx()
+        var row = 0; var y = step / 2f
+        while (y < size.height) {
+            var col = 0; var x = step / 2f
+            while (x < size.width) {
+                val seed = row * 101 + col * 13
+                drawCircle(
+                    Color(0xFFE0A878).copy(alpha = 0.028f + n(seed) * 0.04f),
+                    (2.5f + n(seed + 1) * 3.5f) * density,
+                    Offset(x + (n(seed + 2) - 0.5f) * step * 0.6f, y + (n(seed + 3) - 0.5f) * step * 0.6f)
+                )
+                x += step; col++
+            }
+            y += step; row++
+        }
+    }
+
+    // brushed metal grain
+    UiTheme.Silver -> drawBehind {
+        fun n(i: Int): Float { val x = sin(i * 12.9898f) * 43758.5453f; return x - floor(x) }
+        for (i in 0 until 90) {
+            val y = n(i * 3) * size.height
+            val sx = n(i * 3 + 1) * size.width
+            val len = (40 + n(i * 3 + 2) * 200) * density
+            drawLine(
+                Color(0xFFE4EAF0).copy(alpha = 0.02f + n(i * 7) * 0.035f),
+                Offset(sx, y), Offset(sx + len, y), 1f * density
+            )
+        }
+    }
+
+    // molten glints
+    UiTheme.Gold -> drawBehind {
+        fun n(i: Int): Float { val x = sin(i * 12.9898f) * 43758.5453f; return x - floor(x) }
+        val step = 44.dp.toPx()
+        var row = 0; var y = step / 2f
+        while (y < size.height) {
+            var col = 0; var x = step / 2f
+            while (x < size.width) {
+                val seed = row * 119 + col * 17
+                val tint = if (n(seed) > 0.6f) Color(0xFFFFE8A0) else Color(0xFFFFD24A)
+                drawCircle(
+                    tint.copy(alpha = 0.03f + n(seed + 1) * 0.08f),
+                    (0.6f + n(seed + 2) * 1.4f) * density,
+                    Offset(x + (n(seed + 3) - 0.5f) * step, y + (n(seed + 4) - 0.5f) * step)
+                )
+                x += step; col++
+            }
+            y += step; row++
+        }
+    }
+
+    // sleek sheen sweeps
+    UiTheme.Platinum -> drawBehind {
+        val band = 120.dp.toPx()
+        var offset = -size.height
+        var i = 0
+        while (offset < size.width) {
+            drawLine(
+                Color(0xFFEAF5F2).copy(alpha = if (i % 3 == 0) 0.035f else 0.018f),
+                Offset(offset, size.height), Offset(offset + size.height, 0f),
+                band * 0.3f
+            )
+            offset += band
+            i++
+        }
+    }
+
+    // scattered gem facets
+    UiTheme.Diamond -> drawBehind {
+        fun n(i: Int): Float { val x = sin(i * 12.9898f) * 43758.5453f; return x - floor(x) }
+        val step = 60.dp.toPx()
+        var row = 0; var y = step / 2f
+        while (y < size.height) {
+            var col = 0; var x = step / 2f
+            while (x < size.width) {
+                val seed = row * 131 + col * 19
+                val cx = x + (n(seed) - 0.5f) * step
+                val cy = y + (n(seed + 1) - 0.5f) * step
+                val r = (2.5f + n(seed + 2) * 4f) * density
+                val tint = (if (n(seed + 3) > 0.5f) Color(0xFF7FE8FF) else Color(0xFFFFFFFF))
+                    .copy(alpha = 0.05f + n(seed + 4) * 0.08f)
+                val w = 1f * density
+                drawLine(tint, Offset(cx, cy - r), Offset(cx + r, cy), w)
+                drawLine(tint, Offset(cx + r, cy), Offset(cx, cy + r), w)
+                drawLine(tint, Offset(cx, cy + r), Offset(cx - r, cy), w)
+                drawLine(tint, Offset(cx - r, cy), Offset(cx, cy - r), w)
+                x += step; col++
+            }
+            y += step; row++
         }
     }
 

@@ -6,6 +6,7 @@ import com.blaubalu.detoxrank.data.AppDataContainer
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.billing.ThemeShopState
 import com.blaubalu.detoxrank.data.user.UiTheme
+import com.blaubalu.detoxrank.ui.utils.PopupManager
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,8 +50,14 @@ class DetoxRankApp: Application() {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .toMutableSet()
+        val newOnes = themes.filter { it.name !in owned }
         if (owned.addAll(themes.map { it.name })) {
             container.userDataRepository.updatePurchasedThemes(owned.joinToString(","))
+            if (newOnes.size > 3) {
+                PopupManager.showThemeUnlock("Every")
+            } else {
+                newOnes.forEach { PopupManager.showThemeUnlock(it.name) }
+            }
         }
     }
 }

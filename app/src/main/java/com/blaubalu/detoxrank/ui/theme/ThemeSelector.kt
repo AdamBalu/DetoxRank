@@ -66,7 +66,6 @@ import com.blaubalu.detoxrank.data.billing.ThemeShopState
 import com.blaubalu.detoxrank.data.user.Rank
 import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.ui.utils.Constants.ALL_THEMES_UNLOCKED_FOR_TESTING
-import com.blaubalu.detoxrank.ui.utils.Constants.MAX_LEVEL
 import com.blaubalu.detoxrank.ui.utils.toastShort
 
 /**
@@ -96,7 +95,9 @@ data class ThemeOption(
     val purchaseKey: UiTheme = theme,
     /** human-readable name of the purchase this theme is bundled in */
     val bundleLabel: String? = null,
-    /** unlocked only at max level + Legend rank */
+    /** unlocked upon reaching this rank */
+    val requiredRank: Rank? = null,
+    /** unlocked only at the Legend rank */
     val requiresMastery: Boolean = false
 )
 
@@ -273,6 +274,46 @@ val themeOptions = listOf(
         isPremium = true
     ),
     ThemeOption(
+        theme = UiTheme.Bronze,
+        name = "Bronze",
+        primaryColor = Color(0xFFCD7F32),
+        secondaryColor = Color(0xFFE0A878),
+        backgroundColor = Color(0xFF150E08),
+        requiredRank = Rank.Bronze1
+    ),
+    ThemeOption(
+        theme = UiTheme.Silver,
+        name = "Silver",
+        primaryColor = Color(0xFFC0C8D0),
+        secondaryColor = Color(0xFF8A94A0),
+        backgroundColor = Color(0xFF101214),
+        requiredRank = Rank.Silver1
+    ),
+    ThemeOption(
+        theme = UiTheme.Gold,
+        name = "Gold",
+        primaryColor = Color(0xFFFFD24A),
+        secondaryColor = Color(0xFFE8B820),
+        backgroundColor = Color(0xFF141005),
+        requiredRank = Rank.Gold1
+    ),
+    ThemeOption(
+        theme = UiTheme.Platinum,
+        name = "Platinum",
+        primaryColor = Color(0xFFD8E8E8),
+        secondaryColor = Color(0xFF9FB8B8),
+        backgroundColor = Color(0xFF0E1216),
+        requiredRank = Rank.Platinum1
+    ),
+    ThemeOption(
+        theme = UiTheme.Diamond,
+        name = "Diamond",
+        primaryColor = Color(0xFF7FE8FF),
+        secondaryColor = Color(0xFFB8D8FF),
+        backgroundColor = Color(0xFF071018),
+        requiredRank = Rank.Diamond1
+    ),
+    ThemeOption(
         theme = UiTheme.Ninja,
         name = "Ninja",
         primaryColor = Color(0xFFE8324A),
@@ -394,8 +435,10 @@ fun ThemeSelectorSheet(
                     items(themeOptions) { option ->
                         val isUnlocked = ALL_THEMES_UNLOCKED_FOR_TESTING ||
                                 when {
-                                    option.requiresMastery ->
-                                        currentLevel >= MAX_LEVEL && currentRank == Rank.Legend
+                                    option.requiresMastery -> currentRank == Rank.Legend
+
+                                    option.requiredRank != null ->
+                                        currentRank.ordinal >= option.requiredRank.ordinal
 
                                     option.isPremium ->
                                         purchasedThemes.contains(option.theme) ||
@@ -729,10 +772,11 @@ fun ThemePreviewDialog(
                         }
                     } else {
                         Text(
-                            text = if (option.requiresMastery) {
-                                "Reach level 25 and the Legend rank to unlock"
-                            } else {
-                                "Reach level ${option.requiredLevel} to unlock"
+                            text = when {
+                                option.requiresMastery -> "Reach the Legend rank to unlock"
+                                option.requiredRank != null ->
+                                    "Reach the ${option.requiredRank.rankName.substringBefore(" ")} rank to unlock"
+                                else -> "Reach level ${option.requiredLevel} to unlock"
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
@@ -863,7 +907,9 @@ fun ThemeCard(
                         )
                         Text(
                             text = when {
-                                option.requiresMastery -> " Lvl 25 · Legend"
+                                option.requiresMastery -> " Legend rank"
+                                option.requiredRank != null ->
+                                    " " + option.requiredRank.rankName.substringBefore(" ") + " rank"
                                 option.isPremium ->
                                     " " + (ThemeBilling.themePrices[option.purchaseKey] ?: "Premium")
                                 else -> " Level ${option.requiredLevel}"

@@ -86,6 +86,20 @@ object PopupManager {
     /**
      * Convenience method to show an achievement popup
      */
+    /**
+     * Convenience method to announce a newly unlocked theme
+     */
+    fun showThemeUnlock(themeName: String) {
+        enqueue(
+            PopupData(
+                type = PopupType.ACHIEVEMENT,
+                title = "New Theme Unlocked!",
+                description = "$themeName theme",
+                secondaryText = "Equip it from the theme selector"
+            )
+        )
+    }
+
     fun showAchievement(achievementName: String, achievementDescription: String = "", achievementId: Int? = null) {
         enqueue(
             PopupData(

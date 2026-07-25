@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import com.blaubalu.detoxrank.ui.utils.PopupManager
+import com.blaubalu.detoxrank.ui.utils.getCurrentLevelFromXP
 import com.blaubalu.detoxrank.R
 import androidx.core.content.edit
 

@@ -492,6 +492,106 @@ private val CyberColors = darkColorScheme(
     inversePrimary = Color(0xFF00E5FF)
 )
 
+private val BronzeColors = darkColorScheme(
+    primary = Color(0xFFCD7F32),
+    onPrimary = Color(0xFF241204),
+    primaryContainer = Color(0xFF6E3E14),
+    onPrimaryContainer = Color(0xFFF5DBC2),
+    secondary = Color(0xFFE0A878),
+    onSecondary = Color(0xFF3E2818), // Daily background
+    secondaryContainer = Color(0xFF44301E), // Nav indicator
+    tertiary = Color(0xFFF0C8A0), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF2E1E10), // Weekly background
+    tertiaryContainer = Color(0xFF7A4E24),
+    error = Color(0xFFE8B49A),
+    onError = Color(0xFF1C1208), // Monthly background (Darkest)
+    background = Color(0xFF150E08),
+    surface = Color(0xFF150E08),
+    onSurface = Color(0xFFF5EBDF),
+    surfaceVariant = Color(0xFF4A3424), // Completed tasks
+    inversePrimary = Color(0xFFCD7F32)
+)
+
+private val SilverColors = darkColorScheme(
+    primary = Color(0xFFC0C8D0),
+    onPrimary = Color(0xFF1E2226),
+    primaryContainer = Color(0xFF4A525C),
+    onPrimaryContainer = Color(0xFFEAEEF2),
+    secondary = Color(0xFF8A94A0),
+    onSecondary = Color(0xFF2A3038), // Daily background
+    secondaryContainer = Color(0xFF333A44), // Nav indicator
+    tertiary = Color(0xFFE4EAF0), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF20262C), // Weekly background
+    tertiaryContainer = Color(0xFF5E6873),
+    error = Color(0xFFC8CED8),
+    onError = Color(0xFF14181C), // Monthly background (Darkest)
+    background = Color(0xFF101214),
+    surface = Color(0xFF101214),
+    onSurface = Color(0xFFF0F2F5),
+    surfaceVariant = Color(0xFF3A424C), // Completed tasks
+    inversePrimary = Color(0xFFC0C8D0)
+)
+
+private val GoldColors = darkColorScheme(
+    primary = Color(0xFFFFD24A),
+    onPrimary = Color(0xFF262002),
+    primaryContainer = Color(0xFF6E5A0C),
+    onPrimaryContainer = Color(0xFFFFF2C2),
+    secondary = Color(0xFFE8B820),
+    onSecondary = Color(0xFF453208), // Daily background
+    secondaryContainer = Color(0xFF4A3A0C), // Nav indicator
+    tertiary = Color(0xFFFFE8A0), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF362606), // Weekly background
+    tertiaryContainer = Color(0xFF8A6E14),
+    error = Color(0xFFF0D080),
+    onError = Color(0xFF201704), // Monthly background (Darkest)
+    background = Color(0xFF141005),
+    surface = Color(0xFF141005),
+    onSurface = Color(0xFFFAF2DC),
+    surfaceVariant = Color(0xFF574310), // Completed tasks
+    inversePrimary = Color(0xFFFFD24A)
+)
+
+private val PlatinumColors = darkColorScheme(
+    primary = Color(0xFFD8E8E8),
+    onPrimary = Color(0xFF1E2A2C),
+    primaryContainer = Color(0xFF44585C),
+    onPrimaryContainer = Color(0xFFF0F8F8),
+    secondary = Color(0xFF9FB8B8),
+    onSecondary = Color(0xFF263436), // Daily background
+    secondaryContainer = Color(0xFF2C3C40), // Nav indicator
+    tertiary = Color(0xFFEAF5F2), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF1C282A), // Weekly background
+    tertiaryContainer = Color(0xFF5A7276),
+    error = Color(0xFFC2DCDC),
+    onError = Color(0xFF12191B), // Monthly background (Darkest)
+    background = Color(0xFF0E1216),
+    surface = Color(0xFF0E1216),
+    onSurface = Color(0xFFF2F7F7),
+    surfaceVariant = Color(0xFF34464A), // Completed tasks
+    inversePrimary = Color(0xFFD8E8E8)
+)
+
+private val DiamondColors = darkColorScheme(
+    primary = Color(0xFF7FE8FF),
+    onPrimary = Color(0xFF03262E),
+    primaryContainer = Color(0xFF0E5468),
+    onPrimaryContainer = Color(0xFFD6F7FF),
+    secondary = Color(0xFFB8D8FF),
+    onSecondary = Color(0xFF103444), // Daily background
+    secondaryContainer = Color(0xFF163A4A), // Nav indicator
+    tertiary = Color(0xFFE0F8FF), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFF0C2836), // Weekly background
+    tertiaryContainer = Color(0xFF2A6E86),
+    error = Color(0xFFA8E0F0),
+    onError = Color(0xFF071B26), // Monthly background (Darkest)
+    background = Color(0xFF071018),
+    surface = Color(0xFF071018),
+    onSurface = Color(0xFFEAF9FF),
+    surfaceVariant = Color(0xFF1E4456), // Completed tasks
+    inversePrimary = Color(0xFF7FE8FF)
+)
+
 // the ascension theme for max level + Legend rank: aurora light over the void
 private val MasterColors = darkColorScheme(
     primary = Color(0xFF7FE7D0),
@@ -592,6 +692,11 @@ fun DetoxRankTheme(
         UiTheme.Ninja -> NinjaColors
         UiTheme.Medieval -> MedievalColors
         UiTheme.Cyber -> CyberColors
+        UiTheme.Bronze -> BronzeColors
+        UiTheme.Silver -> SilverColors
+        UiTheme.Gold -> GoldColors
+        UiTheme.Platinum -> PlatinumColors
+        UiTheme.Diamond -> DiamondColors
     }
 
     CompositionLocalProvider(

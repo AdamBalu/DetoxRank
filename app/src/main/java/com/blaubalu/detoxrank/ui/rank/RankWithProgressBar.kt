@@ -1,7 +1,9 @@
 package com.blaubalu.detoxrank.ui.rank
 
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -49,12 +51,18 @@ fun RankWithProgressBar(
     rankViewModel: RankViewModel,
     modifier: Modifier = Modifier
 ) {
-    val animatedProgress = animateFloatAsState(
-        targetValue = detoxRankViewModel.getRankProgressBarValue(),
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-    ).value
-
     val currentRank = detoxRankViewModel.getCurrentRank()
+
+    // restart the fill animation whenever the rank changes, so ranking up fills
+    // the fresh bar upward from zero instead of sliding backwards from ~100%
+    val progressAnim = remember(currentRank) { Animatable(0f) }
+    LaunchedEffect(currentRank, detoxRankViewModel.getRankProgressBarValue()) {
+        progressAnim.animateTo(
+            detoxRankViewModel.getRankProgressBarValue(),
+            ProgressIndicatorDefaults.ProgressAnimationSpec
+        )
+    }
+    val animatedProgress = progressAnim.value
 
     val currentScreenHeight = LocalConfiguration.current.screenHeightDp
 
@@ -170,12 +178,18 @@ fun RankWithProgressBarLarge(
     rankViewModel: RankViewModel,
     modifier: Modifier = Modifier
 ) {
-    val animatedProgress = animateFloatAsState(
-        targetValue = detoxRankViewModel.getRankProgressBarValue(),
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-    ).value
-
     val currentRank = detoxRankViewModel.getCurrentRank()
+
+    // restart the fill animation whenever the rank changes, so ranking up fills
+    // the fresh bar upward from zero instead of sliding backwards from ~100%
+    val progressAnim = remember(currentRank) { Animatable(0f) }
+    LaunchedEffect(currentRank, detoxRankViewModel.getRankProgressBarValue()) {
+        progressAnim.animateTo(
+            detoxRankViewModel.getRankProgressBarValue(),
+            ProgressIndicatorDefaults.ProgressAnimationSpec
+        )
+    }
+    val animatedProgress = progressAnim.value
     val rankImageWidth = minOf(LocalConfiguration.current.screenHeightDp / (2.0), LocalConfiguration.current.screenWidthDp / 2.9).toInt().dp
 
     Column(modifier = modifier.fillMaxWidth().padding(top = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
