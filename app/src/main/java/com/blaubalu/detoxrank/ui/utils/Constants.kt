@@ -5,7 +5,7 @@ object Constants {
      * Testing switch: while true, every theme is selectable regardless of level
      * or purchases. Set to false to re-enable the level wall + per-theme paywall.
      */
-    const val ALL_THEMES_UNLOCKED_FOR_TESTING = true
+    const val ALL_THEMES_UNLOCKED_FOR_TESTING = false
 
     /**
      * Testing switch: while true, buy buttons skip Google Play and instantly
@@ -14,7 +14,7 @@ object Constants {
      * the Play Console and the build is installed through a Play test track.
      * Set to false to ship.
      */
-    const val FAKE_BILLING_FOR_TESTING = true
+    const val FAKE_BILLING_FOR_TESTING = false
 
     /**
      * Coin economy: ~140 coins mirror EUR 1 of a theme's cash price (per-theme
