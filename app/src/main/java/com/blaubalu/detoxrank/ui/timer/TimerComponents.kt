@@ -376,9 +376,14 @@ fun TimerStartButton(
       }
     }
   }
-  FilledIconButton(
+  val themeStyle = LocalThemeStyle.current
+  Button(
     onClick = { startTimerService() },
-    modifier = Modifier.fillMaxWidth()
+    shape = themeStyle.cardShape ?: MaterialTheme.shapes.large,
+    border = themeStyle.cardBorder,
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(52.dp)
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically
@@ -402,9 +407,14 @@ fun TimerStartButton(
 
 @Composable
 fun TimerStopButton(handleTimerStopButtonPress: () -> Unit) {
+  val themeStyle = LocalThemeStyle.current
   OutlinedIconButton(
     onClick = { handleTimerStopButtonPress() },
-    modifier = Modifier.fillMaxWidth()
+    shape = themeStyle.cardShape ?: MaterialTheme.shapes.large,
+    border = themeStyle.cardBorder ?: IconButtonDefaults.outlinedIconButtonBorder(true),
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(52.dp)
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically
