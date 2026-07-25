@@ -33,6 +33,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
@@ -241,6 +245,21 @@ fun DetoxRankAppContent(
     // Popup overlay for rank-ups and achievements
     PopupQueueDisplay(theme = userDataUiState.selectedTheme)
 
+    // celebratory offer of freshly added catalog tasks after an app update
+    val newTasksCount = detoxRankViewModel.newCatalogTasksCount.value
+    if (newTasksCount > 0) {
+        DetoxRankTheme(
+            theme = userDataUiState.selectedTheme,
+            section = detoxRankUiState.currentSection
+        ) {
+            NewTasksDialog(
+                count = newTasksCount,
+                onAccept = { detoxRankViewModel.addNewCatalogTasks() },
+                onDismiss = { detoxRankViewModel.dismissNewCatalogTasks() }
+            )
+        }
+    }
+
     // interactive tour: auto-starts for new users, replayable via the help icon
     val guideContext = LocalContext.current
     LaunchedEffect(Unit) {
@@ -270,6 +289,60 @@ fun DetoxRankAppContent(
                     AppGuideState.step.value = -1
                 }
             )
+        }
+    }
+}
+
+/** "Woohoo, new tasks!" offer shown to existing users after an update */
+@Composable
+fun NewTasksDialog(
+    count: Int,
+    onAccept: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val themeStyle = LocalThemeStyle.current
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = themeStyle.cardShape ?: MaterialTheme.shapes.large,
+            border = themeStyle.cardBorder,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(text = "🎉", fontSize = 42.sp)
+                Text(
+                    text = "Woohoo — new tasks!",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+                Text(
+                    text = "$count fresh tasks just arrived to spice up your rotation. " +
+                            "Add them to the mix?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Later")
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Button(onClick = onAccept) {
+                        Text("Add them!", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
     }
 }

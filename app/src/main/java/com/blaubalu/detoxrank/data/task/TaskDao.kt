@@ -63,4 +63,10 @@ interface TaskDao {
     @Transaction
     @Query("UPDATE task SET was_selected_last_time = 0 WHERE duration_category = :taskDurationCategory AND was_selected_last_time = 1")
     fun resetSelectedLastTime(taskDurationCategory: TaskDurationCategory)
+
+    @Query("SELECT COUNT(*) FROM task WHERE description = :description")
+    suspend fun countByDescription(description: String): Int
+
+    @Query("UPDATE task SET description = :newDescription WHERE description = :oldDescription")
+    suspend fun renameTaskDescription(oldDescription: String, newDescription: String)
 }

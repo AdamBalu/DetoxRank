@@ -2,6 +2,7 @@ package com.blaubalu.detoxrank.data.task
 
 import com.blaubalu.detoxrank.data.TimerDifficulty
 import com.blaubalu.detoxrank.data.achievements.AchievementRepository
+import com.blaubalu.detoxrank.data.local.LocalTasksDataProvider
 import com.blaubalu.detoxrank.data.user.UserDataRepository
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.utils.Constants.DAILY_TASK_RP_GAIN
@@ -78,6 +79,34 @@ class OfflineTasksRepository(
 
     override suspend fun resetSelectedLastTime(taskDurationCategory: TaskDurationCategory) =
         taskDao.resetSelectedLastTime(taskDurationCategory)
+
+    /** Applies the catalog's grammar renames to already-seeded descriptions */
+    override suspend fun applyCatalogRenames() {
+        LocalTasksDataProvider.renamedTasks.forEach { (old, new) ->
+            taskDao.renameTaskDescription(old, new)
+        }
+    }
+
+    override suspend fun countMissingCatalogTasks(): Int =
+        LocalTasksDataProvider.tasks.count { taskDao.countByDescription(it.description) == 0 }
+
+    override suspend fun insertMissingCatalogTasks() {
+        LocalTasksDataProvider.tasks.forEach { task ->
+            if (taskDao.countByDescription(task.description) == 0) {
+                taskDao.insert(task)
+            }
+        }
+    }
+
+    /**
+     * Brings a database fully up to date with the task catalog: grammar
+     * renames plus any missing tasks. Purely additive — user progress is
+     * never touched.
+     */
+    override suspend fun syncTaskCatalog() {
+        applyCatalogRenames()
+        insertMissingCatalogTasks()
+    }
 
     override suspend fun refreshTask(oldTask: Task) {
         // the replacement inherits the swiped task's display slot, so it shows

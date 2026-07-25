@@ -16,6 +16,34 @@ import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_7_KM
  * Data provider for Task. Used to fill the database with tasks
  */
 object LocalTasksDataProvider {
+
+    /**
+     * Grammar fixes for descriptions that already shipped: old -> new.
+     * Applied by the catalog sync before inserting missing tasks, so existing
+     * databases get the corrected texts without duplicating tasks.
+     */
+    val renamedTasks = mapOf(
+        "Do 40 Jumping Jacks" to "Do 40 jumping jacks",
+        "Prepare healthy dinner" to "Prepare a healthy dinner",
+        "Make salad" to "Make a salad",
+        "Make a lemonade" to "Make lemonade",
+        "Eat at least 3 pieces of vegetable" to "Eat at least 3 servings of vegetables",
+        "Collect a small sample of 5 different trees' branches" to
+                "Collect small branch samples from 5 different trees",
+        "Observe dawn 2 times" to "Observe dawn twice",
+        "Do stretching exercises 2 times" to "Do stretching exercises twice",
+        "Jump rope 2 times" to "Jump rope twice",
+        "Play a sport with a friend 2 times" to "Play a sport with a friend twice",
+        "Meditate each week at least once" to "Meditate at least once each week",
+        "Exercise each week at least once" to "Exercise at least once each week",
+        "Exercise at least 3 times for 10 minutes" to "Exercise for 10 minutes at least 3 times",
+        "Visit some place you always wanted to go" to "Visit a place you've always wanted to go",
+        "Take a photo of a blue, red, orange, green and a yellow building" to
+                "Take a photo of a blue, a red, an orange, a green and a yellow building",
+        "Make your phone grayscale for a week (there are apps that can do so)" to
+                "Make your phone grayscale for a week (there are apps for that)"
+    )
+
     val tasks = listOf(
         Task(
             description = "Eat an apple",
@@ -74,7 +102,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.UnhealthyFood
         ),
         Task(
-            description = "Prepare healthy dinner",
+            description = "Prepare a healthy dinner",
             durationCategory = TaskDurationCategory.Daily,
             iconCategory = TaskIconCategory.HealthyFood
         ),
@@ -139,7 +167,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Exercise
         ),
         Task(
-            description = "Do 40 Jumping Jacks",
+            description = "Do 40 jumping jacks",
             durationCategory = TaskDurationCategory.Daily,
             iconCategory = TaskIconCategory.Exercise
         ),
@@ -154,7 +182,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Health
         ),
         Task(
-            description = "Make salad",
+            description = "Make a salad",
             durationCategory = TaskDurationCategory.Daily,
             iconCategory = TaskIconCategory.HealthyFood
         ),
@@ -178,9 +206,106 @@ object LocalTasksDataProvider {
             durationCategory = TaskDurationCategory.Daily,
             iconCategory = TaskIconCategory.Health
         ),
-
-
-
+        Task(
+            description = "No phone for the first 30 minutes after waking up",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "No phone during meals",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Leave your phone in another room while working or studying",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Sit in silence for 5 minutes — no phone, no music",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Meditation
+        ),
+        Task(
+            description = "Take a walk without music or podcasts — just observe",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Walking
+        ),
+        Task(
+            description = "Make your bed",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Cleaning
+        ),
+        Task(
+            description = "Stretch for 5 minutes after waking up",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Exercise
+        ),
+        Task(
+            description = "Do 20 squats",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Exercise
+        ),
+        Task(
+            description = "Do 20 lunges",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Exercise
+        ),
+        Task(
+            description = "Take the stairs instead of the elevator today",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Exercise
+        ),
+        Task(
+            description = "Go to bed before 11 PM",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "No caffeine after noon",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "No snacking between meals",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.UnhealthyFood
+        ),
+        Task(
+            description = "Take a 10-minute walk after a meal",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Walking
+        ),
+        Task(
+            description = "Write down 3 things you're grateful for",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Creating
+        ),
+        Task(
+            description = "Call (don't text) a friend or family member",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Fun
+        ),
+        Task(
+            description = "Give someone a sincere compliment",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Fun
+        ),
+        Task(
+            description = "Learn 5 new words in a foreign language",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Reading
+        ),
+        Task(
+            description = "Write tomorrow's to-do list before bed",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Creating
+        ),
+        Task(
+            description = "Spend 15 minutes on a hobby",
+            durationCategory = TaskDurationCategory.Daily,
+            iconCategory = TaskIconCategory.Fun
+        ),
 
 
         Task(
@@ -216,7 +341,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.HealthyFood
         ),
         Task(
-            description = "Exercise at least 3 times for 10 minutes",
+            description = "Exercise for 10 minutes at least 3 times",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.Exercise
         ),
@@ -287,7 +412,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Sports
         ),
         Task(
-            description = "Make a lemonade",
+            description = "Make lemonade",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.HealthyFood
         ),
@@ -302,7 +427,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.HealthyFood
         ),
         Task(
-            description = "Observe dawn 2 times",
+            description = "Observe dawn twice",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.Meditation
         ),
@@ -312,7 +437,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Health
         ),
         Task(
-            description = "Make your phone grayscale for a week (there are apps that can do so)",
+            description = "Make your phone grayscale for a week (there are apps for that)",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.Health
         ),
@@ -337,7 +462,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Photography
         ),
         Task(
-            description = "Eat at least 3 pieces of vegetable",
+            description = "Eat at least 3 servings of vegetables",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.HealthyFood
         ),
@@ -357,24 +482,89 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Photography
         ),
         Task(
-            description = "Take a photo of a blue, red, orange, green and a yellow building",
+            description = "Take a photo of a blue, a red, an orange, a green and a yellow building",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.Photography
         ),
         Task(
-            description = "Collect a small sample of 5 different trees' branches",
+            description = "Collect small branch samples from 5 different trees",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.Hiking
         ),
         Task(
-            description = "Do stretching exercises 2 times",
+            description = "Do stretching exercises twice",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.Exercise
         ),
         Task(
-            description = "Jump rope 2 times",
+            description = "Jump rope twice",
             durationCategory = TaskDurationCategory.Weekly,
             iconCategory = TaskIconCategory.Exercise
+        ),
+        Task(
+            description = "Have 3 screen-free evenings (no screens after 9 PM)",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Do a 24-hour social media detox on a weekend day",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Take a phone-free walk 3 times",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Walking
+        ),
+        Task(
+            description = "Spend one afternoon completely offline",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Wake up at the same time every day this week",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Go to sleep before 11 PM at least 4 nights",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Declutter one drawer or shelf",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Cleaning
+        ),
+        Task(
+            description = "Fix something you've been putting off",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Other
+        ),
+        Task(
+            description = "Do 150 squats cumulatively",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Exercise
+        ),
+        Task(
+            description = "Try a sport or workout you've never done",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Sports
+        ),
+        Task(
+            description = "Bake something from scratch",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.HealthyFood
+        ),
+        Task(
+            description = "Write a letter or long message to someone you appreciate",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Creating
+        ),
+        Task(
+            description = "Visit a library or bookstore",
+            durationCategory = TaskDurationCategory.Weekly,
+            iconCategory = TaskIconCategory.Places
         ),
 
 
@@ -394,7 +584,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Hiking
         ),
         Task(
-            description = "Play a sport with a friend 2 times",
+            description = "Play a sport with a friend twice",
             durationCategory = TaskDurationCategory.Monthly,
             iconCategory = TaskIconCategory.Sports
         ),
@@ -430,7 +620,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Swimming
         ),
         Task(
-            description = "Meditate each week at least once",
+            description = "Meditate at least once each week",
             durationCategory = TaskDurationCategory.Monthly,
             iconCategory = TaskIconCategory.Meditation
         ),
@@ -440,7 +630,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Places
         ),
         Task(
-            description = "Visit some place you always wanted to go",
+            description = "Visit a place you've always wanted to go",
             durationCategory = TaskDurationCategory.Monthly,
             iconCategory = TaskIconCategory.Places
         ),
@@ -450,7 +640,7 @@ object LocalTasksDataProvider {
             iconCategory = TaskIconCategory.Hiking
         ),
         Task(
-            description = "Exercise each week at least once",
+            description = "Exercise at least once each week",
             durationCategory = TaskDurationCategory.Monthly,
             iconCategory = TaskIconCategory.Exercise
         ),
@@ -470,6 +660,61 @@ object LocalTasksDataProvider {
             durationCategory = TaskDurationCategory.Monthly,
             iconCategory = TaskIconCategory.Photography
         ),
+        Task(
+            description = "Do one full digital-detox day (no screens from dawn to dusk)",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Exercise at least 3 times each week",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Exercise
+        ),
+        Task(
+            description = "Visit a town or neighborhood you've never been to",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Places
+        ),
+        Task(
+            description = "Watch a sunrise from a nice viewpoint",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Hiking
+        ),
+        Task(
+            description = "Declutter and donate a bag of things you don't use",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Cleaning
+        ),
+        Task(
+            description = "Cook a three-course meal for someone",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.HealthyFood
+        ),
+        Task(
+            description = "Read a book from a genre you never touch",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Reading
+        ),
+        Task(
+            description = "Write one page about your month",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Creating
+        ),
+        Task(
+            description = "Plant something and keep it alive",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Creating
+        ),
+        Task(
+            description = "Attend a live event (concert, theatre, match)",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Music
+        ),
+        Task(
+            description = "Meet a friend you haven't seen in over a month",
+            durationCategory = TaskDurationCategory.Monthly,
+            iconCategory = TaskIconCategory.Fun
+        ),
 
         Task(
             description = "Run 10km (in one go)",
@@ -486,6 +731,21 @@ object LocalTasksDataProvider {
             description = "Learn a new musical instrument",
             durationCategory = TaskDurationCategory.Special,
             iconCategory = TaskIconCategory.Music
+        ),
+        Task(
+            description = "Go a full weekend without your phone",
+            durationCategory = TaskDurationCategory.Special,
+            iconCategory = TaskIconCategory.Health
+        ),
+        Task(
+            description = "Meditate 30 days in a row",
+            durationCategory = TaskDurationCategory.Special,
+            iconCategory = TaskIconCategory.Meditation
+        ),
+        Task(
+            description = "Finish a 500+ page book",
+            durationCategory = TaskDurationCategory.Special,
+            iconCategory = TaskIconCategory.Reading
         )
     )
 }

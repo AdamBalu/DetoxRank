@@ -29,6 +29,9 @@ object Constants {
     const val COINS_PER_AD = 10
     const val MAX_REWARDED_ADS_PER_DAY = 8
 
+    /** bump when LocalTasksDataProvider gains tasks or renames, to re-run the catalog sync */
+    const val TASK_CATALOG_VERSION = 2
+
     const val ACTION_SERVICE_START = "ACTION_SERVICE_START"
     const val ACTION_SERVICE_CANCEL = "ACTION_SERVICE_CANCEL"
 
