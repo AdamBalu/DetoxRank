@@ -83,6 +83,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.blaubalu.detoxrank.data.ads.AdsConsentManager
 import com.blaubalu.detoxrank.data.ads.RewardedAdManager
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.user.Rank
@@ -624,7 +625,7 @@ fun ThemeShopDialog(
                     ) {
                         FilledTonalButton(
                             onClick = { showRedeemDialog = true },
-                            modifier = Modifier.padding(top = 12.dp, bottom = 8.dp)
+                            modifier = Modifier.padding(top = 12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Redeem,
@@ -632,6 +633,23 @@ fun ThemeShopDialog(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(" Redeem promo code", fontWeight = FontWeight.Bold)
+                        }
+                        // EEA users must be able to revisit their ad consent choice
+                        if (AdsConsentManager.privacyOptionsRequired.value) {
+                            TextButton(
+                                onClick = {
+                                    context.findActivity()?.let {
+                                        AdsConsentManager.showPrivacyOptions(it)
+                                    }
+                                },
+                                modifier = Modifier.padding(top = 2.dp, bottom = 6.dp)
+                            ) {
+                                Text(
+                                    text = "Ad privacy settings",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -769,17 +787,33 @@ private fun CoinBalanceRow(
         FilledTonalButton(
             onClick = {
                 val activity = context.findActivity()
-                val shown = activity != null &&
-                        RewardedAdManager.showAd(activity) { onCoinsEarned(it) }
-                if (!shown) {
-                    toastShort(
-                        if (adsLeft <= 0) {
-                            "Daily ad limit reached — come back tomorrow!"
-                        } else {
-                            "No ad available right now, try again in a moment"
-                        },
-                        context
-                    )
+                when {
+                    activity == null -> {}
+
+                    adsLeft <= 0 -> {
+                        toastShort("Daily ad limit reached — come back tomorrow!", context)
+                    }
+
+                    !AdsConsentManager.canRequestAds(activity) -> {
+                        // first ad in the EEA: ask for consent right when it matters
+                        AdsConsentManager.gatherConsent(activity) {
+                            RewardedAdManager.startAds(activity)
+                            toastShort(
+                                "Thanks! Your ad is loading — tap again in a moment",
+                                context
+                            )
+                        }
+                    }
+
+                    else -> {
+                        val shown = RewardedAdManager.showAd(activity) { onCoinsEarned(it) }
+                        if (!shown) {
+                            toastShort(
+                                "No ad available right now, try again in a moment",
+                                context
+                            )
+                        }
+                    }
                 }
             },
             enabled = adsLeft > 0

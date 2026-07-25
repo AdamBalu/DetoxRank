@@ -38,6 +38,7 @@ object RewardedAdManager {
     private lateinit var prefs: SharedPreferences
     private var rewardedAd: RewardedAd? = null
     private var isLoading = false
+    private var adsStarted = false
 
     /** true when a loaded ad is ready to show */
     val adReady = mutableStateOf(false)
@@ -48,6 +49,15 @@ object RewardedAdManager {
     fun init(context: Context) {
         prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         watchedToday.intValue = countForToday()
+    }
+
+    /**
+     * Starts the ad SDK and preloads the first ad. Must only be called once
+     * AdsConsentManager reports that ad requests are allowed (GDPR).
+     */
+    fun startAds(context: Context) {
+        if (adsStarted) return
+        adsStarted = true
         MobileAds.initialize(context.applicationContext) {}
         loadAd(context.applicationContext)
     }

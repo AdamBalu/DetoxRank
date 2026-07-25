@@ -31,6 +31,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.blaubalu.detoxrank.data.ads.AdsConsentManager
+import com.blaubalu.detoxrank.data.ads.RewardedAdManager
 import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.ui.DetoxRankAppContent
 import com.blaubalu.detoxrank.ui.theme.DetoxRankTheme
@@ -67,6 +69,12 @@ class MainActivity : ComponentActivity() {
     @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // GDPR: silently refresh consent info; the form itself only appears
+        // when the user first taps "watch ad". Ads start now if already allowed.
+        AdsConsentManager.refreshConsentInfo(this) {
+            RewardedAdManager.startAds(this)
+        }
 
         setContent {
             DetoxRankTheme {

@@ -96,6 +96,9 @@ dependencies {
     // Google Mobile Ads (rewarded ads -> coins)
     implementation "com.google.android.gms:play-services-ads:23.2.0"
 
+    // Google UMP consent (GDPR) for ad serving in the EEA
+    implementation "com.google.android.ump:user-messaging-platform:3.1.0"
+
     androidTestImplementation "androidx.room:room-testing:2.6.1"
     androidTestImplementation "com.google.truth:truth:1.1.3"
 }
