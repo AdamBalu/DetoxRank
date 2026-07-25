@@ -8,13 +8,22 @@ object Constants {
     const val ALL_THEMES_UNLOCKED_FOR_TESTING = true
 
     /**
-     * Coin economy: ~100 coins mirror EUR 1 of a theme's cash price (per-theme
-     * costs live in ThemeBilling.coinCostFor), so a EUR 4 theme is 40 watched
-     * ads (~4 days at the cap). That earns the dev only ~EUR 1-2 of ad revenue
-     * versus the cash price — ads are intentionally the cheaper route, since a
-     * revenue-accurate grind (~200 ads per theme) would demotivate everyone.
-     * The daily cap exists because per-user ad revenue plateaus after ~5-8
-     * rewarded views a day.
+     * Testing switch: while true, buy buttons skip Google Play and instantly
+     * "succeed", exercising the full unlock flow (DB write + celebration
+     * popup). Real billing only works once the app and its products exist in
+     * the Play Console and the build is installed through a Play test track.
+     * Set to false to ship.
+     */
+    const val FAKE_BILLING_FOR_TESTING = true
+
+    /**
+     * Coin economy: ~175 coins mirror EUR 1 of a theme's cash price (per-theme
+     * costs live in ThemeBilling.coinCostFor), so a EUR 4 theme is 70 watched
+     * ads — about a week of hitting the daily cap. That earns the dev only
+     * ~EUR 1.5-3 of ad revenue versus the cash price — ads stay the cheaper
+     * route, since a revenue-accurate grind (~200 ads per theme) would
+     * demotivate everyone. The daily cap exists because per-user ad revenue
+     * plateaus after ~5-8 rewarded views a day.
      */
     const val COINS_PER_AD = 10
     const val MAX_REWARDED_ADS_PER_DAY = 10

@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Button
@@ -401,12 +402,14 @@ fun ThemeSelectorSheet(
     coins: Int,
     onCoinsEarned: (Int) -> Unit,
     onCoinUnlock: (UiTheme) -> Unit,
+    onRedeemCode: (String, (String) -> Unit) -> Unit,
     onThemeSelected: (UiTheme) -> Unit,
     onOpenShop: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
+    var showRedeemDialog by remember { mutableStateOf(false) }
 
     if (isVisible) {
         Dialog(
@@ -450,13 +453,23 @@ fun ThemeSelectorSheet(
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
                 )
                 CoinBalanceRow(coins = coins, onCoinsEarned = onCoinsEarned)
-                TextButton(onClick = onOpenShop, modifier = Modifier.padding(bottom = 8.dp)) {
-                    Icon(
-                        imageVector = Icons.Filled.Storefront,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(" Theme Shop", fontWeight = FontWeight.Bold)
+                Row(modifier = Modifier.padding(bottom = 8.dp)) {
+                    TextButton(onClick = onOpenShop) {
+                        Icon(
+                            imageVector = Icons.Filled.Storefront,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(" Theme Shop", fontWeight = FontWeight.Bold)
+                    }
+                    TextButton(onClick = { showRedeemDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.Redeem,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(" Redeem code", fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 LazyVerticalGrid(
@@ -524,6 +537,13 @@ fun ThemeSelectorSheet(
                 }
             } else null,
             onDismiss = { previewOption = null }
+        )
+    }
+
+    if (showRedeemDialog) {
+        RedeemCodeDialog(
+            onRedeem = onRedeemCode,
+            onDismiss = { showRedeemDialog = false }
         )
     }
 }
@@ -594,15 +614,16 @@ fun ThemeShopDialog(
                         ThemeBilling.themeBundles.forEach { bundle ->
                             ThemeBundleCard(bundle = bundle, onBuy = ::buyProduct)
                         }
-                        TextButton(
+                        FilledTonalButton(
                             onClick = { showRedeemDialog = true },
-                            modifier = Modifier.padding(top = 4.dp)
+                            modifier = Modifier.padding(top = 10.dp)
                         ) {
-                            Text(
-                                text = "Have a promo code?",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            Icon(
+                                imageVector = Icons.Filled.Redeem,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
                             )
+                            Text(" Redeem promo code", fontWeight = FontWeight.Bold)
                         }
                         Text(
                             text = "Single Themes",

@@ -15,6 +15,7 @@ import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.blaubalu.detoxrank.data.user.UiTheme
+import com.blaubalu.detoxrank.ui.utils.Constants
 
 /**
  * Handles Google Play Billing for premium themes.
@@ -146,27 +147,27 @@ object ThemeBilling : PurchasesUpdatedListener {
             ?: themeBundles.firstOrNull { theme in it.themes }
                 ?.let { bundlePrices[it.productId] ?: it.fallbackPrice }
 
-    /** coin price per theme purchase, ~100 coins for each EUR of the cash price */
+    /** coin price per theme purchase, ~175 coins for each EUR of the cash price */
     private val themeCoinCosts = mapOf(
-        UiTheme.Luxury to 500,
-        UiTheme.Comic to 400,
-        UiTheme.Sketch to 500, // includes Paper
-        UiTheme.Cartoon to 400,
-        UiTheme.Blueprint to 300,
-        UiTheme.Pixel to 400,
-        UiTheme.Fire to 400,
-        UiTheme.Water to 400,
-        UiTheme.Wind to 400,
-        UiTheme.Earth to 400,
-        UiTheme.Avatar to 500,
-        UiTheme.Princess to 500,
-        UiTheme.Scorched to 400,
-        UiTheme.Ninja to 400,
-        UiTheme.Medieval to 500,
-        UiTheme.Cyber to 500
+        UiTheme.Luxury to 900,
+        UiTheme.Comic to 700,
+        UiTheme.Sketch to 900, // includes Paper
+        UiTheme.Cartoon to 700,
+        UiTheme.Blueprint to 500,
+        UiTheme.Pixel to 700,
+        UiTheme.Fire to 700,
+        UiTheme.Water to 700,
+        UiTheme.Wind to 700,
+        UiTheme.Earth to 700,
+        UiTheme.Avatar to 900,
+        UiTheme.Princess to 900,
+        UiTheme.Scorched to 700,
+        UiTheme.Ninja to 700,
+        UiTheme.Medieval to 900,
+        UiTheme.Cyber to 900
     )
 
-    fun coinCostFor(theme: UiTheme): Int = themeCoinCosts[theme] ?: 400
+    fun coinCostFor(theme: UiTheme): Int = themeCoinCosts[theme] ?: 700
 
     /** formatted store price per bundle product */
     val bundlePrices = mutableStateMapOf<String, String>()
@@ -228,6 +229,10 @@ object ThemeBilling : PurchasesUpdatedListener {
      * @return false when billing is unavailable
      */
     fun purchaseProduct(activity: Activity, productId: String): Boolean {
+        if (Constants.FAKE_BILLING_FOR_TESTING) {
+            simulatePurchase(productId)
+            return true
+        }
         val client = billingClient ?: return false
         val details = productDetails[productId] ?: return false
         if (!client.isReady) return false
@@ -248,6 +253,16 @@ object ThemeBilling : PurchasesUpdatedListener {
     override fun onPurchasesUpdated(billingResult: BillingResult, purchases: List<Purchase>?) {
         if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
             purchases?.forEach { handlePurchase(it) }
+        }
+    }
+
+    /** Testing shortcut: unlocks as if Play reported a successful purchase */
+    private fun simulatePurchase(productId: String) {
+        val bundle = themeBundles.firstOrNull { it.productId == productId }
+        if (bundle != null) {
+            onBundleUnlocked?.invoke(bundle.title, bundle.themes)
+        } else {
+            productIdToTheme[productId]?.let { onThemeUnlocked?.invoke(it) }
         }
     }
 
