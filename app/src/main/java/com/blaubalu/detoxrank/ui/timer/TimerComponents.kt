@@ -354,10 +354,10 @@ fun CollectAccumulatedRpButton(
       .size(58.dp)
       .then(
         LocalThemeStyle.current.cardBorder?.let {
-          Modifier.border(it, LocalThemeStyle.current.cardShape ?: CircleShape)
+          Modifier.border(it, CircleShape)
         } ?: Modifier.border(
           BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
-          LocalThemeStyle.current.cardShape ?: CircleShape
+          CircleShape
         )
       )
   ) {
