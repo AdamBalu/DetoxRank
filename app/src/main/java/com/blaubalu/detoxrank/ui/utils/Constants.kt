@@ -19,14 +19,15 @@ object Constants {
     /**
      * Coin economy: ~175 coins mirror EUR 1 of a theme's cash price (per-theme
      * costs live in ThemeBilling.coinCostFor), so a EUR 4 theme is 70 watched
-     * ads — about a week of hitting the daily cap. That earns the dev only
+     * ads — about 9 days of hitting the daily cap. That earns the dev only
      * ~EUR 1.5-3 of ad revenue versus the cash price — ads stay the cheaper
      * route, since a revenue-accurate grind (~200 ads per theme) would
-     * demotivate everyone. The daily cap exists because per-user ad revenue
-     * plateaus after ~5-8 rewarded views a day.
+     * demotivate everyone. The cap sits at the top of the productive range:
+     * per-user ad revenue plateaus after ~5-8 rewarded views a day, so views
+     * beyond that would earn next to nothing anyway.
      */
     const val COINS_PER_AD = 10
-    const val MAX_REWARDED_ADS_PER_DAY = 10
+    const val MAX_REWARDED_ADS_PER_DAY = 8
 
     const val ACTION_SERVICE_START = "ACTION_SERVICE_START"
     const val ACTION_SERVICE_CANCEL = "ACTION_SERVICE_CANCEL"
