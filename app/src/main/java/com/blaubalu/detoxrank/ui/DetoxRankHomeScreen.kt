@@ -1,13 +1,8 @@
 package com.blaubalu.detoxrank.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,12 +28,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.R
@@ -334,7 +327,7 @@ fun DetoxRankBottomNavigationBar(
                                 stiffness = Spring.StiffnessMediumLow
                             )
                         )
-                        .padding(horizontal = 15.dp, vertical = 5.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Image(
                         imageVector = navItem.image,
@@ -344,28 +337,6 @@ fun DetoxRankBottomNavigationBar(
                             .scale(iconScale)
                             .alpha(iconAlpha)
                     )
-                    // tiny hint label slides out under the selected icon
-                    AnimatedVisibility(
-                        visible = selected,
-                        enter = expandVertically(
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessMediumLow
-                            )
-                        ) + fadeIn(animationSpec = tween(220)),
-                        exit = shrinkVertically() + fadeOut(animationSpec = tween(120))
-                    ) {
-                        Text(
-                            text = navItem.text,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 9.sp,
-                            letterSpacing = 0.8.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
-                            maxLines = 1,
-                            modifier = Modifier.padding(top = 1.dp)
-                        )
-                    }
                 }
             }
         }
