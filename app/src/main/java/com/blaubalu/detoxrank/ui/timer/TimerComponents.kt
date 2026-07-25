@@ -77,6 +77,7 @@ import com.blaubalu.detoxrank.ui.theme.rank_color
 import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.theme.rank_color_ultra_dark
 import com.blaubalu.detoxrank.ui.utils.Constants
+import com.blaubalu.detoxrank.ui.utils.Constants.ALL_THEMES_UNLOCKED_FOR_TESTING
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_START_TIMER
 import com.blaubalu.detoxrank.ui.utils.calculateTimerFloatAddition
 import com.blaubalu.detoxrank.ui.utils.calculateTimerRPGain
@@ -339,7 +340,7 @@ fun CollectAccumulatedRpButton(
         detoxRankViewModel.updateUserRankPoints(timerRpGain.toInt())
       }
     },
-    enabled = timerRpGain.toInt() > 0,
+    enabled = ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0,
     shape = LocalThemeStyle.current.cardShape ?: CircleShape,
     colors = IconButtonDefaults.filledIconButtonColors(
       containerColor = MaterialTheme.colorScheme.primaryContainer,
