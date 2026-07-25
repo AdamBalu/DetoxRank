@@ -165,27 +165,38 @@ fun TheoryImage(
     @StringRes contentDescription: Int? = null,
     @StringRes imageLabel: Int? = null
 ) {
+    val themeStyle = com.blaubalu.detoxrank.ui.theme.LocalThemeStyle.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 20.dp)
     ) {
-        Image(
-            painterResource(id = imageRes),
-            contentDescription = stringResource(contentDescription ?: R.string.empty_message),
-            modifier = Modifier
-                .padding(top = 25.dp, bottom = 12.dp)
-        )
-
-        if (imageLabel != null)
-            Text(
-                text = "Image: " + stringResource(id = imageLabel),
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .padding(bottom = 25.dp)
+        // illustrations sit in a themed frame so they feel like part of the page
+        Card(
+            shape = themeStyle.cardShape ?: MaterialTheme.shapes.medium,
+            border = themeStyle.cardBorder,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+                contentColor = MaterialTheme.colorScheme.onSurface
             )
-        else
-            Spacer(Modifier.height(25.dp))
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painterResource(id = imageRes),
+                    contentDescription = stringResource(contentDescription ?: R.string.empty_message),
+                    modifier = Modifier.padding(16.dp)
+                )
+                if (imageLabel != null)
+                    Text(
+                        text = stringResource(id = imageLabel),
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                    )
+            }
+        }
     }
 }
 

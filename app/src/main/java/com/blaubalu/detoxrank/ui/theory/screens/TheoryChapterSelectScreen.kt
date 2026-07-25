@@ -152,7 +152,7 @@ fun TheoryChapter(
                     modifier = Modifier
                         .padding(bottom = 20.dp)
                 )
-                FilledTonalButton(
+                Button(
                     onClick = {
                         onChapterSelected()
                         theoryViewModel.setCurrentChapterName(chapter.name)
@@ -160,9 +160,11 @@ fun TheoryChapter(
                             theoryViewModel.setCurrentChapterScreenNum()
                         }
                     },
+                    shape = LocalThemeStyle.current.cardShape ?: MaterialTheme.shapes.medium,
                     modifier = Modifier
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
+                        .height(46.dp)
                 ) {
                     Text(text = chapter.startChapterButtonLabel)
                 }
@@ -245,8 +247,11 @@ fun ContinueIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val themeStyle = LocalThemeStyle.current
     OutlinedIconButton(
         onClick = onClick,
+        shape = themeStyle.cardShape ?: MaterialTheme.shapes.large,
+        border = themeStyle.cardBorder ?: IconButtonDefaults.outlinedIconButtonBorder(true),
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 35.dp, start = 16.dp, end = 16.dp, bottom = 25.dp)
