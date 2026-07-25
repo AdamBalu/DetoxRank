@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace 'com.blaubalu.detoxrank'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.blaubalu.detoxrank"
         minSdk 21
-        targetSdk 34
-        versionCode 8
-        versionName "1.2.3"
+        targetSdk 35
+        versionCode 9
+        versionName "2.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -94,7 +94,7 @@ dependencies {
     implementation "com.android.billingclient:billing-ktx:7.1.1"
 
     // Google Mobile Ads (rewarded ads -> coins)
-    implementation "com.google.android.gms:play-services-ads:23.2.0"
+    implementation "com.google.android.gms:play-services-ads:23.6.0"
 
     // Google UMP consent (GDPR) for ad serving in the EEA
     implementation "com.google.android.ump:user-messaging-platform:3.1.0"

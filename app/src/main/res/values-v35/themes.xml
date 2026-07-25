@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 15 forces edge-to-edge for apps targeting SDK 35; opt out for
+         now so every screen keeps its current layout. Remove this (and handle
+         window insets properly) when targeting SDK 36+, where the opt-out
+         attribute is ignored. -->
+    <style name="Theme.DetoxRank" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>
