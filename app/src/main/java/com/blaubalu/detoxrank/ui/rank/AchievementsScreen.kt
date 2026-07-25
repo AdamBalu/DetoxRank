@@ -12,12 +12,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardDefaults.cardElevation
 import androidx.compose.material3.CardDefaults.elevatedCardColors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -112,19 +115,38 @@ fun AchievementsScreen(
                             AchievementDifficulty.LEGENDARY -> legendary_orange
                         }
                         Card(
+                            shape = LocalThemeStyle.current.cardShape ?: CardDefaults.shape,
                             elevation = cardElevation(8.dp),
                             colors = elevatedCardColors(
                                 containerColor = MaterialTheme.colorScheme.surface,
                                 contentColor = MaterialTheme.colorScheme.onSurface
                             ),
                             border = if (achievement.achieved) {
-                                BorderStroke(4.dp, cardBorderColor)
+                                null
                             } else { BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceVariant) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                         ) {
-                            Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(
+                                        if (achievement.achieved) {
+                                            // rarity glow flowing in from the right, fading
+                                            // out before it reaches the icon
+                                            Modifier.background(
+                                                Brush.horizontalGradient(
+                                                    0f to Color.Transparent,
+                                                    0.4f to cardBorderColor.copy(alpha = 0.08f),
+                                                    1f to cardBorderColor.copy(alpha = 0.5f)
+                                                )
+                                            )
+                                        } else Modifier
+                                    )
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 if (!achievement.achieved) {
                                     Box(modifier = Modifier.padding(10.dp)) {
                                         Image(
