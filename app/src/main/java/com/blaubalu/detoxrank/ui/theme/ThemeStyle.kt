@@ -304,7 +304,9 @@ data class ThemeStyle(
     /** overrides the card surface shape, e.g. the wobbly hand-drawn outline */
     val cardShape: Shape? = null,
     /** custom (user-created) task card color; null keeps the signature gold */
-    val customTaskColor: Color? = null
+    val customTaskColor: Color? = null,
+    /** shrinks the timer digits for themes whose display font has wide numerals */
+    val timerDigitScale: Float = 1f
 )
 
 val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle() }
@@ -329,7 +331,8 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     )
     UiTheme.Luxury -> ThemeStyle(
         cardBorder = BorderStroke(1.dp, Color(0x66E5C558)),
-        customTaskColor = Color(0xFF6B5518)
+        customTaskColor = Color(0xFF6B5518),
+        timerDigitScale = 0.9f
     )
     UiTheme.Cartoon -> ThemeStyle(
         cardBorder = BorderStroke(3.dp, Color(0xFF0E0721)),
@@ -352,7 +355,8 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
                 listOf(Color(0x99F2D57E), Color(0x997FE7D0), Color(0x99B79CFF))
             )
         ),
-        customTaskColor = Color(0xFF57431A)
+        customTaskColor = Color(0xFF57431A),
+        timerDigitScale = 0.85f
     )
     UiTheme.Fire -> ThemeStyle(
         cardBorder = BorderStroke(2.dp, Color(0x66FF6B35)),
@@ -372,7 +376,8 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     )
     UiTheme.Princess -> ThemeStyle(
         cardBorder = BorderStroke(1.5.dp, Color(0x66D6659E)),
-        customTaskColor = Color(0xFFF5E3B0)
+        customTaskColor = Color(0xFFF5E3B0),
+        timerDigitScale = 0.78f
     )
     UiTheme.Scorched -> ThemeStyle(
         cardBorder = BorderStroke(2.dp, Color(0x66E85D2F)),
@@ -401,7 +406,8 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     UiTheme.Medieval -> ThemeStyle(
         cardBorder = BorderStroke(2.dp, Color(0x8CC9A227)),
         cardShape = CastleShape(notchDp = 6f),
-        customTaskColor = Color(0xFF3E2258) // purpure banner
+        customTaskColor = Color(0xFF3E2258), // purpure banner
+        timerDigitScale = 0.82f
     )
     UiTheme.Cyber -> ThemeStyle(
         cardBorder = BorderStroke(
@@ -421,7 +427,8 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     UiTheme.Gold -> ThemeStyle(
         cardBorder = BorderStroke(2.dp, Color(0x8CFFD24A)),
         cardShape = IngotShape(insetDp = 10f),
-        customTaskColor = Color(0xFF6E5A14)
+        customTaskColor = Color(0xFF6E5A14),
+        timerDigitScale = 0.9f
     )
     UiTheme.Platinum -> ThemeStyle(
         cardBorder = BorderStroke(1.5.dp, Color(0x66D8E8E8)),
