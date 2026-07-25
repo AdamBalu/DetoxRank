@@ -322,7 +322,7 @@ fun CollectAccumulatedRpButton(
   val scale = remember {
     Animatable(1f)
   }
-  IconButton(
+  FilledIconButton(
     onClick = {
       coroutineScope.launch {
         scale.animateTo(
@@ -340,7 +340,7 @@ fun CollectAccumulatedRpButton(
     },
     enabled = timerRpGain.toInt() > 0,
     shape = LocalThemeStyle.current.cardShape ?: CircleShape,
-    colors = IconButtonDefaults.iconButtonColors(
+    colors = IconButtonDefaults.filledIconButtonColors(
       containerColor = MaterialTheme.colorScheme.primaryContainer,
       disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     ),
