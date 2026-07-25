@@ -432,6 +432,10 @@ fun Task(
     enter = expandIn()
   ) {
     val themeStyle = LocalThemeStyle.current
+    // replays its slide-in whenever the item scrolls back into view — wraps
+    // the whole task (card, border, swipe layer) and is draw-layer only, so
+    // scrolling stays smooth
+    ScrollReEntry {
     SwipeToDismissBox(
       state = dismissState,
       backgroundContent = {
@@ -466,22 +470,19 @@ fun Task(
         darkTheme = darkTheme
       )
     ) {
-      // replays its slide-in whenever the item scrolls back into view — the
-      // signature task-list motion, draw-layer only so scrolling stays smooth
-      ScrollReEntry {
-        TaskContents(
-          task = task,
-          taskViewModel = taskViewModel,
-          detoxRankViewModel = detoxRankViewModel,
-          achievementViewModel = achievementViewModel,
-          taskToBeEdited = taskToBeEdited,
-          rankPointsGain = rankPointsGain,
-          coroutineScope = coroutineScope,
-          isVisible = isVisible,
-          context = context,
-          modifier = modifier
-        )
-      }
+      TaskContents(
+        task = task,
+        taskViewModel = taskViewModel,
+        detoxRankViewModel = detoxRankViewModel,
+        achievementViewModel = achievementViewModel,
+        taskToBeEdited = taskToBeEdited,
+        rankPointsGain = rankPointsGain,
+        coroutineScope = coroutineScope,
+        isVisible = isVisible,
+        context = context,
+        modifier = modifier
+      )
+    }
     }
     }
   }
