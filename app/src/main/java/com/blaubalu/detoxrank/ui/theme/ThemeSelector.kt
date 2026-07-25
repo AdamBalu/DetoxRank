@@ -3,6 +3,8 @@ package com.blaubalu.detoxrank.ui.theme
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -54,6 +56,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -696,22 +701,74 @@ fun ThemePreviewDialog(
     Dialog(onDismissRequest = onDismiss) {
         DetoxRankTheme(theme = option.theme) {
             val style = LocalThemeStyle.current
+            val primaryArc = MaterialTheme.colorScheme.primary
+            val secondaryArc = MaterialTheme.colorScheme.secondary
+            val tertiaryArc = MaterialTheme.colorScheme.tertiary
             Surface(
-                shape = MaterialTheme.shapes.large,
+                shape = MaterialTheme.shapes.extraLarge,
                 color = MaterialTheme.colorScheme.background,
+                border = style.cardBorder
+                    ?: BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
+                tonalElevation = 6.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier
                         .themeTexture(option.theme)
-                        .padding(20.dp),
+                        .padding(horizontal = 22.dp, vertical = 20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        border = BorderStroke(
+                            1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        Text(
+                            text = when {
+                                option.requiresMastery -> "✦ MASTERY REWARD ✦"
+                                option.isPremium -> "✦ PREMIUM THEME ✦"
+                                else -> "✦ LEVEL ${option.requiredLevel} REWARD ✦"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                        )
+                    }
                     Text(
                         text = option.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
+
+                    // miniature of the detox clock: the app's signature element
+                    Box(contentAlignment = Alignment.Center) {
+                        Canvas(modifier = Modifier.size(130.dp).padding(10.dp)) {
+                            val stroke = Stroke(width = 7.dp.toPx(), cap = StrokeCap.Round)
+                            drawArc(primaryArc, 135f, 270f, false, style = stroke)
+                            inset(14.dp.toPx()) {
+                                drawArc(secondaryArc, 155f, 230f, false, style = stroke)
+                            }
+                            inset(28.dp.toPx()) {
+                                drawArc(tertiaryArc, 175f, 190f, false, style = stroke)
+                            }
+                        }
+                        Row {
+                            Text(
+                                "12 ",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                            Text(
+                                "34",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
                     Text(
                         text = "This is how the app will look",
                         style = MaterialTheme.typography.bodyMedium,
