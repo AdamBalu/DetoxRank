@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -337,20 +339,30 @@ fun CollectAccumulatedRpButton(
       }
     },
     enabled = timerRpGain.toInt() > 0,
+    shape = LocalThemeStyle.current.cardShape ?: CircleShape,
     colors = IconButtonDefaults.iconButtonColors(
-      containerColor = MaterialTheme.colorScheme.onPrimary,
-      disabledContainerColor = Color.LightGray
+      containerColor = MaterialTheme.colorScheme.primaryContainer,
+      disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     ),
-    modifier = modifier
-      .padding(top = 18.dp)
+    modifier = Modifier
+      .padding(top = 12.dp)
       .scale(scale.value)
-      .size(48.dp)
+      .size(58.dp)
+      .then(
+        LocalThemeStyle.current.cardBorder?.let {
+          Modifier.border(it, LocalThemeStyle.current.cardShape ?: CircleShape)
+        } ?: Modifier.border(
+          BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
+          LocalThemeStyle.current.cardShape ?: CircleShape
+        )
+      )
   ) {
-
     Image(
       painter = painterResource(id = R.drawable.store_rp),
       contentDescription = null,
-      modifier = modifier.size(48.dp)
+      modifier = Modifier
+        .size(38.dp)
+        .padding(2.dp)
     )
   }
 }

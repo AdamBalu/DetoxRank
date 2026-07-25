@@ -8,6 +8,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -698,25 +700,27 @@ fun ThemePreviewDialog(
     onDismiss: () -> Unit,
     onUsePick: (() -> Unit)? = null
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         DetoxRankTheme(theme = option.theme) {
             val style = LocalThemeStyle.current
             val primaryArc = MaterialTheme.colorScheme.primary
             val secondaryArc = MaterialTheme.colorScheme.secondary
             val tertiaryArc = MaterialTheme.colorScheme.tertiary
             Surface(
-                shape = MaterialTheme.shapes.extraLarge,
                 color = MaterialTheme.colorScheme.background,
-                border = style.cardBorder
-                    ?: BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
-                tonalElevation = 6.dp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxSize()
             ) {
                 Column(
                     modifier = Modifier
+                        .fillMaxSize()
                         .themeTexture(option.theme)
-                        .padding(horizontal = 22.dp, vertical = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp, vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Surface(
                         shape = CircleShape,
