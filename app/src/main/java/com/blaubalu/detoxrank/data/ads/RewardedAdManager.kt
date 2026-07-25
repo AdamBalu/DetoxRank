@@ -3,6 +3,7 @@ package com.blaubalu.detoxrank.data.ads
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import com.blaubalu.detoxrank.BuildConfig
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
@@ -33,9 +34,13 @@ import java.util.Calendar
  */
 object RewardedAdManager {
 
-    // Google's public TEST rewarded ad unit — replace with your real AdMob
-    // ad unit id (and the app id in AndroidManifest.xml) before release
-    private const val AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
+    // real rewarded unit in release builds; Google's public TEST unit in debug
+    // so development never generates invalid traffic on the real account
+    private val AD_UNIT_ID = if (BuildConfig.DEBUG) {
+        "ca-app-pub-3940256099942544/5224354917"
+    } else {
+        "ca-app-pub-7186880461594474/8602274662"
+    }
 
     private const val PREFS = "rewarded_ads"
     private const val KEY_DAY = "day"
