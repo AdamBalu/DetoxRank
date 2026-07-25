@@ -249,8 +249,7 @@ fun RankMainScreenBody(
 //                        achievementViewModel.deleteAllAchievementsInDb()
 //                    }
         },
-        shape = LocalThemeStyle.current.cardShape
-          ?: MaterialTheme.shapes.extraLarge.let {
+        shape = MaterialTheme.shapes.extraLarge.let {
             // mirror the top-start corner so asymmetric themes (Cyber) stay symmetric here
             it.copy(
               topEnd = it.topStart,
@@ -355,8 +354,7 @@ fun RankMainScreenBodyLarge(
         onClick = {
           rankViewModel.setAchievementsDisplayed(true)
         },
-        shape = LocalThemeStyle.current.cardShape
-          ?: MaterialTheme.shapes.extraLarge.let {
+        shape = MaterialTheme.shapes.extraLarge.let {
             // mirror the top-start corner so asymmetric themes (Cyber) stay symmetric here
             it.copy(
               topEnd = it.topStart,
