@@ -750,27 +750,23 @@ fun ThemePreviewDialog(
 
                     // miniature of the detox clock: the app's signature element
                     Box(contentAlignment = Alignment.Center) {
-                        Canvas(modifier = Modifier.size(130.dp).padding(10.dp)) {
-                            val stroke = Stroke(width = 7.dp.toPx(), cap = StrokeCap.Round)
+                        Canvas(modifier = Modifier.size(190.dp).padding(10.dp)) {
+                            val stroke = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
                             drawArc(primaryArc, 135f, 270f, false, style = stroke)
-                            inset(14.dp.toPx()) {
+                            inset(20.dp.toPx()) {
                                 drawArc(secondaryArc, 155f, 230f, false, style = stroke)
                             }
-                            inset(28.dp.toPx()) {
+                            inset(40.dp.toPx()) {
                                 drawArc(tertiaryArc, 175f, 190f, false, style = stroke)
                             }
                         }
                         Row {
-                            Text(
-                                "12 ",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.tertiary
+                            val digitStyle = MaterialTheme.typography.headlineSmall.copy(
+                                fontSize = MaterialTheme.typography.headlineSmall.fontSize *
+                                        style.timerDigitScale
                             )
-                            Text(
-                                "34",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
+                            Text("12 ", style = digitStyle, color = MaterialTheme.colorScheme.tertiary)
+                            Text("34", style = digitStyle, color = MaterialTheme.colorScheme.secondary)
                         }
                     }
                     Text(
@@ -808,11 +804,17 @@ fun ThemePreviewDialog(
                     Spacer(modifier = Modifier.height(18.dp))
 
                     if (option.isPremium) {
-                        Button(onClick = onUnlock) {
+                        Button(
+                            onClick = onUnlock,
+                            modifier = Modifier
+                                .fillMaxWidth(0.82f)
+                                .height(54.dp)
+                        ) {
                             val price = ThemeBilling.themePrices[option.purchaseKey]
                             Text(
                                 text = if (price != null) "Unlock for $price" else "Unlock",
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 17.sp
                             )
                         }
                         if (onUsePick != null && ThemeShopState.availablePicks > 0) {
@@ -846,8 +848,12 @@ fun ThemePreviewDialog(
                         )
                     }
 
-                    TextButton(onClick = onDismiss, modifier = Modifier.padding(top = 4.dp)) {
-                        Text("Close")
+                    TextButton(onClick = onDismiss) {
+                        Text(
+                            "Close",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
