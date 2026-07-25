@@ -318,11 +318,12 @@ data class ThemeStyle(
 
 val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle() }
 
-/** silhouette for angled progress bars: the right edge cuts diagonally */
+/** silhouette for angled progress bars: a parallelogram with both ends cut diagonally */
 val AngledBarShape = GenericShape { size, _ ->
-    moveTo(0f, 0f)
+    val slant = size.height * 0.6f
+    moveTo(slant, 0f)
     lineTo(size.width, 0f)
-    lineTo(size.width - size.height * 0.6f, size.height)
+    lineTo(size.width - slant, size.height)
     lineTo(0f, size.height)
     close()
 }
