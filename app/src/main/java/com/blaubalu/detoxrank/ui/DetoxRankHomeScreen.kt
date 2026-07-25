@@ -222,25 +222,7 @@ fun DetoxRankBottomNavigationBar(
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier
 ) {
-    val themeStyle = LocalThemeStyle.current
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                themeStyle.cardBorder?.let { stroke ->
-                    // the theme ink runs along the top edge of the nav bar
-                    Modifier.drawBehind {
-                        drawLine(
-                            brush = stroke.brush,
-                            start = Offset.Zero,
-                            end = Offset(size.width, 0f),
-                            strokeWidth = stroke.width.toPx() * 2
-                        )
-                    }
-                } ?: Modifier
-            )
-    ) {
+    NavigationBar(modifier = modifier.fillMaxWidth()) {
         for (navItem in navigationItemContentList) {
             NavigationBarItem(
                 selected = currentTab == navItem.section,
