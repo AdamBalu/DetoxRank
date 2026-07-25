@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
@@ -40,6 +39,8 @@ import androidx.compose.ui.unit.sp
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.user.Rank
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
+import com.blaubalu.detoxrank.ui.theme.ThemedProgressBar
 import com.blaubalu.detoxrank.ui.theme.rank_color
 import com.blaubalu.detoxrank.ui.theme.rank_color_shade
 import com.blaubalu.detoxrank.ui.theme.rank_color_ultra_dark
@@ -115,26 +116,29 @@ fun RankWithProgressBar(
                 modifier = Modifier.align(Alignment.TopCenter),
                 fontStyle = FontStyle.Normal
             )
-            LinearProgressIndicator(
+            val angledBars = LocalThemeStyle.current.angledBars
+            ThemedProgressBar(
                 progress = animatedProgress,
                 color = rank_color,
                 trackColor = rank_color_ultra_dark,
+                angled = angledBars,
+                straightShape = RoundedCornerShape(19.dp),
+                border = BorderStroke(4.dp, rank_color),
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
                     .height(47.dp)
                     .padding(start = 16.dp, end = 16.dp, top = 17.dp)
-                    .clip(RoundedCornerShape(19.dp))
-                    .border(BorderStroke(4.dp, rank_color), RoundedCornerShape(19.dp))
             )
-            LinearProgressIndicator(
+            ThemedProgressBar(
                 progress = animatedProgress - 0.1f,
                 color = rank_color_shade,
                 trackColor = Color.Transparent,
+                angled = angledBars,
+                straightShape = RoundedCornerShape(29.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.75f)
                     .height(31.dp)
                     .padding(start = 30.dp, top = 23.dp)
-                    .clip(RoundedCornerShape(29.dp))
             )
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 AnimationBox(
@@ -231,26 +235,29 @@ fun RankWithProgressBarLarge(
                 modifier = Modifier.align(Alignment.TopCenter),
                 fontStyle = FontStyle.Normal
             )
-            LinearProgressIndicator(
+            val angledBars = LocalThemeStyle.current.angledBars
+            ThemedProgressBar(
                 progress = animatedProgress,
                 color = rank_color,
                 trackColor = rank_color_ultra_dark,
+                angled = angledBars,
+                straightShape = RoundedCornerShape(19.dp),
+                border = BorderStroke(4.dp, rank_color),
                 modifier = Modifier
                     .fillMaxWidth(0.75f)
                     .height(47.dp)
                     .padding(start = 16.dp, end = 16.dp, top = 17.dp)
-                    .clip(RoundedCornerShape(19.dp))
-                    .border(BorderStroke(4.dp, rank_color), RoundedCornerShape(19.dp))
             )
-            LinearProgressIndicator(
+            ThemedProgressBar(
                 progress = animatedProgress - 0.1f,
                 color = rank_color_shade,
                 trackColor = Color.Transparent,
+                angled = angledBars,
+                straightShape = RoundedCornerShape(29.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.65f)
                     .height(31.dp)
                     .padding(start = 30.dp, top = 23.dp)
-                    .clip(RoundedCornerShape(29.dp))
             )
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 AnimationBox(

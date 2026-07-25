@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material3.Button
@@ -362,10 +361,11 @@ fun CollectAccumulatedRpButton(
         )
       )
   ) {
-    Icon(
-      imageVector = Icons.Filled.Redeem,
-      contentDescription = "Collect rank points",
-      modifier = Modifier.size(28.dp)
+    Text(
+      text = "+RP",
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.ExtraBold,
+      maxLines = 1
     )
   }
 }

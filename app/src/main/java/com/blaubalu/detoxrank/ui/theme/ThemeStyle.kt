@@ -1,11 +1,16 @@
 package com.blaubalu.detoxrank.ui.theme
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -306,12 +311,67 @@ data class ThemeStyle(
     /** custom (user-created) task card color; null keeps the signature gold */
     val customTaskColor: Color? = null,
     /** shrinks the timer digits for themes whose display font has wide numerals */
-    val timerDigitScale: Float = 1f
+    val timerDigitScale: Float = 1f,
+    /** progress bars (level XP, rank RP) end in a diagonal cut instead of a straight edge */
+    val angledBars: Boolean = false
 )
 
 val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle() }
 
-fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
+/** silhouette for angled progress bars: the right edge cuts diagonally */
+val AngledBarShape = GenericShape { size, _ ->
+    moveTo(0f, 0f)
+    lineTo(size.width, 0f)
+    lineTo(size.width - size.height * 0.6f, size.height)
+    lineTo(0f, size.height)
+    close()
+}
+
+/**
+ * Progress bar whose fill — and, on angled themes, whole silhouette — ends in
+ * a diagonal edge; falls back to the classic straight look when [angled] is off
+ */
+@Composable
+fun ThemedProgressBar(
+    progress: Float,
+    color: Color,
+    trackColor: Color,
+    angled: Boolean,
+    straightShape: Shape,
+    modifier: Modifier = Modifier,
+    border: BorderStroke? = null
+) {
+    val shape = if (angled) AngledBarShape else straightShape
+    Canvas(
+        modifier = modifier
+            .clip(shape)
+            .then(border?.let { Modifier.border(it, shape) } ?: Modifier)
+    ) {
+        drawRect(trackColor)
+        val slant = if (angled) size.height * 0.6f else 0f
+        val fillEnd = size.width * progress.coerceIn(0f, 1f)
+        val fill = Path().apply {
+            moveTo(0f, 0f)
+            lineTo(fillEnd, 0f)
+            lineTo((fillEnd - slant).coerceAtLeast(0f), size.height)
+            lineTo(0f, size.height)
+            close()
+        }
+        drawPath(fill, color)
+    }
+}
+
+/** themes whose angular art style earns the diagonal progress-bar ends */
+private val angledBarThemes = setOf(
+    UiTheme.Comic, UiTheme.Scorched, UiTheme.Ninja, UiTheme.Cyber,
+    UiTheme.Bronze, UiTheme.Silver, UiTheme.Gold, UiTheme.Platinum, UiTheme.Diamond
+)
+
+fun themeStyleFor(theme: UiTheme): ThemeStyle = baseStyleFor(theme).copy(
+    angledBars = theme in angledBarThemes
+)
+
+private fun baseStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     UiTheme.Monochrome -> ThemeStyle(customTaskColor = Color(0xFF4F4F4F))
     UiTheme.GreenShades -> ThemeStyle(customTaskColor = Color(0xFF4C6B2F))
     UiTheme.BlueShades -> ThemeStyle(customTaskColor = Color(0xFF1E5A8A))
