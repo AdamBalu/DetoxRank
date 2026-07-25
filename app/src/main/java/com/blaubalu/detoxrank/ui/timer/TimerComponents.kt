@@ -317,7 +317,8 @@ fun TimerStartStopButton(
 fun CollectAccumulatedRpButton(
   detoxRankViewModel: DetoxRankViewModel,
   timerService: TimerService,
-  modifier: Modifier
+  modifier: Modifier,
+  onCollected: () -> Unit = {}
 ) {
   val timerRpGain = calculateTimerRPGain(detoxRankViewModel, timerService)
   val coroutineScope = rememberCoroutineScope()
@@ -326,6 +327,7 @@ fun CollectAccumulatedRpButton(
   }
   FilledIconButton(
     onClick = {
+      onCollected()
       coroutineScope.launch {
         scale.animateTo(
           0.85f,
@@ -479,10 +481,28 @@ fun TimerFooter(
       0f
     }
 
-  Column(
+  var collectPulse by remember { mutableStateOf(0) }
+  val shieldAnims = remember { List(4) { Animatable(0f) } }
+  LaunchedEffect(collectPulse) {
+    if (collectPulse > 0) {
+      shieldAnims.forEachIndexed { i, anim ->
+        launch {
+          anim.snapTo(0f)
+          delay(i * 70L)
+          anim.animateTo(1f, tween(durationMillis = 600, easing = FastOutSlowInEasing))
+          anim.snapTo(0f)
+        }
+      }
+    }
+  }
+
+  Box(
     modifier = modifier
       .fillMaxWidth()
-      .graphicsLayer { translationY = timerTranslationY },
+      .graphicsLayer { translationY = timerTranslationY }
+  ) {
+  Column(
+    modifier = Modifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     AccumulatedRp(
@@ -527,7 +547,10 @@ fun TimerFooter(
         )
       }
       if (currentTimerState == TimerState.Started)
-        CollectAccumulatedRpButton(detoxRankViewModel, timerService, modifier)
+        CollectAccumulatedRpButton(
+          detoxRankViewModel, timerService, modifier,
+          onCollected = { collectPulse++ }
+        )
       Column(
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
@@ -550,6 +573,23 @@ fun TimerFooter(
         )
       }
     }
+  }
+
+  // shields flying from the accumulated RP down into the collect button
+  shieldAnims.forEachIndexed { i, anim ->
+    val p = anim.value
+    if (p > 0f && p < 1f) {
+      Image(
+        painter = painterResource(id = R.drawable.rank_points_icon),
+        contentDescription = null,
+        modifier = Modifier
+          .align(Alignment.TopCenter)
+          .offset(x = ((i - 1.5f) * 26 * (1f - p)).dp, y = (30 + 105 * p).dp)
+          .size(18.dp)
+          .alpha(1f - p * p)
+      )
+    }
+  }
   }
 }
 
