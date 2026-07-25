@@ -242,18 +242,21 @@ fun RankMainScreenBody(
 //                        achievementViewModel.deleteAllAchievementsInDb()
 //                    }
         },
-        // floating capsule stacked above the nav dock, mirroring its language
-        shape = MaterialTheme.shapes.extraLarge.let {
-            // mirror every corner from top-start so asymmetric themes (Cyber) stay symmetric
+        // themed drawer handle tucked under the nav dock; on Medieval the
+        // battlemented card shape over the masonry dock reads as a castle
+        shape = LocalThemeStyle.current.cardShape ?: MaterialTheme.shapes.extraLarge.let {
+            // mirror the top-start corner so asymmetric themes stay symmetric
             it.copy(
               topEnd = it.topStart,
-              bottomStart = it.topStart,
-              bottomEnd = it.topStart
+              bottomStart = CornerSize(0.dp),
+              bottomEnd = CornerSize(0.dp)
             )
           },
+        border = LocalThemeStyle.current.cardBorder,
         modifier = Modifier
-          .padding(top = 5.dp, bottom = 2.dp)
-          .fillMaxWidth(0.75f),
+          .padding(top = 5.dp)
+          .fillMaxWidth(0.75f)
+          .offset(y = 18.dp),
         colors = ButtonDefaults.buttonColors(
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -340,19 +343,22 @@ fun RankMainScreenBodyLarge(
         onClick = {
           rankViewModel.setAchievementsDisplayed(true)
         },
-        // floating capsule stacked above the nav dock, mirroring its language
-        shape = MaterialTheme.shapes.extraLarge.let {
-            // mirror every corner from top-start so asymmetric themes (Cyber) stay symmetric
+        // themed drawer handle tucked under the nav dock; on Medieval the
+        // battlemented card shape over the masonry dock reads as a castle
+        shape = LocalThemeStyle.current.cardShape ?: MaterialTheme.shapes.extraLarge.let {
+            // mirror the top-start corner so asymmetric themes stay symmetric
             it.copy(
               topEnd = it.topStart,
-              bottomStart = it.topStart,
-              bottomEnd = it.topStart
+              bottomStart = CornerSize(0.dp),
+              bottomEnd = CornerSize(0.dp)
             )
           },
+        border = LocalThemeStyle.current.cardBorder,
         modifier = Modifier
-          .padding(top = 5.dp, bottom = 2.dp)
+          .padding(top = 5.dp)
           .fillMaxWidth(0.55f)
-          .height(50.dp),
+          .height(60.dp)
+          .offset(y = 14.dp),
         colors = ButtonDefaults.buttonColors(
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           contentColor = MaterialTheme.colorScheme.onSecondaryContainer
