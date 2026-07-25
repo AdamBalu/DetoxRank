@@ -358,11 +358,9 @@ fun CollectAccumulatedRpButton(
       )
   ) {
     Image(
-      painter = painterResource(id = R.drawable.store_rp),
+      painter = painterResource(id = R.drawable.rank_points_icon),
       contentDescription = null,
-      modifier = Modifier
-        .size(38.dp)
-        .padding(2.dp)
+      modifier = Modifier.size(30.dp)
     )
   }
 }

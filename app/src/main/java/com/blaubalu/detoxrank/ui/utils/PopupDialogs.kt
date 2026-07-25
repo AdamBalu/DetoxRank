@@ -43,6 +43,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.ui.theme.DetoxRankTheme
 import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+import com.blaubalu.detoxrank.ui.theme.themeTexture
 import kotlinx.coroutines.delay
 
 /**
@@ -101,6 +102,9 @@ fun CelebrationOverlay(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxSize()
+                        // the celebration owns the screen: solid themed backdrop + texture
+                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.96f))
+                        .themeTexture(theme)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -166,14 +170,8 @@ fun CelebrationOverlay(
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    androidx.compose.material3.Surface(
-                        shape = MaterialTheme.shapes.large,
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                        tonalElevation = 6.dp
-                    ) {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                     Text(
                         text = popup.title,
@@ -197,7 +195,6 @@ fun CelebrationOverlay(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 6.dp)
                         )
-                    }
                     }
                     }
 
