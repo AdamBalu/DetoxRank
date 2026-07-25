@@ -11,7 +11,9 @@ import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,19 +22,30 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -338,6 +351,7 @@ fun taskToBeDeleted(task: Task, taskToBeEdited: MutableState<Boolean>) =
 fun taskToBeRefreshed(task: Task, taskToBeEdited: MutableState<Boolean>) =
   taskToBeEdited.value && isUsualTask(task)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Task(
   task: Task,
@@ -368,12 +382,87 @@ fun Task(
     context = context
   )
 
+  // swipe either way: refresh a default task, delete a custom one
+  val dismissState = rememberSwipeToDismissBoxState(
+    confirmValueChange = { value ->
+      if (value == SwipeToDismissBoxValue.Settled) {
+        false
+      } else when {
+        task.durationCategory == TaskDurationCategory.Uncategorized -> {
+          coroutineScope.launch {
+            taskViewModel.deleteTask(task)
+            toastShort("Task deleted", context)
+          }
+          true
+        }
+
+        isUsualTask(task) && !task.completed -> {
+          coroutineScope.launch {
+            if (!detoxRankViewModel.decrementTaskRefreshes()) {
+              toastShort("No available task refreshes!", context)
+            } else {
+              taskViewModel.updateUiState(
+                task.copy(
+                  completed = false,
+                  selectedAsCurrentTask = false,
+                  wasSelectedLastTime = true
+                ).toTaskUiState()
+              )
+              taskViewModel.updateTask()
+              taskViewModel.refreshTask(task.durationCategory)
+              toastShort("Task refreshed", context)
+            }
+          }
+          false
+        }
+
+        else -> false
+      }
+    }
+  )
+
+  // while a swipe is in progress, show the same refresh/delete state as a long press
+  val isSwiping by remember {
+    derivedStateOf {
+      runCatching { dismissState.requireOffset() }.getOrDefault(0f) != 0f
+    }
+  }
+  LaunchedEffect(isSwiping) {
+    if ((isUsualTask(task) && !task.completed) ||
+      task.durationCategory == TaskDurationCategory.Uncategorized
+    ) {
+      taskToBeEdited.value = isSwiping
+    }
+  }
+
   AnimatedVisibility(
     visible = isVisible.value,
     exit = shrinkOut(),
     enter = expandIn()
   ) {
     val themeStyle = LocalThemeStyle.current
+    SwipeToDismissBox(
+      state = dismissState,
+      backgroundContent = {
+        val isCustom = task.durationCategory == TaskDurationCategory.Uncategorized
+        Box(
+          contentAlignment = if (dismissState.dismissDirection == SwipeToDismissBoxValue.StartToEnd) {
+            Alignment.CenterStart
+          } else {
+            Alignment.CenterEnd
+          },
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 4.dp, horizontal = 28.dp)
+        ) {
+          Icon(
+            imageVector = if (isCustom) Icons.Filled.Delete else Icons.Filled.Refresh,
+            contentDescription = null,
+            tint = if (isCustom) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+          )
+        }
+      }
+    ) {
     Card(
       modifier = currentModifier,
       shape = themeStyle.cardShape ?: CardDefaults.shape,
@@ -401,6 +490,7 @@ fun Task(
           modifier = modifier
         )
       }
+    }
     }
   }
 }

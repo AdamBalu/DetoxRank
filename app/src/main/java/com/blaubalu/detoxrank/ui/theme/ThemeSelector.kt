@@ -40,6 +40,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -391,28 +392,39 @@ fun ThemeSelectorSheet(
     onOpenShop: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
     var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
 
     if (isVisible) {
-        ModalBottomSheet(
+        Dialog(
             onDismissRequest = onDismiss,
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
+            Surface(
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier.fillMaxSize()
+            ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Select Theme",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 4.dp)
+                ) {
+                    Text(
+                        text = "Select Theme",
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                    FilledTonalIconButton(onClick = onDismiss) {
+                        Icon(Icons.Filled.Close, contentDescription = "Close")
+                    }
+                }
                 Text(
                     text = if (ALL_THEMES_UNLOCKED_FOR_TESTING) {
                         "All themes unlocked for testing"
@@ -437,7 +449,7 @@ fun ThemeSelectorSheet(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(bottom = 32.dp)
+                    modifier = Modifier.weight(1f)
                 ) {
                     items(themeOptions) { option ->
                         val isUnlocked = ALL_THEMES_UNLOCKED_FOR_TESTING ||
@@ -471,7 +483,7 @@ fun ThemeSelectorSheet(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            }
             }
         }
     }

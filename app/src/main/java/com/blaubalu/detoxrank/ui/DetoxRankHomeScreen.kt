@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -220,7 +222,25 @@ fun DetoxRankBottomNavigationBar(
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier
 ) {
-    NavigationBar(modifier = modifier.fillMaxWidth()) {
+    val themeStyle = LocalThemeStyle.current
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                themeStyle.cardBorder?.let { stroke ->
+                    // the theme ink runs along the top edge of the nav bar
+                    Modifier.drawBehind {
+                        drawLine(
+                            brush = stroke.brush,
+                            start = Offset.Zero,
+                            end = Offset(size.width, 0f),
+                            strokeWidth = stroke.width.toPx() * 2
+                        )
+                    }
+                } ?: Modifier
+            )
+    ) {
         for (navItem in navigationItemContentList) {
             NavigationBarItem(
                 selected = currentTab == navItem.section,
