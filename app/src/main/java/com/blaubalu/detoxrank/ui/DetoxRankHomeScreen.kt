@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -41,8 +42,11 @@ import com.blaubalu.detoxrank.ui.utils.Constants.HIGH_LEVEL_UPPER_CAP
 import com.blaubalu.detoxrank.ui.utils.Constants.LOW_LEVEL_LOWER_CAP
 import com.blaubalu.detoxrank.ui.utils.Constants.LOW_LEVEL_UPPER_CAP
 import com.blaubalu.detoxrank.ui.utils.Constants.MIN_LEVEL_TO_UNLOCK_SPECIAL_TASKS
+import com.blaubalu.detoxrank.ui.utils.AppGuideOverlay
+import com.blaubalu.detoxrank.ui.utils.AppGuideState
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
 import com.blaubalu.detoxrank.ui.utils.PopupQueueDisplay
+import com.blaubalu.detoxrank.ui.utils.guideSteps
 import com.blaubalu.detoxrank.ui.utils.getCurrentLevelFromXP
 import com.blaubalu.detoxrank.ui.utils.getCurrentProgressBarProgression
 import com.blaubalu.detoxrank.ui.utils.getLevelDrawableId
@@ -213,6 +217,38 @@ fun DetoxRankAppContent(
 
     // Popup overlay for rank-ups and achievements
     PopupQueueDisplay(theme = userDataUiState.selectedTheme)
+
+    // interactive tour: auto-starts for new users, replayable via the help icon
+    val guideContext = LocalContext.current
+    LaunchedEffect(Unit) {
+        if (!AppGuideState.wasShown(guideContext)) AppGuideState.start()
+    }
+    val guideStep = AppGuideState.step.value
+    if (guideStep >= 0) {
+        LaunchedEffect(guideStep) {
+            guideSteps.getOrNull(guideStep)?.section?.let { onTabPressed(it) }
+        }
+        DetoxRankTheme(
+            theme = userDataUiState.selectedTheme,
+            section = detoxRankUiState.currentSection
+        ) {
+            AppGuideOverlay(
+                step = guideStep,
+                onAdvance = {
+                    if (guideStep >= guideSteps.lastIndex) {
+                        AppGuideState.markShown(guideContext)
+                        AppGuideState.step.value = -1
+                    } else {
+                        AppGuideState.step.value = guideStep + 1
+                    }
+                },
+                onSkip = {
+                    AppGuideState.markShown(guideContext)
+                    AppGuideState.step.value = -1
+                }
+            )
+        }
+    }
 }
 
 @Composable

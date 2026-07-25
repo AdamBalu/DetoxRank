@@ -34,6 +34,7 @@ import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.ui.*
 import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.utils.AnimationBox
+import com.blaubalu.detoxrank.ui.utils.AppGuideState
 import com.blaubalu.detoxrank.ui.utils.Constants.LEGEND_LOWER_CAP
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
 
@@ -115,7 +116,7 @@ fun RankContent(
           detoxRankViewModel = detoxRankViewModel,
           actions = {
             IconButton(
-              onClick = { rankViewModel.setHelpDisplayed(true) },
+              onClick = { AppGuideState.start() },
               modifier = Modifier
                 .padding(end = 5.dp)
                 .size(27.dp)
@@ -199,14 +200,6 @@ fun RankMainScreenBody(
 
   LaunchedEffect(Unit) {
     initRankScreenState(detoxRankViewModel, rankViewModel)
-  }
-
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .zIndex(1f)
-  ) {
-    DetoxRankHelp(rankViewModel = rankViewModel)
   }
 
   Box(
@@ -307,14 +300,6 @@ fun RankMainScreenBodyLarge(
 ) {
   LaunchedEffect(Unit) {
     initRankScreenState(detoxRankViewModel, rankViewModel)
-  }
-
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .zIndex(1f)
-  ) {
-    DetoxRankHelp(rankViewModel = rankViewModel)
   }
 
   Box(

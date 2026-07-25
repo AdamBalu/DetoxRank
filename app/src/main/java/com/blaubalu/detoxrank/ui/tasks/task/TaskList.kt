@@ -239,7 +239,6 @@ private fun Modifier.buildTaskModifier(
       ) {
         detectTapGestures(
           onTap = { handleSpecialCategoryTap(task, taskToBeEdited, context) },
-          onLongPress = { taskToBeEdited.value = !taskToBeEdited.value },
           onDoubleTap = {
             handleSpecialCategoryDoubleTap(
               task,
@@ -252,6 +251,7 @@ private fun Modifier.buildTaskModifier(
           }
         )
       } else {
+        // refreshing/deleting is handled by swiping the task sideways
         detectTapGestures(
           onTap = {
             handleRegularCategoryTap(
@@ -260,8 +260,7 @@ private fun Modifier.buildTaskModifier(
               taskViewModel,
               coroutineScope
             )
-          },
-          onLongPress = { handleRegularCategoryLongPress(task, taskToBeEdited) }
+          }
         )
       }
     }
@@ -329,14 +328,6 @@ private fun handleRegularCategoryTap(
   coroutineScope.launch {
     taskViewModel.updateTask()
   }
-}
-
-private fun handleRegularCategoryLongPress(
-  task: Task,
-  taskToBeEdited: MutableState<Boolean>
-) {
-  if (!task.completed)
-    taskToBeEdited.value = !taskToBeEdited.value
 }
 
 fun isUsualTask(task: Task) = task.durationCategory in listOf(
