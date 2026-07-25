@@ -17,10 +17,10 @@ object Constants {
     const val FAKE_BILLING_FOR_TESTING = true
 
     /**
-     * Coin economy: ~175 coins mirror EUR 1 of a theme's cash price (per-theme
-     * costs live in ThemeBilling.coinCostFor), so a EUR 4 theme is 70 watched
-     * ads — about 9 days of hitting the daily cap. That earns the dev only
-     * ~EUR 1.5-3 of ad revenue versus the cash price — ads stay the cheaper
+     * Coin economy: ~140 coins mirror EUR 1 of a theme's cash price (per-theme
+     * costs live in ThemeBilling.coinCostFor), so a EUR 4 theme is 55 watched
+     * ads — a week of hitting the daily cap. That earns the dev only
+     * ~EUR 1-2 of ad revenue versus the cash price — ads stay the cheaper
      * route, since a revenue-accurate grind (~200 ads per theme) would
      * demotivate everyone. The cap sits at the top of the productive range:
      * per-user ad revenue plateaus after ~5-8 rewarded views a day, so views

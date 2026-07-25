@@ -147,27 +147,27 @@ object ThemeBilling : PurchasesUpdatedListener {
             ?: themeBundles.firstOrNull { theme in it.themes }
                 ?.let { bundlePrices[it.productId] ?: it.fallbackPrice }
 
-    /** coin price per theme purchase, ~175 coins for each EUR of the cash price */
+    /** coin price per theme purchase, ~140 coins for each EUR of the cash price */
     private val themeCoinCosts = mapOf(
-        UiTheme.Luxury to 900,
-        UiTheme.Comic to 700,
-        UiTheme.Sketch to 900, // includes Paper
-        UiTheme.Cartoon to 700,
-        UiTheme.Blueprint to 500,
-        UiTheme.Pixel to 700,
-        UiTheme.Fire to 700,
-        UiTheme.Water to 700,
-        UiTheme.Wind to 700,
-        UiTheme.Earth to 700,
-        UiTheme.Avatar to 900,
-        UiTheme.Princess to 900,
-        UiTheme.Scorched to 700,
-        UiTheme.Ninja to 700,
-        UiTheme.Medieval to 900,
-        UiTheme.Cyber to 900
+        UiTheme.Luxury to 700,
+        UiTheme.Comic to 550,
+        UiTheme.Sketch to 700, // includes Paper
+        UiTheme.Cartoon to 550,
+        UiTheme.Blueprint to 400,
+        UiTheme.Pixel to 550,
+        UiTheme.Fire to 550,
+        UiTheme.Water to 550,
+        UiTheme.Wind to 550,
+        UiTheme.Earth to 550,
+        UiTheme.Avatar to 700,
+        UiTheme.Princess to 700,
+        UiTheme.Scorched to 550,
+        UiTheme.Ninja to 550,
+        UiTheme.Medieval to 700,
+        UiTheme.Cyber to 700
     )
 
-    fun coinCostFor(theme: UiTheme): Int = themeCoinCosts[theme] ?: 700
+    fun coinCostFor(theme: UiTheme): Int = themeCoinCosts[theme] ?: 550
 
     /** formatted store price per bundle product */
     val bundlePrices = mutableStateMapOf<String, String>()
