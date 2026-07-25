@@ -32,7 +32,11 @@ object ThemeBilling : PurchasesUpdatedListener {
         "theme_cartoon" to UiTheme.Cartoon,
         "theme_blueprint" to UiTheme.Blueprint,
         "theme_pixel" to UiTheme.Pixel,
-        "theme_elements" to UiTheme.Fire, // unlocks Fire, Water, Wind and Earth
+        "theme_fire" to UiTheme.Fire,
+        "theme_water" to UiTheme.Water,
+        "theme_wind" to UiTheme.Wind,
+        "theme_earth" to UiTheme.Earth,
+        "theme_avatar" to UiTheme.Avatar,
         "theme_princess" to UiTheme.Princess,
         "theme_scorched" to UiTheme.Scorched,
         "theme_ninja" to UiTheme.Ninja,
@@ -65,7 +69,7 @@ object ThemeBilling : PurchasesUpdatedListener {
      *
      * Pricing (set the real prices in the Play Console, these are display
      * fallbacks): singles EUR 3-5, bundles ~25% under their singles' sum,
-     * Awesome Supporter = the whole collection (~EUR 63 bought singly) at
+     * Awesome Supporter = the whole collection (~EUR 69 bought singly) at
      * a bigger discount but never below EUR 40.
      */
     val themeBundles = listOf(
@@ -123,7 +127,11 @@ object ThemeBilling : PurchasesUpdatedListener {
         UiTheme.Cartoon to "€3.99",
         UiTheme.Blueprint to "€2.99",
         UiTheme.Pixel to "€3.99",
-        UiTheme.Fire to "€14.99", // the elements sell only as the Avatar Bundle
+        UiTheme.Fire to "€3.99",
+        UiTheme.Water to "€3.99",
+        UiTheme.Wind to "€3.99",
+        UiTheme.Earth to "€3.99",
+        UiTheme.Avatar to "€4.99",
         UiTheme.Princess to "€4.99",
         UiTheme.Scorched to "€3.99",
         UiTheme.Ninja to "€3.99",
@@ -131,8 +139,12 @@ object ThemeBilling : PurchasesUpdatedListener {
         UiTheme.Cyber to "€4.99"
     )
 
-    /** the display price for a theme purchase: live Play price or the fallback */
-    fun priceFor(theme: UiTheme): String? = themePrices[theme] ?: fallbackThemePrices[theme]
+    /** the display price for a theme purchase: live Play price, fallback, or the bundle it sells in */
+    fun priceFor(theme: UiTheme): String? =
+        themePrices[theme]
+            ?: fallbackThemePrices[theme]
+            ?: themeBundles.firstOrNull { theme in it.themes }
+                ?.let { bundlePrices[it.productId] ?: it.fallbackPrice }
 
     /** coin price per theme purchase, ~100 coins for each EUR of the cash price */
     private val themeCoinCosts = mapOf(
@@ -142,7 +154,11 @@ object ThemeBilling : PurchasesUpdatedListener {
         UiTheme.Cartoon to 400,
         UiTheme.Blueprint to 300,
         UiTheme.Pixel to 400,
-        UiTheme.Fire to 1500, // the whole Avatar Bundle
+        UiTheme.Fire to 400,
+        UiTheme.Water to 400,
+        UiTheme.Wind to 400,
+        UiTheme.Earth to 400,
+        UiTheme.Avatar to 500,
         UiTheme.Princess to 500,
         UiTheme.Scorched to 400,
         UiTheme.Ninja to 400,
@@ -196,11 +212,13 @@ object ThemeBilling : PurchasesUpdatedListener {
     }
 
     /**
-     * Launches the Play purchase dialog for the given premium theme
+     * Launches the Play purchase dialog for the given premium theme. Themes
+     * without their own product (the elements) buy the bundle containing them.
      * @return false when billing is unavailable (no Play Store / products not loaded)
      */
     fun purchase(activity: Activity, theme: UiTheme): Boolean {
         val productId = productIdToTheme.entries.firstOrNull { it.value == theme }?.key
+            ?: themeBundles.firstOrNull { theme in it.themes }?.productId
             ?: return false
         return purchaseProduct(activity, productId)
     }

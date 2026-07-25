@@ -246,7 +246,6 @@ val themeOptions = listOf(
         secondaryColor = Color(0xFF80DEEA),
         backgroundColor = Color(0xFF041F24),
         isPremium = true,
-        purchaseKey = UiTheme.Fire,
         bundleLabel = "Avatar Bundle"
     ),
     ThemeOption(
@@ -256,7 +255,6 @@ val themeOptions = listOf(
         secondaryColor = Color(0xFF7FA8B8),
         backgroundColor = Color(0xFFF2F7F7),
         isPremium = true,
-        purchaseKey = UiTheme.Fire,
         bundleLabel = "Avatar Bundle"
     ),
     ThemeOption(
@@ -266,7 +264,6 @@ val themeOptions = listOf(
         secondaryColor = Color(0xFF8FA05A),
         backgroundColor = Color(0xFF171208),
         isPremium = true,
-        purchaseKey = UiTheme.Fire,
         bundleLabel = "Avatar Bundle"
     ),
     ThemeOption(
@@ -276,7 +273,6 @@ val themeOptions = listOf(
         secondaryColor = Color(0xFF55C6D8),
         backgroundColor = Color(0xFF10131A),
         isPremium = true,
-        purchaseKey = UiTheme.Fire,
         bundleLabel = "Avatar Bundle"
     ),
     ThemeOption(
