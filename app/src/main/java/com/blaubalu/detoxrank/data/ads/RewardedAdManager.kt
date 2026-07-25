@@ -20,6 +20,12 @@ import java.util.Calendar
 /**
  * Loads and shows rewarded ads that pay out coins for the theme shop.
  *
+ * INVARIANT: ads must NEVER appear without an explicit user request. This app
+ * uses the rewarded format only — no interstitials, banners or app-open ads —
+ * and [showAd] is the single display path, wired solely to the "watch ad"
+ * button in the theme shop and selector. Loading is silent preloading only;
+ * it never displays anything. Keep it that way.
+ *
  * AdMob places no hard limit on rewarded views, but revenue per user levels
  * off after roughly 5-8 ads a day and ad fill dries up for oversaturated
  * users, so views are capped at [MAX_REWARDED_ADS_PER_DAY] per calendar day
