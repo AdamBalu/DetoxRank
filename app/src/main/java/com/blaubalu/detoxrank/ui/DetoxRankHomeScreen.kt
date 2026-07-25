@@ -442,7 +442,6 @@ fun DetoxRankTopAppBar(
             detoxRankViewModel.selectTheme(theme)
             showThemeSelector = false
         },
-        onPickRedeemed = { theme -> detoxRankViewModel.unlockThemeWithPick(theme) },
         onOpenShop = {
             showThemeSelector = false
             showThemeShop = true
@@ -458,7 +457,6 @@ fun DetoxRankTopAppBar(
                 detoxRankViewModel.selectTheme(theme)
                 showThemeShop = false
             },
-            onPickRedeemed = { theme -> detoxRankViewModel.unlockThemeWithPick(theme) },
             onDismiss = { showThemeShop = false }
         )
     }

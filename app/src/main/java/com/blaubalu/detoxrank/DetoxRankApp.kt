@@ -4,7 +4,6 @@ import android.app.Application
 import com.blaubalu.detoxrank.data.AppContainer
 import com.blaubalu.detoxrank.data.AppDataContainer
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
-import com.blaubalu.detoxrank.data.billing.ThemeShopState
 import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.ui.utils.PopupManager
 import dagger.hilt.android.HiltAndroidApp
@@ -26,24 +25,17 @@ class DetoxRankApp: Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppDataContainer(this)
-        ThemeShopState.init(this)
 
         ThemeBilling.init(
             this,
             onThemeUnlocked = { theme -> applicationScope.launch { unlockThemes(listOf(theme)) } },
-            onBundlePurchased = { productId ->
-                val picks = ThemeBilling.bundlePicks[productId] ?: return@init
-                if (picks == 0) {
-                    // top tier: unlock every purchasable theme
-                    applicationScope.launch { unlockThemes(ThemeBilling.allPurchasableThemes) }
-                } else {
-                    ThemeShopState.grantBundle(productId, picks)
-                }
+            onBundleUnlocked = { title, themes ->
+                applicationScope.launch { unlockThemes(themes, title) }
             }
         )
     }
 
-    private suspend fun unlockThemes(themes: List<UiTheme>) {
+    private suspend fun unlockThemes(themes: List<UiTheme>, bundleTitle: String? = null) {
         val user = container.userDataRepository.getUserStream().first()
         val owned = user.purchasedThemes
             .split(",")
@@ -53,8 +45,8 @@ class DetoxRankApp: Application() {
         val newOnes = themes.filter { it.name !in owned }
         if (owned.addAll(themes.map { it.name })) {
             container.userDataRepository.updatePurchasedThemes(owned.joinToString(","))
-            if (newOnes.size > 3) {
-                PopupManager.showThemeUnlock("Every")
+            if (bundleTitle != null) {
+                PopupManager.showBundleUnlock(bundleTitle)
             } else {
                 newOnes.forEach { PopupManager.showThemeUnlock(it.name) }
             }
