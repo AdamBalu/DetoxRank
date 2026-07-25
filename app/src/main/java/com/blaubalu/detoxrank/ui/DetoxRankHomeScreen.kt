@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -407,10 +408,9 @@ fun DetoxRankTopAppBar(
                 )
 
                 if (currentLevel != 25) {
-                    LinearProgressIndicator(
-                        progress = animatedProgress,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    val fillColor = MaterialTheme.colorScheme.tertiary
+                    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    Canvas(
                         modifier = Modifier
                             .height(xpBarHeight)
                             .padding(start = xpBarPaddingStart, end = 16.dp, top = xpBarPaddingTop)
@@ -420,7 +420,20 @@ fun DetoxRankTopAppBar(
                                 BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
                                 RoundedCornerShape(2.dp)
                             )
-                    )
+                    ) {
+                        drawRect(trackColor)
+                        // fill with a slanted leading edge instead of a straight cut
+                        val slant = size.height * 0.6f
+                        val fillEnd = size.width * animatedProgress
+                        val fill = Path().apply {
+                            moveTo(0f, 0f)
+                            lineTo(fillEnd, 0f)
+                            lineTo((fillEnd - slant).coerceAtLeast(0f), size.height)
+                            lineTo(0f, size.height)
+                            close()
+                        }
+                        drawPath(fill, fillColor)
+                    }
                 }
             }
         }
