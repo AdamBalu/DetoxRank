@@ -250,10 +250,14 @@ fun RankMainScreenBody(
 //                    }
         },
         shape = LocalThemeStyle.current.cardShape
-          ?: MaterialTheme.shapes.extraLarge.copy(
-            bottomStart = CornerSize(0.dp),
-            bottomEnd = CornerSize(0.dp)
-          ),
+          ?: MaterialTheme.shapes.extraLarge.let {
+            // mirror the top-start corner so asymmetric themes (Cyber) stay symmetric here
+            it.copy(
+              topEnd = it.topStart,
+              bottomStart = CornerSize(0.dp),
+              bottomEnd = CornerSize(0.dp)
+            )
+          },
         modifier = Modifier
           .padding(top = 5.dp)
           .fillMaxWidth(0.75f),
@@ -352,10 +356,14 @@ fun RankMainScreenBodyLarge(
           rankViewModel.setAchievementsDisplayed(true)
         },
         shape = LocalThemeStyle.current.cardShape
-          ?: MaterialTheme.shapes.extraLarge.copy(
-            bottomStart = CornerSize(0.dp),
-            bottomEnd = CornerSize(0.dp)
-          ),
+          ?: MaterialTheme.shapes.extraLarge.let {
+            // mirror the top-start corner so asymmetric themes (Cyber) stay symmetric here
+            it.copy(
+              topEnd = it.topStart,
+              bottomStart = CornerSize(0.dp),
+              bottomEnd = CornerSize(0.dp)
+            )
+          },
         modifier = Modifier
           .padding(top = 5.dp)
           .fillMaxWidth(0.55f)
