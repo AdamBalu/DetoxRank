@@ -276,7 +276,7 @@ fun TaskIconRefresh(
                 taskToBeEdited.value = false
                 delay(600)
                 taskViewModel.updateTask()
-                taskViewModel.refreshTask(task.durationCategory)
+                taskViewModel.refreshTask(task)
                 withContext(Dispatchers.Main) {
                   toastShort("Task refreshed", context)
                 }

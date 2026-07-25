@@ -59,7 +59,11 @@ class OfflineTasksRepository(
 
     override suspend fun selectNRandomTasksByDuration(durationCategory: TaskDurationCategory,
                                                       numberOfTasks: Int) =
-        taskDao.selectNRandomTasksByDuration(durationCategory, numberOfTasks)
+        taskDao.selectNRandomTasksByDuration(
+            durationCategory,
+            numberOfTasks,
+            System.currentTimeMillis()
+        )
 
     override suspend fun resetTasksFromCategory(durationCategory: TaskDurationCategory) =
         taskDao.resetTasksFromCategory(durationCategory)
@@ -75,11 +79,16 @@ class OfflineTasksRepository(
     override suspend fun resetSelectedLastTime(taskDurationCategory: TaskDurationCategory) =
         taskDao.resetSelectedLastTime(taskDurationCategory)
 
-    override suspend fun refreshTask(
-        taskDurationCategory: TaskDurationCategory
-    ) {
-        selectNRandomTasksByDuration(taskDurationCategory, 1)
-        resetSelectedLastTime(taskDurationCategory)
+    override suspend fun refreshTask(oldTask: Task) {
+        // the replacement inherits the swiped task's display slot, so it shows
+        // up exactly where the old one was instead of reshuffling the list
+        val slot = if (oldTask.sortOrder != 0) oldTask.sortOrder else oldTask.id
+        taskDao.selectReplacementTask(
+            oldTask.durationCategory,
+            System.currentTimeMillis(),
+            slot
+        )
+        resetSelectedLastTime(oldTask.durationCategory)
     }
 
     override suspend fun getNewTasks(taskDurationCategory: TaskDurationCategory)  {

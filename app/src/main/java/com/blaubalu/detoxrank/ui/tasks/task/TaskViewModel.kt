@@ -31,9 +31,9 @@ class TaskViewModel(
             tasksRepository.updateTask(taskUiState.toTask())
     }
 
-    suspend fun refreshTask(taskDurationCategory: TaskDurationCategory) {
+    suspend fun refreshTask(oldTask: Task) {
         withContext(Dispatchers.IO) {
-            tasksRepository.refreshTask(taskDurationCategory)
+            tasksRepository.refreshTask(oldTask)
         }
     }
 

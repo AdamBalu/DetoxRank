@@ -400,7 +400,7 @@ fun Task(
                 ).toTaskUiState()
               )
               taskViewModel.updateTask()
-              taskViewModel.refreshTask(task.durationCategory)
+              taskViewModel.refreshTask(task)
               toastShort("Task refreshed", context)
             }
           }

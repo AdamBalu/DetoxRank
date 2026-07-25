@@ -20,7 +20,7 @@ interface TasksRepository {
 
     fun getCompletedTaskNum(taskDurationCategory: TaskDurationCategory): Int
 
-    suspend fun refreshTask(taskDurationCategory: TaskDurationCategory)
+    suspend fun refreshTask(oldTask: Task)
 
     suspend fun getNewTasks(taskDurationCategory: TaskDurationCategory)
 
