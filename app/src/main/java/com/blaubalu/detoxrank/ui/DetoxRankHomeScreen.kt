@@ -254,7 +254,6 @@ fun DetoxRankAppContent(
         ) {
             NewTasksDialog(
                 count = newTasksCount,
-                onAccept = { detoxRankViewModel.addNewCatalogTasks() },
                 onDismiss = { detoxRankViewModel.dismissNewCatalogTasks() }
             )
         }
@@ -293,11 +292,10 @@ fun DetoxRankAppContent(
     }
 }
 
-/** "Woohoo, new tasks!" offer shown to existing users after an update */
+/** "Woohoo, new tasks!" announcement shown to existing users after an update */
 @Composable
 fun NewTasksDialog(
     count: Int,
-    onAccept: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val themeStyle = LocalThemeStyle.current
@@ -323,24 +321,18 @@ fun NewTasksDialog(
                     modifier = Modifier.padding(top = 6.dp)
                 )
                 Text(
-                    text = "$count fresh tasks just arrived to spice up your rotation. " +
-                            "Add them to the mix?",
+                    text = "$count fresh tasks have been added to spice up " +
+                            "your rotation. Keep an eye out for them!",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 8.dp)
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Button(
+                    onClick = onDismiss,
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Later")
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Button(onClick = onAccept) {
-                        Text("Add them!", fontWeight = FontWeight.Bold)
-                    }
+                    Text("Awesome!", fontWeight = FontWeight.Bold)
                 }
             }
         }

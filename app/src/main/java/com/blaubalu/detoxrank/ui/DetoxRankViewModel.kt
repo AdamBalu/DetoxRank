@@ -176,42 +176,27 @@ class DetoxRankViewModel(
         }
     }
 
-    /** number of new catalog tasks waiting for the user's go-ahead */
+    /** number of freshly added catalog tasks to announce, 0 = nothing to show */
     val newCatalogTasksCount = mutableStateOf(0)
 
-    /** Inserts the freshly arrived catalog tasks after the user accepts the offer */
-    fun addNewCatalogTasks() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                tasksRepository.insertMissingCatalogTasks()
-                sharedPrefs.edit { putInt("task_catalog_version", Constants.TASK_CATALOG_VERSION) }
-            }
-            newCatalogTasksCount.value = 0
-        }
-    }
-
-    /** Not persisted on purpose: the offer comes back on the next app start */
     fun dismissNewCatalogTasks() {
         newCatalogTasksCount.value = 0
     }
 
     suspend fun firstRunGetTasks() {
         val firstRun = sharedPrefs.getBoolean("first_run", true)
-        // catalog sync: fresh installs seed silently, existing users get the
-        // celebratory new-tasks dialog before anything is added
+        // catalog sync: new tasks are always added; existing users get an
+        // announcement dialog, fresh installs seed silently
         if (sharedPrefs.getInt("task_catalog_version", 0) < Constants.TASK_CATALOG_VERSION) {
-            if (firstRun) {
-                tasksRepository.syncTaskCatalog()
-                sharedPrefs.edit { putInt("task_catalog_version", Constants.TASK_CATALOG_VERSION) }
-            } else {
-                tasksRepository.applyCatalogRenames()
-                val missing = tasksRepository.countMissingCatalogTasks()
-                if (missing > 0) {
+            tasksRepository.applyCatalogRenames()
+            val missing = tasksRepository.countMissingCatalogTasks()
+            if (missing > 0) {
+                tasksRepository.insertMissingCatalogTasks()
+                if (!firstRun) {
                     newCatalogTasksCount.value = missing
-                } else {
-                    sharedPrefs.edit { putInt("task_catalog_version", Constants.TASK_CATALOG_VERSION) }
                 }
             }
+            sharedPrefs.edit { putInt("task_catalog_version", Constants.TASK_CATALOG_VERSION) }
         }
         if (firstRun) {
             getNewTasksWithoutProgress(TaskDurationCategory.Daily, Constants.NUMBER_OF_TASKS_DAILY)
