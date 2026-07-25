@@ -7,6 +7,17 @@ object Constants {
      */
     const val ALL_THEMES_UNLOCKED_FOR_TESTING = true
 
+    /**
+     * Coin economy: a rewarded ad pays the dev roughly EUR 0.02-0.04
+     * (eCPM $10-40 per 1000 views), so the coins from one ad are worth about
+     * that revenue and never more: ~200 watched ads equal a EUR 4 theme.
+     * Revenue per user also plateaus after ~5-8 rewarded ads a day, hence
+     * the daily cap.
+     */
+    const val COINS_PER_AD = 10
+    const val THEME_COIN_COST = 2000
+    const val MAX_REWARDED_ADS_PER_DAY = 10
+
     const val ACTION_SERVICE_START = "ACTION_SERVICE_START"
     const val ACTION_SERVICE_CANCEL = "ACTION_SERVICE_CANCEL"
 

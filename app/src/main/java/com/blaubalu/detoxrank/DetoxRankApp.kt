@@ -3,6 +3,7 @@ package com.blaubalu.detoxrank
 import android.app.Application
 import com.blaubalu.detoxrank.data.AppContainer
 import com.blaubalu.detoxrank.data.AppDataContainer
+import com.blaubalu.detoxrank.data.ads.RewardedAdManager
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.ui.utils.PopupManager
@@ -25,6 +26,7 @@ class DetoxRankApp: Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppDataContainer(this)
+        RewardedAdManager.init(this)
 
         ThemeBilling.init(
             this,
@@ -42,6 +44,15 @@ class DetoxRankApp: Application() {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .toMutableSet()
+        // the Awesome Supporter grants a permanent all-themes flag so that themes
+        // added in future updates unlock automatically
+        if (bundleTitle != null && themes.isEmpty()) {
+            if (owned.add("ALL")) {
+                container.userDataRepository.updatePurchasedThemes(owned.joinToString(","))
+                PopupManager.showBundleUnlock(bundleTitle)
+            }
+            return
+        }
         val newOnes = themes.filter { it.name !in owned }
         if (owned.addAll(themes.map { it.name })) {
             container.userDataRepository.updatePurchasedThemes(owned.joinToString(","))

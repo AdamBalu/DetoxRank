@@ -60,13 +60,20 @@ object ThemeBilling : PurchasesUpdatedListener {
         val themes: List<UiTheme>
     )
 
-    /** curated theme bundles shown in the shop; the last one unlocks everything */
+    /**
+     * Curated theme bundles shown in the shop; the last one unlocks everything.
+     *
+     * Pricing (set the real prices in the Play Console, these are display
+     * fallbacks): singles EUR 3-5, bundles ~25% under their singles' sum,
+     * Awesome Supporter = the whole collection (~EUR 63 bought singly) at
+     * a bigger discount but never below EUR 40.
+     */
     val themeBundles = listOf(
         ThemeBundle(
             productId = "theme_elements",
             title = "Avatar Bundle",
             tagline = "Fire, Water, Wind & Earth + the Avatar theme",
-            fallbackPrice = "$8",
+            fallbackPrice = "€14.99",
             themes = listOf(
                 UiTheme.Fire, UiTheme.Water, UiTheme.Wind, UiTheme.Earth, UiTheme.Avatar
             )
@@ -75,38 +82,57 @@ object ThemeBilling : PurchasesUpdatedListener {
             productId = "bundle_drawing",
             title = "Drawing Bundle",
             tagline = "Sketch, Paper, Comic & Cartoon",
-            fallbackPrice = "$8",
+            fallbackPrice = "€9.99",
             themes = listOf(UiTheme.Sketch, UiTheme.Paper, UiTheme.Comic, UiTheme.Cartoon)
         ),
         ThemeBundle(
             productId = "bundle_battle",
             title = "Battle Bundle",
             tagline = "Scorched, Ninja & Medieval",
-            fallbackPrice = "$7",
+            fallbackPrice = "€9.99",
             themes = listOf(UiTheme.Scorched, UiTheme.Ninja, UiTheme.Medieval)
         ),
         ThemeBundle(
             productId = "bundle_future",
             title = "Future Bundle",
             tagline = "Blueprint, Pixel & Cyber",
-            fallbackPrice = "$7",
+            fallbackPrice = "€9.99",
             themes = listOf(UiTheme.Blueprint, UiTheme.Pixel, UiTheme.Cyber)
         ),
         ThemeBundle(
             productId = "bundle_royal",
             title = "Royal Bundle",
             tagline = "Luxury & Princess",
-            fallbackPrice = "$5",
+            fallbackPrice = "€7.99",
             themes = listOf(UiTheme.Luxury, UiTheme.Princess)
         ),
         ThemeBundle(
             productId = "bundle_supporter_50",
             title = "Awesome Supporter",
-            tagline = "Every theme, forever — including future ones on request",
-            fallbackPrice = "$50",
+            tagline = "Every theme, forever — including future ones",
+            fallbackPrice = "€40",
             themes = emptyList()
         )
     )
+
+    /** fallback € price per single-theme purchase until Play details load */
+    private val fallbackThemePrices = mapOf(
+        UiTheme.Luxury to "€4.99",
+        UiTheme.Comic to "€3.99",
+        UiTheme.Sketch to "€4.99", // includes Paper
+        UiTheme.Cartoon to "€3.99",
+        UiTheme.Blueprint to "€2.99",
+        UiTheme.Pixel to "€3.99",
+        UiTheme.Fire to "€14.99", // the elements sell only as the Avatar Bundle
+        UiTheme.Princess to "€4.99",
+        UiTheme.Scorched to "€3.99",
+        UiTheme.Ninja to "€3.99",
+        UiTheme.Medieval to "€4.99",
+        UiTheme.Cyber to "€4.99"
+    )
+
+    /** the display price for a theme purchase: live Play price or the fallback */
+    fun priceFor(theme: UiTheme): String? = themePrices[theme] ?: fallbackThemePrices[theme]
 
     /** formatted store price per bundle product */
     val bundlePrices = mutableStateMapOf<String, String>()
@@ -231,8 +257,9 @@ object ThemeBilling : PurchasesUpdatedListener {
         purchase.products.forEach { productId ->
             val bundle = themeBundles.firstOrNull { it.productId == productId }
             if (bundle != null) {
-                val themes = bundle.themes.ifEmpty { allPurchasableThemes }
-                onBundleUnlocked?.invoke(bundle.title, themes)
+                // an empty theme list means "everything, forever" — the app stores
+                // a permanent all-themes flag instead of a snapshot of today's themes
+                onBundleUnlocked?.invoke(bundle.title, bundle.themes)
             } else {
                 productIdToTheme[productId]?.let { theme -> onThemeUnlocked?.invoke(theme) }
             }

@@ -431,6 +431,38 @@ class DetoxRankViewModel(
         }
     }
 
+    /** Credits coins earned from a rewarded ad */
+    fun addCoins(amount: Int) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDataRepository.updateCoins(amount)
+            }
+        }
+    }
+
+    /**
+     * Unlocks a premium theme for [Constants.THEME_COIN_COST] coins,
+     * if the balance covers it
+     */
+    fun buyThemeWithCoins(theme: UiTheme) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val user = userDataRepository.getUserStream().first()
+                if (user.coins < Constants.THEME_COIN_COST) return@withContext
+                val owned = user.purchasedThemes
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .toMutableSet()
+                if (owned.add(theme.name)) {
+                    userDataRepository.updateCoins(-Constants.THEME_COIN_COST)
+                    userDataRepository.updatePurchasedThemes(owned.joinToString(","))
+                    PopupManager.showThemeUnlock(theme.name)
+                }
+            }
+        }
+    }
+
 
 
 

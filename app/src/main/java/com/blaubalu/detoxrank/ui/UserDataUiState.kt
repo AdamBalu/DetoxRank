@@ -19,7 +19,8 @@ data class UserDataUiState(
     val availableTaskRefreshes: Int = 0,
     val lastTimerRpGatherTime: Long = 0,
     val selectedTheme: UiTheme = UiTheme.Default,
-    val purchasedThemes: String = "Default,Light,Dark"
+    val purchasedThemes: String = "Default,Light,Dark",
+    val coins: Int = 0
 )
 
 fun UserDataUiState.toUserData(): UserData = UserData(
@@ -37,7 +38,8 @@ fun UserDataUiState.toUserData(): UserData = UserData(
     availableTaskRefreshes = availableTaskRefreshes,
     lastTimerRpGatherTime = lastTimerRpGatherTime,
     selectedTheme = selectedTheme,
-    purchasedThemes = purchasedThemes
+    purchasedThemes = purchasedThemes,
+    coins = coins
 )
 
 fun UserData.toUserDataUiState(): UserDataUiState = UserDataUiState(
@@ -55,5 +57,6 @@ fun UserData.toUserDataUiState(): UserDataUiState = UserDataUiState(
     availableTaskRefreshes = availableTaskRefreshes,
     lastTimerRpGatherTime = lastTimerRpGatherTime,
     selectedTheme = selectedTheme,
-    purchasedThemes = purchasedThemes
+    purchasedThemes = purchasedThemes,
+    coins = coins
 )

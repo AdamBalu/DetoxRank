@@ -23,12 +23,13 @@ import com.blaubalu.detoxrank.data.user.UserDataDao
  */
 @Database(
     entities = [Task::class, Chapter::class, UserData::class, Achievement::class],
-    version = 18,
+    version = 19,
     autoMigrations = [
         AutoMigration(from = 14, to = 15),
         AutoMigration(from = 15, to = 16),
         AutoMigration(from = 16, to = 17, spec = AppDatabase.MigrationFrom16To17::class),
-        AutoMigration(from = 17, to = 18)
+        AutoMigration(from = 17, to = 18),
+        AutoMigration(from = 18, to = 19)
     ]
 )
 

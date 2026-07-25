@@ -17,6 +17,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DetoxRank"
         tools:targetApi="31">
+        <!-- Google's TEST AdMob app id — replace with your real AdMob app id before release -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
         <service
             android:name="com.blaubalu.detoxrank.service.TimerService"
             android:enabled="true"

@@ -38,6 +38,8 @@ import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Storefront
@@ -46,8 +48,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -77,10 +81,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.blaubalu.detoxrank.data.ads.RewardedAdManager
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.user.Rank
 import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.ui.utils.Constants.ALL_THEMES_UNLOCKED_FOR_TESTING
+import com.blaubalu.detoxrank.ui.utils.Constants.COINS_PER_AD
+import com.blaubalu.detoxrank.ui.utils.Constants.MAX_REWARDED_ADS_PER_DAY
+import com.blaubalu.detoxrank.ui.utils.Constants.THEME_COIN_COST
 import com.blaubalu.detoxrank.ui.utils.toastShort
 
 /**
@@ -394,6 +402,9 @@ fun ThemeSelectorSheet(
     currentLevel: Int,
     currentRank: Rank,
     purchasedThemes: Set<UiTheme>,
+    coins: Int,
+    onCoinsEarned: (Int) -> Unit,
+    onCoinUnlock: (UiTheme) -> Unit,
     onThemeSelected: (UiTheme) -> Unit,
     onOpenShop: () -> Unit,
     onDismiss: () -> Unit
@@ -442,6 +453,7 @@ fun ThemeSelectorSheet(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
                 )
+                CoinBalanceRow(coins = coins, onCoinsEarned = onCoinsEarned)
                 TextButton(onClick = onOpenShop, modifier = Modifier.padding(bottom = 8.dp)) {
                     Icon(
                         imageVector = Icons.Filled.Storefront,
@@ -508,6 +520,13 @@ fun ThemeSelectorSheet(
                     previewOption = null
                 }
             },
+            coins = coins,
+            onCoinUnlock = if (option.isPremium) {
+                {
+                    onCoinUnlock(option.purchaseKey)
+                    previewOption = null
+                }
+            } else null,
             onDismiss = { previewOption = null }
         )
     }
@@ -521,6 +540,9 @@ fun ThemeSelectorSheet(
 fun ThemeShopDialog(
     currentTheme: UiTheme,
     purchasedThemes: Set<UiTheme>,
+    coins: Int,
+    onCoinsEarned: (Int) -> Unit,
+    onCoinUnlock: (UiTheme) -> Unit,
     onThemeSelected: (UiTheme) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -570,6 +592,7 @@ fun ThemeShopDialog(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)
                         )
+                        CoinBalanceRow(coins = coins, onCoinsEarned = onCoinsEarned)
                         ThemeBilling.themeBundles.forEach { bundle ->
                             ThemeBundleCard(bundle = bundle, onBuy = ::buyProduct)
                         }
@@ -608,7 +631,86 @@ fun ThemeShopDialog(
                 if (!launched) toastShort("Google Play is not available right now", context)
                 previewOption = null
             },
+            coins = coins,
+            onCoinUnlock = {
+                onCoinUnlock(option.purchaseKey)
+                previewOption = null
+            },
             onDismiss = { previewOption = null }
+        )
+    }
+}
+
+/**
+ * Coin balance chip + the rewarded-ad earn button; coins exist only here in
+ * the theme UIs and can pay for premium themes instead of real money
+ */
+@Composable
+private fun CoinBalanceRow(
+    coins: Int,
+    onCoinsEarned: (Int) -> Unit
+) {
+    val context = LocalContext.current
+    val coinColor = Color(0xFFE5C558)
+    val adsLeft =
+        (MAX_REWARDED_ADS_PER_DAY - RewardedAdManager.watchedToday.intValue).coerceAtLeast(0)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(bottom = 8.dp)
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = coinColor.copy(alpha = 0.15f),
+            border = BorderStroke(1.dp, coinColor.copy(alpha = 0.5f))
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.MonetizationOn,
+                    contentDescription = null,
+                    tint = coinColor,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = "$coins",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 5.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        FilledTonalButton(
+            onClick = {
+                val activity = context.findActivity()
+                val shown = activity != null &&
+                        RewardedAdManager.showAd(activity) { onCoinsEarned(it) }
+                if (!shown) {
+                    toastShort(
+                        if (adsLeft <= 0) {
+                            "Daily ad limit reached — come back tomorrow!"
+                        } else {
+                            "No ad available right now, try again in a moment"
+                        },
+                        context
+                    )
+                }
+            },
+            enabled = adsLeft > 0
+        ) {
+            Icon(
+                imageVector = Icons.Filled.OndemandVideo,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(" +$COINS_PER_AD", fontWeight = FontWeight.Bold)
+        }
+        Text(
+            text = if (adsLeft > 0) "$adsLeft ads left today" else "back tomorrow!",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 8.dp)
         )
     }
 }
@@ -762,7 +864,9 @@ private fun ThemeBundleCard(
 fun ThemePreviewDialog(
     option: ThemeOption,
     onUnlock: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    coins: Int = 0,
+    onCoinUnlock: (() -> Unit)? = null
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -874,12 +978,41 @@ fun ThemePreviewDialog(
                                 .fillMaxWidth(0.82f)
                                 .height(54.dp)
                         ) {
-                            val price = ThemeBilling.themePrices[option.purchaseKey]
+                            val price = ThemeBilling.priceFor(option.purchaseKey)
                             Text(
                                 text = if (price != null) "Unlock for $price" else "Unlock",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 17.sp
                             )
+                        }
+                        if (onCoinUnlock != null) {
+                            val canAfford = coins >= THEME_COIN_COST
+                            OutlinedButton(
+                                onClick = onCoinUnlock,
+                                enabled = canAfford,
+                                modifier = Modifier
+                                    .fillMaxWidth(0.82f)
+                                    .padding(top = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.MonetizationOn,
+                                    contentDescription = null,
+                                    tint = Color(0xFFE5C558),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = " or $THEME_COIN_COST coins (you have $coins)",
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            if (!canAfford) {
+                                Text(
+                                    text = "Earn coins by watching ads in the theme shop",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                         }
                         if (option.bundleLabel != null) {
                             Text(

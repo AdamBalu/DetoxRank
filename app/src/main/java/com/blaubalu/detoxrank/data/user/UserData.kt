@@ -56,6 +56,8 @@ data class UserData(
     @ColumnInfo(name = "selected_theme", defaultValue = "Default")
     val selectedTheme: UiTheme = UiTheme.Default,
     @ColumnInfo(name = "purchased_themes", defaultValue = "Default,Light,Dark")
-    val purchasedThemes: String = "Default,Light,Dark"
+    val purchasedThemes: String = "Default,Light,Dark",
+    @ColumnInfo(name = "coins", defaultValue = "0")
+    val coins: Int = 0
 )
 

@@ -93,6 +93,9 @@ dependencies {
     // Google Play Billing (premium theme purchases)
     implementation "com.android.billingclient:billing-ktx:7.1.1"
 
+    // Google Mobile Ads (rewarded ads -> coins)
+    implementation "com.google.android.gms:play-services-ads:23.2.0"
+
     androidTestImplementation "androidx.room:room-testing:2.6.1"
     androidTestImplementation "com.google.truth:truth:1.1.3"
 }
