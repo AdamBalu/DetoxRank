@@ -68,7 +68,9 @@ import com.blaubalu.detoxrank.service.TimerState
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.theme.rank_color
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.theme.rank_color_ultra_dark
 import com.blaubalu.detoxrank.ui.utils.Constants
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_START_TIMER

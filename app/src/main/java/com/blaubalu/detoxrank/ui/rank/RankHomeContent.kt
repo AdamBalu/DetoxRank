@@ -31,6 +31,7 @@ import com.blaubalu.detoxrank.ui.NavigationDrawerContent
 import com.blaubalu.detoxrank.ui.NavigationItemContent
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.ui.*
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.Constants.LEGEND_LOWER_CAP
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
@@ -247,7 +248,9 @@ fun RankMainScreenBody(
 //                        achievementViewModel.deleteAllAchievementsInDb()
 //                    }
         },
-        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        shape = LocalThemeStyle.current.cardShape
+          ?: RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        border = LocalThemeStyle.current.cardBorder,
         modifier = Modifier
           .padding(top = 5.dp)
           .fillMaxWidth(0.75f),
@@ -345,7 +348,9 @@ fun RankMainScreenBodyLarge(
         onClick = {
           rankViewModel.setAchievementsDisplayed(true)
         },
-        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        shape = LocalThemeStyle.current.cardShape
+          ?: RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        border = LocalThemeStyle.current.cardBorder,
         modifier = Modifier
           .padding(top = 5.dp)
           .fillMaxWidth(0.55f)

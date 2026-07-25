@@ -27,6 +27,7 @@ import com.blaubalu.detoxrank.data.achievements.AchievementDifficulty
 import com.blaubalu.detoxrank.data.local.LocalAchievementDataProvider
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.theme.common_green
 import com.blaubalu.detoxrank.ui.theme.epic_purple
 import com.blaubalu.detoxrank.ui.theme.legendary_orange
