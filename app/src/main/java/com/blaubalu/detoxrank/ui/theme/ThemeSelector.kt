@@ -595,21 +595,10 @@ fun ThemeShopDialog(
                         ThemeBilling.themeBundles.forEach { bundle ->
                             ThemeBundleCard(bundle = bundle, onBuy = ::buyProduct)
                         }
-                        FilledTonalButton(
-                            onClick = { showRedeemDialog = true },
-                            modifier = Modifier.padding(top = 10.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Redeem,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Text(" Redeem promo code", fontWeight = FontWeight.Bold)
-                        }
                         Text(
                             text = "Single Themes",
                             style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
                         )
                     }
                 }
@@ -626,6 +615,25 @@ fun ThemeShopDialog(
                             else previewOption = option
                         }
                     )
+                }
+
+                item(span = { GridItemSpan(2) }) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        FilledTonalButton(
+                            onClick = { showRedeemDialog = true },
+                            modifier = Modifier.padding(top = 12.dp, bottom = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Redeem,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(" Redeem promo code", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
         }
