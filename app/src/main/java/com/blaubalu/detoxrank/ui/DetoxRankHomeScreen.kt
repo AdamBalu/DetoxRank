@@ -380,8 +380,10 @@ fun DetoxRankBottomNavigationBar(
     modifier: Modifier = Modifier
 ) {
     val themeStyle = LocalThemeStyle.current
+    val dockShape = themeStyle.cardShape ?: RoundedCornerShape(16.dp)
     Surface(
-        shape = themeStyle.cardShape ?: RoundedCornerShape(26.dp),
+        shape = dockShape,
+        border = themeStyle.cardBorder,
         color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
         modifier = modifier
             .fillMaxWidth()
@@ -395,6 +397,7 @@ fun DetoxRankBottomNavigationBar(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
+                .glassCardSheen(themeStyle.cardSheen)
                 .padding(horizontal = 6.dp)
         ) {
             navigationItemContentList.forEach { navItem ->

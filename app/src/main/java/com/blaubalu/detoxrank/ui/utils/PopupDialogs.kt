@@ -14,12 +14,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -34,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,10 +56,14 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun PopupQueueDisplay(theme: UiTheme = UiTheme.Default) {
+    // captured in the activity's window: dialog windows report zero insets
+    // to their own content, so the overlay can't measure these itself
+    val systemBarPadding = WindowInsets.systemBars.asPaddingValues()
     PopupManager.currentPopup?.let { popup ->
         CelebrationOverlay(
             popup = popup,
             theme = theme,
+            systemBarPadding = systemBarPadding,
             onDismiss = { PopupManager.dismiss() }
         )
     }
@@ -63,11 +72,13 @@ fun PopupQueueDisplay(theme: UiTheme = UiTheme.Default) {
 /**
  * Full-screen celebration: the badge is the hero, blooming into view with a
  * bouncy overshoot; a tap anywhere dismisses it. No buttons, no card.
+ * [systemBarPadding] must come from the activity's composition scope.
  */
 @Composable
 fun CelebrationOverlay(
     popup: PopupData,
     theme: UiTheme,
+    systemBarPadding: PaddingValues,
     onDismiss: () -> Unit
 ) {
     Dialog(
@@ -110,9 +121,11 @@ fun CelebrationOverlay(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { onDismiss() }
-                        .padding(32.dp)
+                        .padding(systemBarPadding)
+                        .padding(horizontal = 32.dp, vertical = 16.dp)
                 ) {
-                    Spacer(modifier = Modifier.weight(1f))
+                    // slightly above center so the bottom hint keeps breathing room
+                    Spacer(modifier = Modifier.weight(0.75f))
 
                     // the badge is the star of the show
                     val badgeScale = remember(popup) { Animatable(0f) }
@@ -126,10 +139,16 @@ fun CelebrationOverlay(
                             )
                         )
                     }
+                    // sized to the screen so the hero never crowds small displays
+                    val configuration = LocalConfiguration.current
+                    val badgeSize = minOf(
+                        configuration.screenWidthDp * 0.78f,
+                        configuration.screenHeightDp * 0.38f
+                    ).dp.coerceAtMost(320.dp)
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(320.dp)
+                            .size(badgeSize)
                             .scale(badgeScale.value)
                             .background(
                                 brush = Brush.radialGradient(
@@ -146,7 +165,7 @@ fun CelebrationOverlay(
                             popup.iconRes != null -> Image(
                                 painter = painterResource(id = popup.iconRes),
                                 contentDescription = null,
-                                modifier = Modifier.size(240.dp)
+                                modifier = Modifier.size(badgeSize * 0.75f)
                             )
 
                             popup.achievementId != null -> Image(
@@ -157,14 +176,14 @@ fun CelebrationOverlay(
                                     )
                                 ),
                                 contentDescription = null,
-                                modifier = Modifier.size(220.dp)
+                                modifier = Modifier.size(badgeSize * 0.69f)
                             )
 
                             else -> Icon(
                                 imageVector = Icons.Filled.EmojiEvents,
                                 contentDescription = null,
                                 tint = accent,
-                                modifier = Modifier.size(180.dp)
+                                modifier = Modifier.size(badgeSize * 0.56f)
                             )
                         }
                     }
@@ -208,7 +227,7 @@ fun CelebrationOverlay(
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 12.dp)
+                            .padding(bottom = 24.dp)
                     )
                 }
             }

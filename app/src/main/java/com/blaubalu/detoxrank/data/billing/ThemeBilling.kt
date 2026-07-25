@@ -29,7 +29,8 @@ object ThemeBilling : PurchasesUpdatedListener {
     private val productIdToTheme = mapOf(
         "theme_luxury" to UiTheme.Luxury,
         "theme_comic" to UiTheme.Comic,
-        "theme_sketch" to UiTheme.Sketch, // also unlocks the Paper variant
+        "theme_sketch" to UiTheme.Sketch,
+        "theme_paper" to UiTheme.Paper,
         "theme_cartoon" to UiTheme.Cartoon,
         "theme_blueprint" to UiTheme.Blueprint,
         "theme_pixel" to UiTheme.Pixel,
@@ -42,7 +43,8 @@ object ThemeBilling : PurchasesUpdatedListener {
         "theme_scorched" to UiTheme.Scorched,
         "theme_ninja" to UiTheme.Ninja,
         "theme_medieval" to UiTheme.Medieval,
-        "theme_cyber" to UiTheme.Cyber
+        "theme_cyber" to UiTheme.Cyber,
+        "theme_glass" to UiTheme.Glass
     )
 
     /** every theme coverable by a purchase, including bundled variants */
@@ -50,7 +52,7 @@ object ThemeBilling : PurchasesUpdatedListener {
         UiTheme.Luxury, UiTheme.Comic, UiTheme.Sketch, UiTheme.Paper, UiTheme.Cartoon,
         UiTheme.Blueprint, UiTheme.Pixel, UiTheme.Fire, UiTheme.Water, UiTheme.Wind,
         UiTheme.Earth, UiTheme.Avatar, UiTheme.Princess, UiTheme.Scorched,
-        UiTheme.Ninja, UiTheme.Medieval, UiTheme.Cyber
+        UiTheme.Ninja, UiTheme.Medieval, UiTheme.Cyber, UiTheme.Glass
     )
 
     /**
@@ -69,16 +71,15 @@ object ThemeBilling : PurchasesUpdatedListener {
      * Curated theme bundles shown in the shop; the last one unlocks everything.
      *
      * Pricing (set the real prices in the Play Console, these are display
-     * fallbacks): singles EUR 3-5, bundles ~25% under their singles' sum,
-     * Awesome Supporter = the whole collection (~EUR 69 bought singly) at
-     * a bigger discount but never below EUR 40.
+     * fallbacks): singles EUR 3-5, bundles a few euro under their singles' sum,
+     * Awesome Supporter = the whole collection at a bigger discount.
      */
     val themeBundles = listOf(
         ThemeBundle(
             productId = "theme_elements",
             title = "Avatar Bundle",
             tagline = "Fire, Water, Wind & Earth + the Avatar theme",
-            fallbackPrice = "€14.99",
+            fallbackPrice = "€11.99",
             themes = listOf(
                 UiTheme.Fire, UiTheme.Water, UiTheme.Wind, UiTheme.Earth, UiTheme.Avatar
             )
@@ -87,7 +88,7 @@ object ThemeBilling : PurchasesUpdatedListener {
             productId = "bundle_drawing",
             title = "Drawing Bundle",
             tagline = "Sketch, Paper, Comic & Cartoon",
-            fallbackPrice = "€9.99",
+            fallbackPrice = "€11.99",
             themes = listOf(UiTheme.Sketch, UiTheme.Paper, UiTheme.Comic, UiTheme.Cartoon)
         ),
         ThemeBundle(
@@ -107,37 +108,39 @@ object ThemeBilling : PurchasesUpdatedListener {
         ThemeBundle(
             productId = "bundle_royal",
             title = "Royal Bundle",
-            tagline = "Luxury & Princess",
-            fallbackPrice = "€7.99",
-            themes = listOf(UiTheme.Luxury, UiTheme.Princess)
+            tagline = "Luxury, Princess & Glass",
+            fallbackPrice = "€9.99",
+            themes = listOf(UiTheme.Luxury, UiTheme.Princess, UiTheme.Glass)
         ),
         ThemeBundle(
             productId = "bundle_supporter_50",
             title = "Awesome Supporter",
             tagline = "Every theme, forever — including future ones",
-            fallbackPrice = "€40",
+            fallbackPrice = "€50",
             themes = emptyList()
         )
     )
 
     /** fallback € price per single-theme purchase until Play details load */
     private val fallbackThemePrices = mapOf(
-        UiTheme.Luxury to "€4.99",
+        UiTheme.Luxury to "€2.99",
         UiTheme.Comic to "€3.99",
-        UiTheme.Sketch to "€4.99", // includes Paper
+        UiTheme.Sketch to "€3.99",
+        UiTheme.Paper to "€3.99",
         UiTheme.Cartoon to "€3.99",
-        UiTheme.Blueprint to "€2.99",
+        UiTheme.Blueprint to "€3.99",
         UiTheme.Pixel to "€3.99",
-        UiTheme.Fire to "€3.99",
-        UiTheme.Water to "€3.99",
-        UiTheme.Wind to "€3.99",
-        UiTheme.Earth to "€3.99",
-        UiTheme.Avatar to "€4.99",
+        UiTheme.Fire to "€2.99",
+        UiTheme.Water to "€2.99",
+        UiTheme.Wind to "€2.99",
+        UiTheme.Earth to "€2.99",
+        UiTheme.Avatar to "€3.99",
         UiTheme.Princess to "€4.99",
-        UiTheme.Scorched to "€3.99",
-        UiTheme.Ninja to "€3.99",
+        UiTheme.Scorched to "€2.99",
+        UiTheme.Ninja to "€4.99",
         UiTheme.Medieval to "€4.99",
-        UiTheme.Cyber to "€4.99"
+        UiTheme.Cyber to "€4.99",
+        UiTheme.Glass to "€4.99"
     )
 
     /** the display price for a theme purchase: live Play price, fallback, or the bundle it sells in */
@@ -147,27 +150,33 @@ object ThemeBilling : PurchasesUpdatedListener {
             ?: themeBundles.firstOrNull { theme in it.themes }
                 ?.let { bundlePrices[it.productId] ?: it.fallbackPrice }
 
-    /** coin price per theme purchase, ~140 coins for each EUR of the cash price */
+    /**
+     * Coin price per theme purchase, tuned so earning one takes ~7-9 days of
+     * watching the daily-capped rewarded ads (8 ads * 10 coins = 80 coins/day):
+     * €2.99 -> 560 (7 days), €3.99 -> 640 (8 days), €4.99 -> 720 (9 days).
+     */
     private val themeCoinCosts = mapOf(
-        UiTheme.Luxury to 700,
-        UiTheme.Comic to 550,
-        UiTheme.Sketch to 700, // includes Paper
-        UiTheme.Cartoon to 550,
-        UiTheme.Blueprint to 400,
-        UiTheme.Pixel to 550,
-        UiTheme.Fire to 550,
-        UiTheme.Water to 550,
-        UiTheme.Wind to 550,
-        UiTheme.Earth to 550,
-        UiTheme.Avatar to 700,
-        UiTheme.Princess to 700,
-        UiTheme.Scorched to 550,
-        UiTheme.Ninja to 550,
-        UiTheme.Medieval to 700,
-        UiTheme.Cyber to 700
+        UiTheme.Luxury to 560,
+        UiTheme.Comic to 640,
+        UiTheme.Sketch to 640,
+        UiTheme.Paper to 640,
+        UiTheme.Cartoon to 640,
+        UiTheme.Blueprint to 640,
+        UiTheme.Pixel to 640,
+        UiTheme.Fire to 560,
+        UiTheme.Water to 560,
+        UiTheme.Wind to 560,
+        UiTheme.Earth to 560,
+        UiTheme.Avatar to 640,
+        UiTheme.Princess to 720,
+        UiTheme.Scorched to 560,
+        UiTheme.Ninja to 720,
+        UiTheme.Medieval to 720,
+        UiTheme.Cyber to 720,
+        UiTheme.Glass to 720
     )
 
-    fun coinCostFor(theme: UiTheme): Int = themeCoinCosts[theme] ?: 550
+    fun coinCostFor(theme: UiTheme): Int = themeCoinCosts[theme] ?: 640
 
     /** formatted store price per bundle product */
     val bundlePrices = mutableStateMapOf<String, String>()

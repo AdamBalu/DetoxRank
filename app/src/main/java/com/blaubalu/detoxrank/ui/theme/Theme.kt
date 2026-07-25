@@ -636,6 +636,36 @@ private val BlueShadesColors = darkColorScheme(
 
 
 
+// tempered glass: opaque frosted tiles with bevelled rims, floating on a
+// luminous refractive gradient. task slots are near-white with a whisper of
+// cool tint — the specular edges and glow around them carry the glass look
+private val GlassColors = lightColorScheme(
+    primary = Color(0xFF3B7FC4),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFDDEAF6),
+    onPrimaryContainer = Color(0xFF11304A),
+    secondary = Color(0xFF4F93B0),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xA6DCEAF4), // Daily background (icy frost, gradient shows through)
+    onSecondaryContainer = Color(0xFF1B2A36),
+    tertiary = Color(0xFF5E86C4), // Hours, Completed text, Progress bar
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xA6DDEDE7), // Weekly background (mint frost)
+    onTertiaryContainer = Color(0xFF1B2A24),
+    error = Color(0xFFB65C82),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xA6ECE1EE), // Monthly background (lilac frost)
+    onErrorContainer = Color(0xFF2E2130),
+    background = Color(0xFFE7EEF6),
+    onBackground = Color(0xFF1B2634),
+    surface = Color(0xFFE7EEF6),
+    onSurface = Color(0xFF1B2634),
+    surfaceVariant = Color(0x99E3E9F1), // Completed tasks (neutral frost)
+    onSurfaceVariant = Color(0xFF4C5A6A),
+    outline = Color(0xFF93A2B2),
+    inversePrimary = Color(0xFFAFD2EE)
+)
+
 /**
  * The Avatar theme cycles the elements by app section: every screen is a
  * different nation. Other themes are returned unchanged.
@@ -663,7 +693,7 @@ fun DetoxRankTheme(
     val theme = effectiveUiTheme(theme, section)
     val isActuallyDark = when (theme) {
         UiTheme.Default -> useDarkTheme
-        UiTheme.Light, UiTheme.Paper, UiTheme.Wind, UiTheme.Princess -> false
+        UiTheme.Light, UiTheme.Paper, UiTheme.Wind, UiTheme.Princess, UiTheme.Glass -> false
         else -> true // the remaining custom themes and Dark theme are dark-based
     }
 
@@ -697,6 +727,7 @@ fun DetoxRankTheme(
         UiTheme.Gold -> GoldColors
         UiTheme.Platinum -> PlatinumColors
         UiTheme.Diamond -> DiamondColors
+        UiTheme.Glass -> GlassColors
     }
 
     CompositionLocalProvider(

@@ -125,5 +125,6 @@ fun typographyFor(theme: UiTheme): Typography = when (theme) {
     UiTheme.Gold -> buildTypography(display = Cinzel, body = DMSans)
     UiTheme.Platinum -> buildTypography(display = Oswald, body = DMSans)
     UiTheme.Diamond -> buildTypography(display = Marcellus, body = Quicksand)
+    UiTheme.Glass -> buildTypography(display = Quicksand, body = Quicksand)
     else -> Typography
 }

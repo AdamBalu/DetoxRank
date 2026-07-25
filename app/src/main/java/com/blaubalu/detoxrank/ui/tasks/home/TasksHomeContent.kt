@@ -251,8 +251,10 @@ fun TasksContent(
               taskList = tasksHomeUiState.taskList,
               detoxRankViewModel = detoxRankViewModel,
               achievementViewModel = achievementViewModel,
+              // only inset at the top: the list scrolls behind the floating
+              // dock (its trailing spacer keeps the last task clear)
               modifier = Modifier
-                  .padding(paddingValues)
+                  .padding(top = paddingValues.calculateTopPadding())
                   .fillMaxWidth()
           )
         }

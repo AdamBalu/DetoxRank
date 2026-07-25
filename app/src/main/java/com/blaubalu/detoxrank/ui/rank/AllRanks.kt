@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,6 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.blaubalu.detoxrank.data.local.LocalRankDataProvider.ranksSeparated
 import com.blaubalu.detoxrank.ui.theme.JosefinSans
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
+import com.blaubalu.detoxrank.ui.theme.glassCardSheen
+import com.blaubalu.detoxrank.ui.utils.PanelHeader
 
 @Composable
 fun AllRanks(
@@ -62,27 +68,19 @@ fun AllRanks(
           // edge-to-edge (target SDK 36): keep the header below the status bar
           .statusBarsPadding()
       ) {
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.SpaceBetween,
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 4.dp)
+        PanelHeader(
+          title = "Ranks",
+          onClose = { rankViewModel.setRanksDisplayed(false) },
+          modifier = Modifier.padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 4.dp)
+        )
+        LazyColumn(
+          // edge-to-edge (target SDK 36): last card clears the nav bar
+          contentPadding = WindowInsets.navigationBars.asPaddingValues()
         ) {
-          Text(
-            "Ranks",
-            style = MaterialTheme.typography.headlineLarge
-          )
-          FilledTonalIconButton(onClick = { rankViewModel.setRanksDisplayed(false) }) {
-            Icon(
-              imageVector = Icons.Filled.Close,
-              contentDescription = "Close"
-            )
-          }
-        }
-        LazyColumn {
           items(ranksSeparated) { rankList ->
             Card(
+              shape = LocalThemeStyle.current.cardShape ?: CardDefaults.shape,
+              border = LocalThemeStyle.current.cardBorder,
               colors = CardDefaults.cardColors(
                 MaterialTheme.colorScheme.surfaceColorAtElevation(12.dp),
                 contentColor = MaterialTheme.colorScheme.onSurface
@@ -97,7 +95,9 @@ fun AllRanks(
               Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .glassCardSheen(LocalThemeStyle.current.cardSheen),
               ) {
                 rankList.forEach { rank ->
                   Column(modifier = Modifier.padding(8.dp)) {

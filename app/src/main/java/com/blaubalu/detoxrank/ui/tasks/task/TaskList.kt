@@ -6,11 +6,14 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,9 +51,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.TimerDifficulty
@@ -104,7 +114,9 @@ fun TaskList(
       taskViewModel = taskViewModel
     )
     item {
-      Spacer(modifier = Modifier.padding(bottom = 75.dp))
+      // clearance so the last task clears the floating dock and the action
+      // button that floats above it, leaving a comfortable gap
+      Spacer(modifier = Modifier.padding(bottom = 190.dp))
     }
   }
 }
@@ -372,6 +384,9 @@ fun Task(
 
   // swipe either way: refresh a default task, delete a custom one
   val dismissState = rememberSwipeToDismissBoxState(
+    // require a deliberate drag (~60% of the width) so a light swipe can't
+    // refresh or delete a task by accident
+    positionalThreshold = { totalDistance -> totalDistance * 0.6f },
     confirmValueChange = { value ->
       if (value == SwipeToDismissBoxValue.Settled) {
         false
@@ -415,6 +430,14 @@ fun Task(
       runCatching { dismissState.requireOffset() }.getOrDefault(0f) != 0f
     }
   }
+  // the background icon only appears once the card has slid far enough to clear
+  // it, so it never bleeds through the translucent card fill above it
+  val iconRevealPx = with(LocalDensity.current) { 58.dp.toPx() }
+  val revealSwipeIcon by remember {
+    derivedStateOf {
+      abs(runCatching { dismissState.requireOffset() }.getOrDefault(0f)) > iconRevealPx
+    }
+  }
   LaunchedEffect(isSwiping) {
     if ((isUsualTask(task) && !task.completed) ||
       task.durationCategory == TaskDurationCategory.Uncategorized
@@ -444,38 +467,66 @@ fun Task(
             .fillMaxSize()
             .padding(vertical = 4.dp, horizontal = 28.dp)
         ) {
+          // fades in only once the card has slid clear of the icon, so it never
+          // shows through translucent card fills (e.g. the Glass theme)
+          val iconAlpha by animateFloatAsState(
+            targetValue = if (revealSwipeIcon) 1f else 0f,
+            animationSpec = tween(200),
+            label = ""
+          )
           Icon(
             imageVector = if (isCustom) Icons.Filled.Delete else Icons.Filled.Refresh,
             contentDescription = null,
-            tint = if (isCustom) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+            tint = if (isCustom) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            modifier = Modifier.alpha(iconAlpha)
           )
         }
       }
     ) {
+    val resolvedCardColors = taskColors(
+      task = task,
+      taskColors = taskColors,
+      taskToBeDeleted = taskToBeDeleted(task, taskToBeEdited),
+      taskToBeRefreshed = taskToBeRefreshed(task, taskToBeEdited),
+      darkTheme = darkTheme
+    )
     Card(
       modifier = currentModifier,
       shape = themeStyle.cardShape ?: CardDefaults.shape,
-      border = themeStyle.cardBorder,
-      colors = taskColors(
-        task = task,
-        taskColors = taskColors,
-        taskToBeDeleted = taskToBeDeleted(task, taskToBeEdited),
-        taskToBeRefreshed = taskToBeRefreshed(task, taskToBeEdited),
-        darkTheme = darkTheme
-      )
+      border = when {
+        // exactly the fill colour — an invisible edge for light themes
+        themeStyle.cardBorderSameAsFill ->
+          BorderStroke(1.dp, resolvedCardColors.containerColor)
+        // a darker shade of this card's own fill, so the outline reads as part
+        // of the card rather than a contrasting frame
+        themeStyle.cardBorderFromFill ->
+          BorderStroke(1.dp, resolvedCardColors.containerColor.darkerShade())
+        else -> themeStyle.cardBorder
+      },
+      colors = resolvedCardColors
     ) {
-      TaskContents(
-        task = task,
-        taskViewModel = taskViewModel,
-        detoxRankViewModel = detoxRankViewModel,
-        achievementViewModel = achievementViewModel,
-        taskToBeEdited = taskToBeEdited,
-        rankPointsGain = rankPointsGain,
-        coroutineScope = coroutineScope,
-        isVisible = isVisible,
-        context = context,
-        modifier = modifier
-      )
+      Box {
+        // specular glass glint over the card surface, clipped to its shape
+        themeStyle.cardSheen?.let { sheen ->
+          Box(
+            modifier = Modifier
+              .matchParentSize()
+              .background(sheen)
+          )
+        }
+        TaskContents(
+          task = task,
+          taskViewModel = taskViewModel,
+          detoxRankViewModel = detoxRankViewModel,
+          achievementViewModel = achievementViewModel,
+          taskToBeEdited = taskToBeEdited,
+          rankPointsGain = rankPointsGain,
+          coroutineScope = coroutineScope,
+          isVisible = isVisible,
+          context = context,
+          modifier = modifier
+        )
+      }
     }
     }
     }
@@ -509,6 +560,18 @@ fun taskColors(
 
     TaskDurationCategory.Special -> taskColors.specialTaskColors(darkTheme)
   }
+}
+
+/**
+ * A slightly darker shade of this colour that keeps the same hue — the lightness
+ * is nudged down in HSL space rather than blended toward black, so pastel fills
+ * stay coloured instead of turning grey. Kept subtle: a soft edge, not a frame.
+ */
+private fun Color.darkerShade(): Color {
+  val hsl = FloatArray(3)
+  ColorUtils.colorToHSL(this.toArgb(), hsl)
+  hsl[2] = hsl[2] * 0.94f    // a whisper darker than the fill
+  return Color(ColorUtils.HSLToColor(hsl))
 }
 
 

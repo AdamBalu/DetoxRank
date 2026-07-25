@@ -245,7 +245,10 @@ fun TimerTimeUnitDigitAnimatedPair(timeUnit: String, color: Color, label: String
       style = MaterialTheme.typography.headlineLarge.copy(
         fontSize = MaterialTheme.typography.headlineLarge.fontSize *
                 (55f / 40f) * LocalThemeStyle.current.timerDigitScale,
-        color = color
+        color = color,
+        // tabular figures: every digit gets the same advance width, so the
+        // group doesn't slide sideways as the digits tick over
+        fontFeatureSettings = "tnum"
       ),
       maxLines = 1,
       modifier = Modifier.padding(end = 15.dp)

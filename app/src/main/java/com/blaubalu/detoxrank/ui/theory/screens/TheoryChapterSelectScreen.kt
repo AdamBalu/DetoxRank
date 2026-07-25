@@ -94,7 +94,8 @@ fun TheoryChapterSelectScreen(
             )
         }
         item {
-            Spacer(modifier = Modifier.height(15.dp))
+            // clearance so the last chapter scrolls clear of the floating dock
+            Spacer(modifier = Modifier.height(96.dp))
         }
     }
     }
@@ -129,6 +130,7 @@ fun TheoryChapter(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .glassCardSheen(themeStyle.cardSheen)
                 .padding(20.dp)
                 .animateContentSize(
                     animationSpec = spring(

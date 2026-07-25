@@ -31,6 +31,7 @@ import com.blaubalu.detoxrank.data.local.LocalAchievementDataProvider
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
 import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
+import com.blaubalu.detoxrank.ui.theme.glassCardSheen
 import com.blaubalu.detoxrank.ui.theme.common_green
 import com.blaubalu.detoxrank.ui.theme.epic_purple
 import com.blaubalu.detoxrank.ui.theme.legendary_orange
@@ -38,6 +39,7 @@ import com.blaubalu.detoxrank.ui.theme.rare_blue
 import com.blaubalu.detoxrank.ui.theme.rarer_blue
 import com.blaubalu.detoxrank.ui.theme.very_epic_magenta
 import com.blaubalu.detoxrank.ui.utils.getAchievementDrawableFromId
+import com.blaubalu.detoxrank.ui.utils.PanelHeader
 
 @Composable
 fun AchievementsScreen(
@@ -82,29 +84,19 @@ fun AchievementsScreen(
 //                ) {
 //                    Text("Fill db")
 //                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                PanelHeader(
+                    title = "Achievements",
+                    onClose = { rankViewModel.setAchievementsDisplayed(false) },
+                    closeDescription = stringResource(R.string.close),
+                    // edge-to-edge (target SDK 36): stay below the status bar
                     modifier = Modifier
-                        .fillMaxWidth()
-                        // edge-to-edge (target SDK 36): stay below the status bar
                         .statusBarsPadding()
                         .padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 4.dp)
+                )
+                LazyColumn(
+                    // edge-to-edge (target SDK 36): last cards clear the nav bar
+                    contentPadding = WindowInsets.navigationBars.asPaddingValues()
                 ) {
-                    Text(
-                        "Achievements",
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-                    FilledTonalIconButton(
-                        onClick = { rankViewModel.setAchievementsDisplayed(false) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.close)
-                        )
-                    }
-                }
-                LazyColumn {
                     items(state.achievementList) { achievement ->
                         val cardBorderColor = when (achievement.difficulty) {
                             AchievementDifficulty.EASY -> common_green
@@ -131,6 +123,7 @@ fun AchievementsScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .glassCardSheen(LocalThemeStyle.current.cardSheen)
                                     .then(
                                         if (achievement.achieved) {
                                             // rarity glow flowing in from the right, fading

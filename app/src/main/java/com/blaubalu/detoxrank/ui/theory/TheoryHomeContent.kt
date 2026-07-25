@@ -149,7 +149,8 @@ fun TheoryContent(
                     theoryViewModel = theoryViewModel,
                     detoxRankViewModel = detoxRankViewModel,
                     navController = navController,
-                    modifier = Modifier.padding(paddingValues)
+                    // top-only inset: the chapter list scrolls behind the dock
+                    modifier = Modifier.padding(top = paddingValues.calculateTopPadding())
                 )
             }
         }
@@ -234,6 +235,11 @@ fun TheoryAppBar(
 //            Text("Add CH to DB")
 //        }
         TopAppBar(
+            // transparent so the themed background (e.g. the glass texture)
+            // shows through instead of an opaque surface seam
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent
+            ),
             title = {
                 Text(
                     text = stringResource(currentScreen.title),

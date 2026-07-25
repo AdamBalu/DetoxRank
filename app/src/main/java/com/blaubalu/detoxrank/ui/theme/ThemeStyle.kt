@@ -297,8 +297,18 @@ fun shapesFor(theme: UiTheme): Shapes = when (theme) {
     UiTheme.Gold -> GoldShapes
     UiTheme.Platinum -> MasterShapes
     UiTheme.Diamond -> GemShapes
+    UiTheme.Glass -> GlassShapes
     else -> DefaultShapes
 }
+
+// smooth, generously rounded panels — liquid glass has no hard corners
+private val GlassShapes = Shapes(
+    extraSmall = RoundedCornerShape(12.dp),
+    small = RoundedCornerShape(16.dp),
+    medium = RoundedCornerShape(22.dp),
+    large = RoundedCornerShape(28.dp),
+    extraLarge = RoundedCornerShape(34.dp)
+)
 
 /**
  * Extra, non-Material styling knobs a theme can define
@@ -313,8 +323,42 @@ data class ThemeStyle(
     /** shrinks the timer digits for themes whose display font has wide numerals */
     val timerDigitScale: Float = 1f,
     /** progress bars (level XP, rank RP) end in a diagonal cut instead of a straight edge */
-    val angledBars: Boolean = false
+    val angledBars: Boolean = false,
+    /** translucent gloss drawn over card surfaces, e.g. the glass specular glint */
+    val cardSheen: Brush? = null,
+    /** derive each card's outline from its own fill colour, a shade darker */
+    val cardBorderFromFill: Boolean = false,
+    /** outline each card in exactly its own fill colour — an invisible edge, for
+     *  light themes where even a faint darker line reads as too much */
+    val cardBorderSameAsFill: Boolean = false
 )
+
+// two crisp diagonal reflection streaks sliding across the pane — the defined
+// bright bands (not a soft wash) are what read as light glancing off glass
+val GlassSheen: Brush = Brush.linearGradient(
+    0.00f to Color.White.copy(alpha = 0.16f), // lit top-left corner
+    0.10f to Color.White.copy(alpha = 0.03f),
+    0.22f to Color.Transparent,
+    0.27f to Color.White.copy(alpha = 0.28f),
+    0.31f to Color.White.copy(alpha = 0.42f), // wide streak
+    0.35f to Color.White.copy(alpha = 0.28f),
+    0.40f to Color.Transparent,
+    0.52f to Color.Transparent,
+    0.55f to Color.White.copy(alpha = 0.24f),
+    0.575f to Color.White.copy(alpha = 0.36f), // thin streak
+    0.60f to Color.White.copy(alpha = 0.24f),
+    0.64f to Color.Transparent,
+    0.85f to Color.Transparent,
+    1.00f to Color(0x18314A6B) // shadowed bottom-right
+)
+
+/**
+ * Draws the theme's card sheen behind a card's content (over its container
+ * colour). No-op for themes without a [ThemeStyle.cardSheen]. Apply to the
+ * content root inside a Card so it's clipped to the card's shape.
+ */
+fun Modifier.glassCardSheen(sheen: Brush?): Modifier =
+    if (sheen != null) drawBehind { drawRect(sheen) } else this
 
 val LocalThemeStyle = staticCompositionLocalOf { ThemeStyle() }
 
@@ -377,7 +421,8 @@ private fun baseStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     UiTheme.GreenShades -> ThemeStyle(customTaskColor = Color(0xFF4C6B2F))
     UiTheme.BlueShades -> ThemeStyle(customTaskColor = Color(0xFF1E5A8A))
     UiTheme.Comic -> ThemeStyle(
-        cardBorder = BorderStroke(3.dp, Color(0xFF06090F)),
+        // slim comic-ink outline (thinner than the old heavy black)
+        cardBorder = BorderStroke(2.dp, Color(0xFF06090F)),
         customTaskColor = Color(0xFF4A2B66)
     )
     UiTheme.Sketch -> ThemeStyle(
@@ -396,7 +441,8 @@ private fun baseStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
         timerDigitScale = 0.9f
     )
     UiTheme.Cartoon -> ThemeStyle(
-        cardBorder = BorderStroke(3.dp, Color(0xFF0E0721)),
+        // each card outlined in a darker shade of its own candy fill
+        cardBorderFromFill = true,
         customTaskColor = Color(0xFF5A2E8E)
     )
     UiTheme.Blueprint -> ThemeStyle(
@@ -404,7 +450,11 @@ private fun baseStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
         customTaskColor = Color(0xFF175C86)
     )
     UiTheme.Pixel -> ThemeStyle(
-        cardBorder = BorderStroke(3.dp, Color(0xFF0F1020)),
+        // classic PICO-8 green outline around the stepped corners
+        cardBorder = BorderStroke(
+            1.5.dp,
+            Brush.linearGradient(listOf(Color(0xCC00E436), Color(0xCC008751)))
+        ),
         cardShape = PixelCornerShape(stepDp = 4f),
         customTaskColor = Color(0xFF7E2553),
         // PressStart2P digits are extremely wide, keep them inside the timer arcs
@@ -422,28 +472,28 @@ private fun baseStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
         timerDigitScale = 0.85f
     )
     UiTheme.Fire -> ThemeStyle(
-        cardBorder = BorderStroke(2.dp, Color(0x66FF6B35)),
+        cardBorderFromFill = true,
         customTaskColor = Color(0xFF6E3A0E)
     )
     UiTheme.Water -> ThemeStyle(
-        cardBorder = BorderStroke(1.5.dp, Color(0x664DD0E1)),
+        cardBorderFromFill = true,
         customTaskColor = Color(0xFF0E5A50)
     )
     UiTheme.Wind -> ThemeStyle(
-        cardBorder = BorderStroke(1.5.dp, Color(0x66559AB0)),
+        cardBorderSameAsFill = true,
         customTaskColor = Color(0xFFDCE8C8)
     )
     UiTheme.Earth -> ThemeStyle(
-        cardBorder = BorderStroke(2.dp, Color(0x66A98547)),
+        cardBorderFromFill = true,
         customTaskColor = Color(0xFF5A4A28)
     )
     UiTheme.Princess -> ThemeStyle(
-        cardBorder = BorderStroke(1.5.dp, Color(0x66D6659E)),
+        cardBorderSameAsFill = true,
         customTaskColor = Color(0xFFF5E3B0),
         timerDigitScale = 0.78f
     )
     UiTheme.Scorched -> ThemeStyle(
-        cardBorder = BorderStroke(2.dp, Color(0x66E85D2F)),
+        cardBorderFromFill = true,
         customTaskColor = Color(0xFF4A5A2E)
     )
     UiTheme.Avatar -> ThemeStyle(
@@ -463,7 +513,7 @@ private fun baseStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
         customTaskColor = Color(0xFF43596B) // air
     )
     UiTheme.Ninja -> ThemeStyle(
-        cardBorder = BorderStroke(1.5.dp, Color(0x66E8324A)),
+        cardBorderFromFill = true,
         customTaskColor = Color(0xFF5A1E28)
     )
     UiTheme.Medieval -> ThemeStyle(
@@ -478,6 +528,19 @@ private fun baseStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
             Brush.linearGradient(listOf(Color(0x99F5D90A), Color(0x9900E5C7)))
         ),
         customTaskColor = Color(0xFF4A1030)
+    )
+    UiTheme.Glass -> ThemeStyle(
+        // bevelled glass rim: bright specular highlight along the top, a faint
+        // dip through the middle, and a soft cool glow wrapping the bottom edge
+        cardBorder = BorderStroke(
+            2.dp,
+            Brush.verticalGradient(
+                listOf(Color(0xF2FFFFFF), Color(0x33FFFFFF), Color(0x59BBD2E8))
+            )
+        ),
+        cardShape = RoundedCornerShape(22.dp),
+        customTaskColor = Color(0xCCDBE5EF),
+        cardSheen = GlassSheen
     )
     UiTheme.Bronze -> ThemeStyle(
         cardBorder = BorderStroke(2.dp, Color(0x80CD7F32)),
@@ -1025,6 +1088,31 @@ fun Modifier.themeTexture(theme: UiTheme): Modifier = when (theme) {
             y += step
             row++
         }
+    }
+
+    // refractive luminous glow + broad tempered-glass sheen sweeps
+    UiTheme.Glass -> drawBehind {
+        val w = size.width
+        val h = size.height
+        fun blob(cx: Float, cy: Float, r: Float, color: Color) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    listOf(color, Color.Transparent),
+                    center = Offset(cx, cy),
+                    radius = r
+                ),
+                radius = r,
+                center = Offset(cx, cy)
+            )
+        }
+        blob(w * 0.15f, h * 0.10f, w * 0.60f, Color(0x3355C0F0)) // cyan
+        blob(w * 0.92f, h * 0.26f, w * 0.55f, Color(0x2AB58CF0)) // lavender
+        blob(w * 0.72f, h * 0.86f, w * 0.62f, Color(0x2A66E0C0)) // mint
+        blob(w * 0.08f, h * 0.92f, w * 0.48f, Color(0x24F0A0D0)) // rose
+        drawLine(
+            Color.White.copy(alpha = 0.05f),
+            Offset(-h * 0.15f, h), Offset(w, -h * 0.15f), 42f * density
+        )
     }
 
     else -> this

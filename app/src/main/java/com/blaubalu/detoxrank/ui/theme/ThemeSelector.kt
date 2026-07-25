@@ -9,6 +9,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,6 +77,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -90,6 +96,7 @@ import com.blaubalu.detoxrank.data.ads.RewardedAdManager
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.user.Rank
 import com.blaubalu.detoxrank.data.user.UiTheme
+import com.blaubalu.detoxrank.ui.utils.PanelHeader
 import com.blaubalu.detoxrank.ui.utils.Constants.ALL_THEMES_UNLOCKED_FOR_TESTING
 import com.blaubalu.detoxrank.ui.utils.Constants.COINS_PER_AD
 import com.blaubalu.detoxrank.ui.utils.Constants.MAX_REWARDED_ADS_PER_DAY
@@ -207,9 +214,7 @@ val themeOptions = listOf(
         primaryColor = Color(0xFF4A4642),
         secondaryColor = Color(0xFF8A857A),
         backgroundColor = Color(0xFFF5F1E8),
-        isPremium = true,
-        purchaseKey = UiTheme.Sketch, // bundled with Sketch
-        bundleLabel = "Sketch theme"
+        isPremium = true
     ),
     ThemeOption(
         theme = UiTheme.Cartoon,
@@ -361,6 +366,14 @@ val themeOptions = listOf(
         isPremium = true
     ),
     ThemeOption(
+        theme = UiTheme.Glass,
+        name = "Glass",
+        primaryColor = Color(0xFF55C0F0),
+        secondaryColor = Color(0xFFB58CF0),
+        backgroundColor = Color(0xFFEAF1F8),
+        isPremium = true
+    ),
+    ThemeOption(
         theme = UiTheme.Master,
         // internally UiTheme.Master, but the highest rank is Legend — named
         // after the rank that actually unlocks it
@@ -413,6 +426,9 @@ fun ThemeSelectorSheet(
 ) {
     val context = LocalContext.current
     var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
+    // captured here: dialog windows report zero system-bar insets to their
+    // own content, so we pad with the activity-scope insets instead
+    val systemBars = WindowInsets.systemBars.asPaddingValues()
 
     if (isVisible) {
         Dialog(
@@ -426,24 +442,16 @@ fun ThemeSelectorSheet(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    // the dialog decor already insets content below the status bar,
+                    // so only the horizontal margin goes here
+                    .padding(start = 16.dp, end = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp)
-                ) {
-                    Text(
-                        text = "Select Theme",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                    FilledTonalIconButton(onClick = onDismiss) {
-                        Icon(Icons.Filled.Close, contentDescription = "Close")
-                    }
-                }
+                PanelHeader(
+                    title = "Select Theme",
+                    onClose = onDismiss,
+                    modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+                )
                 Text(
                     text = if (ALL_THEMES_UNLOCKED_FOR_TESTING) {
                         "All themes unlocked for testing"
@@ -469,7 +477,12 @@ fun ThemeSelectorSheet(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    // the grid fills to the screen edge so items scroll naturally;
+                    // a generous bottom inset keeps the last row clear of the nav bar
+                    contentPadding = PaddingValues(
+                        bottom = systemBars.calculateBottomPadding() + 56.dp
+                    )
                 ) {
                     items(themeOptions) { option ->
                         val isUnlocked = ALL_THEMES_UNLOCKED_FOR_TESTING ||
@@ -552,6 +565,9 @@ fun ThemeShopDialog(
     val context = LocalContext.current
     var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
     var showRedeemDialog by remember { mutableStateOf(false) }
+    // captured here: dialog windows report zero system-bar insets to their
+    // own content, so we pad with the activity-scope insets instead
+    val systemBars = WindowInsets.systemBars.asPaddingValues()
 
     fun buyProduct(productId: String) {
         val activity = context.findActivity()
@@ -571,23 +587,22 @@ fun ThemeShopDialog(
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(16.dp)
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    // the dialog decor insets below the status bar already; only the
+                    // nav bar (drawn behind the content) needs explicit clearance
+                    top = 8.dp,
+                    bottom = systemBars.calculateBottomPadding() + 28.dp
+                )
             ) {
                 item(span = { GridItemSpan(2) }) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Theme Shop",
-                                style = MaterialTheme.typography.headlineMedium
-                            )
-                            FilledTonalIconButton(onClick = onDismiss) {
-                                Icon(Icons.Filled.Close, contentDescription = "Close")
-                            }
-                        }
+                        PanelHeader(
+                            title = "Theme Shop",
+                            onClose = onDismiss
+                        )
                         Text(
                             text = "Buy themes one by one, or grab a themed bundle — " +
                                     "thank you for keeping this app alive! 💛",
@@ -883,6 +898,7 @@ private fun ThemeBundleCard(
     val isEverything = bundle.themes.isEmpty()
     val tintAlpha = if (isDark) 0.16f else 0.10f
     Card(
+        onClick = { onBuy(bundle.productId) },
         shape = themeStyle.cardShape ?: MaterialTheme.shapes.medium,
         border = if (isEverything) {
             BorderStroke(
@@ -989,12 +1005,13 @@ private fun ThemeBundleCard(
                     }
                 }
             }
-            Button(onClick = { onBuy(bundle.productId) }) {
-                Text(
-                    text = ThemeBilling.bundlePrices[bundle.productId] ?: bundle.fallbackPrice,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Text(
+                text = ThemeBilling.bundlePrices[bundle.productId] ?: bundle.fallbackPrice,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = accentInk,
+                modifier = Modifier.padding(start = 4.dp)
+            )
         }
     }
 }
@@ -1030,6 +1047,7 @@ fun ThemePreviewDialog(
                         .fillMaxSize()
                         .themeTexture(option.theme)
                         .verticalScroll(rememberScrollState())
+                        .systemBarsPadding()
                         .padding(horizontal = 24.dp, vertical = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -1044,6 +1062,8 @@ fun ThemePreviewDialog(
                         Text(
                             text = when {
                                 option.requiresMastery -> "✦ MASTERY REWARD ✦"
+                                option.requiredRank != null ->
+                                    "✦ ${option.requiredRank.rankName.substringBefore(" ").uppercase()} REWARD ✦"
                                 option.isPremium -> "✦ PREMIUM THEME ✦"
                                 else -> "✦ LEVEL ${option.requiredLevel} REWARD ✦"
                             },
@@ -1215,19 +1235,24 @@ private fun PreviewTaskCard(
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 6.dp)
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 15.sp
-            )
-            Checkbox(checked = checked, onCheckedChange = null)
+        Box {
+            style.cardSheen?.let { sheen ->
+                Box(modifier = Modifier.matchParentSize().background(sheen))
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 14.dp)
+            ) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 15.sp
+                )
+                Checkbox(checked = checked, onCheckedChange = null)
+            }
         }
     }
 }
@@ -1261,73 +1286,101 @@ fun ThemeCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            // Color preview circles
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
-                    .alpha(if (isUnlocked) 1f else 0.4f),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(option.primaryColor)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(option.secondaryColor)
-                )
-            }
-
-            // Theme name (with unlock requirement when locked)
+        // each swatch previews its theme's own surface: texture + glass sheen
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .themeTexture(option.theme)
+                .glassCardSheen(themeStyleFor(option.theme).cardSheen)
+        ) {
+            // overlapping glossy orbs over a soft halo, name below — centered
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp),
+                    .fillMaxSize()
+                    .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom,
+                verticalArrangement = Arrangement.Center
             ) {
-                if (!isUnlocked) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 2.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Lock,
-                            contentDescription = "Locked",
-                            tint = rank_color,
-                            modifier = Modifier.size(14.dp)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.alpha(if (isUnlocked) 1f else 0.5f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(62.dp)
+                            .background(
+                                Brush.radialGradient(
+                                    listOf(option.primaryColor.copy(alpha = 0.30f), Color.Transparent)
+                                ),
+                                CircleShape
+                            )
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy((-10).dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(option.primaryColor)
+                                .border(2.dp, Color.White.copy(alpha = 0.7f), CircleShape)
                         )
-                        Text(
-                            text = when {
-                                option.requiresMastery -> " Legend rank"
-                                option.requiredRank != null ->
-                                    " " + option.requiredRank.rankName.substringBefore(" ") + " rank"
-                                option.isPremium ->
-                                    " " + (ThemeBilling.themePrices[option.purchaseKey] ?: "Premium")
-                                else -> " Level ${option.requiredLevel}"
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = rank_color,
-                            fontSize = 10.sp
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(option.secondaryColor)
+                                .border(2.dp, Color.White.copy(alpha = 0.7f), CircleShape)
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
                     text = option.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        shadow = Shadow(
+                            color = Color.Black.copy(alpha = 0.35f),
+                            offset = Offset(0f, 1f),
+                            blurRadius = 4f
+                        )
+                    ),
+                    fontWeight = FontWeight.Bold,
                     color = option.primaryColor,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Center
                 )
+            }
+
+            // lock requirement as a small corner chip, out of the name's way
+            if (!isUnlocked) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.Black.copy(alpha = 0.38f))
+                        .padding(horizontal = 7.dp, vertical = 3.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Lock,
+                        contentDescription = "Locked",
+                        tint = rank_color,
+                        modifier = Modifier.size(11.dp)
+                    )
+                    Text(
+                        text = when {
+                            option.requiresMastery -> " Legend"
+                            option.requiredRank != null ->
+                                " " + option.requiredRank.rankName.substringBefore(" ")
+                            option.isPremium ->
+                                " " + (ThemeBilling.themePrices[option.purchaseKey] ?: "Premium")
+                            else -> " Lvl ${option.requiredLevel}"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = rank_color,
+                        fontSize = 9.sp
+                    )
+                }
             }
 
             // Selected checkmark
