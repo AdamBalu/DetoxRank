@@ -55,6 +55,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -538,11 +539,13 @@ fun ThemeShopDialog(
     coins: Int,
     onCoinsEarned: (Int) -> Unit,
     onCoinUnlock: (UiTheme) -> Unit,
+    onRedeemCode: (String, (String) -> Unit) -> Unit,
     onThemeSelected: (UiTheme) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
+    var showRedeemDialog by remember { mutableStateOf(false) }
 
     fun buyProduct(productId: String) {
         val activity = context.findActivity()
@@ -591,10 +594,20 @@ fun ThemeShopDialog(
                         ThemeBilling.themeBundles.forEach { bundle ->
                             ThemeBundleCard(bundle = bundle, onBuy = ::buyProduct)
                         }
+                        TextButton(
+                            onClick = { showRedeemDialog = true },
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            Text(
+                                text = "Have a promo code?",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         Text(
                             text = "Single Themes",
                             style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                         )
                     }
                 }
@@ -633,6 +646,73 @@ fun ThemeShopDialog(
             },
             onDismiss = { previewOption = null }
         )
+    }
+
+    if (showRedeemDialog) {
+        RedeemCodeDialog(
+            onRedeem = onRedeemCode,
+            onDismiss = { showRedeemDialog = false }
+        )
+    }
+}
+
+/**
+ * Small prompt where a promo code can be typed in and redeemed
+ */
+@Composable
+private fun RedeemCodeDialog(
+    onRedeem: (String, (String) -> Unit) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var code by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf<String?>(null) }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = "Redeem Code",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                OutlinedTextField(
+                    value = code,
+                    onValueChange = {
+                        code = it
+                        message = null
+                    },
+                    singleLine = true,
+                    placeholder = { Text("YOUR-CODE") },
+                    modifier = Modifier.padding(top = 14.dp)
+                )
+                message?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
+                }
+                Row(modifier = Modifier.padding(top = 14.dp)) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Close")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = { onRedeem(code) { result -> message = result } },
+                        enabled = code.isNotBlank()
+                    ) {
+                        Text("Redeem", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.TimerDifficulty
 import com.blaubalu.detoxrank.data.achievements.AchievementRepository
+import com.blaubalu.detoxrank.data.billing.PromoCodes
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.data.task.TasksRepository
@@ -55,6 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import com.blaubalu.detoxrank.ui.utils.PopupManager
+import com.blaubalu.detoxrank.ui.utils.getCurrentLevelFromXP
 import com.blaubalu.detoxrank.ui.utils.getCurrentLevelFromXP
 import com.blaubalu.detoxrank.R
 import androidx.core.content.edit
@@ -438,6 +440,46 @@ class DetoxRankViewModel(
             withContext(Dispatchers.IO) {
                 userDataRepository.updateCoins(amount)
             }
+        }
+    }
+
+    /**
+     * Redeems a promo code: VIP codes unlock every theme outright, the
+     * Legend code only for players at the Legend rank and max level.
+     * [onResult] receives a user-facing message.
+     */
+    fun redeemPromoCode(code: String, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val message = withContext(Dispatchers.IO) {
+                val type = PromoCodes.classify(code)
+                if (type == PromoCodes.CodeType.INVALID) {
+                    return@withContext "Invalid code"
+                }
+                if (PromoCodes.wasRedeemed(code)) {
+                    return@withContext "This code was already redeemed on this device"
+                }
+                val user = userDataRepository.getUserStream().first()
+                if (type == PromoCodes.CodeType.LEGEND) {
+                    val rank = getCurrentRank(user.rankPoints).first
+                    val level = getCurrentLevelFromXP(user.xpPoints)
+                    if (rank != Rank.Legend || level < Constants.MAX_LEVEL) {
+                        return@withContext "Only true Legends at level " +
+                                "${Constants.MAX_LEVEL} can redeem this code"
+                    }
+                }
+                val owned = user.purchasedThemes
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .toMutableSet()
+                if (owned.add("ALL")) {
+                    userDataRepository.updatePurchasedThemes(owned.joinToString(","))
+                }
+                PromoCodes.markRedeemed(code)
+                PopupManager.showCodeRedeemed()
+                "Code accepted — every theme is yours!"
+            }
+            onResult(message)
         }
     }
 

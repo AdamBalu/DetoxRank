@@ -4,6 +4,7 @@ import android.app.Application
 import com.blaubalu.detoxrank.data.AppContainer
 import com.blaubalu.detoxrank.data.AppDataContainer
 import com.blaubalu.detoxrank.data.ads.RewardedAdManager
+import com.blaubalu.detoxrank.data.billing.PromoCodes
 import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.ui.utils.PopupManager
@@ -27,6 +28,7 @@ class DetoxRankApp: Application() {
         super.onCreate()
         container = AppDataContainer(this)
         RewardedAdManager.init(this)
+        PromoCodes.init(this)
 
         ThemeBilling.init(
             this,

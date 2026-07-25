@@ -98,6 +98,20 @@ object PopupManager {
     }
 
     /**
+     * Convenience method to celebrate a redeemed promo code
+     */
+    fun showCodeRedeemed() {
+        enqueue(
+            PopupData(
+                type = PopupType.ACHIEVEMENT,
+                title = "Code Redeemed!",
+                description = "Every theme unlocked",
+                secondaryText = "Equip them from the theme selector"
+            )
+        )
+    }
+
+    /**
      * Convenience method to announce a newly unlocked theme bundle
      */
     fun showBundleUnlock(bundleTitle: String) {
