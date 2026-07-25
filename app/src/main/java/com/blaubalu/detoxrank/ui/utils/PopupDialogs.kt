@@ -166,6 +166,15 @@ fun CelebrationOverlay(
 
                     Spacer(modifier = Modifier.height(28.dp))
 
+                    androidx.compose.material3.Surface(
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                        tonalElevation = 6.dp
+                    ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                    ) {
                     Text(
                         text = popup.title,
                         style = MaterialTheme.typography.headlineMedium,
@@ -188,6 +197,8 @@ fun CelebrationOverlay(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 6.dp)
                         )
+                    }
+                    }
                     }
 
                     Spacer(modifier = Modifier.weight(1f))

@@ -189,13 +189,42 @@ private val PixelShapes = Shapes(
     extraLarge = RoundedCornerShape(0.dp)
 )
 
-// symmetric gem facets for the diamond rank
-private val FacetShapes = Shapes(
-    extraSmall = CutCornerShape(6.dp),
-    small = CutCornerShape(9.dp),
-    medium = CutCornerShape(14.dp),
-    large = CutCornerShape(16.dp),
-    extraLarge = CutCornerShape(22.dp)
+/**
+ * A gold-bar cross-section: slanted sides, wider at the base
+ */
+class IngotShape(private val insetDp: Float = 10f) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val inset = min(insetDp * density.density, size.width / 6f)
+        val path = Path().apply {
+            moveTo(inset, 0f)
+            lineTo(size.width - inset, 0f)
+            lineTo(size.width, size.height)
+            lineTo(0f, size.height)
+            close()
+        }
+        return Outline.Generic(path)
+    }
+}
+
+private val GoldShapes = Shapes(
+    extraSmall = RoundedCornerShape(3.dp),
+    small = RoundedCornerShape(5.dp),
+    medium = RoundedCornerShape(8.dp),
+    large = RoundedCornerShape(10.dp),
+    extraLarge = RoundedCornerShape(14.dp)
+)
+
+// emerald-cut profile: deep cuts up top, shallow at the base
+private val GemShapes = Shapes(
+    extraSmall = CutCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 3.dp, bottomEnd = 3.dp),
+    small = CutCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+    medium = CutCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 5.dp, bottomEnd = 5.dp),
+    large = CutCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 6.dp, bottomEnd = 6.dp),
+    extraLarge = CutCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
 )
 
 // asymmetric-cut cyberpunk HUD panels
@@ -260,9 +289,9 @@ fun shapesFor(theme: UiTheme): Shapes = when (theme) {
     UiTheme.Cyber -> HudShapes
     UiTheme.Bronze -> SturdyShapes
     UiTheme.Silver -> FluidShapes
-    UiTheme.Gold -> LuxuryShapes
+    UiTheme.Gold -> GoldShapes
     UiTheme.Platinum -> MasterShapes
-    UiTheme.Diamond -> FacetShapes
+    UiTheme.Diamond -> GemShapes
     else -> DefaultShapes
 }
 
@@ -391,6 +420,7 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     )
     UiTheme.Gold -> ThemeStyle(
         cardBorder = BorderStroke(2.dp, Color(0x8CFFD24A)),
+        cardShape = IngotShape(insetDp = 10f),
         customTaskColor = Color(0xFF6E5A14)
     )
     UiTheme.Platinum -> ThemeStyle(
@@ -400,7 +430,12 @@ fun themeStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     UiTheme.Diamond -> ThemeStyle(
         cardBorder = BorderStroke(
             1.5.dp,
-            Brush.linearGradient(listOf(Color(0xCCFFFFFF), Color(0x997FE8FF), Color(0x99B8D8FF)))
+            Brush.sweepGradient(
+                listOf(
+                    Color(0xCCFFFFFF), Color(0x997FE8FF), Color(0x99B8D8FF),
+                    Color(0xCCE8FBFF), Color(0x997FE8FF), Color(0xCCFFFFFF)
+                )
+            )
         ),
         customTaskColor = Color(0xFF164A6A)
     )
@@ -865,31 +900,35 @@ fun Modifier.themeTexture(theme: UiTheme): Modifier = when (theme) {
         }
     }
 
-    // scattered gem facets
+    // bold gem facets, with the occasional large crystal
     UiTheme.Diamond -> drawBehind {
         fun n(i: Int): Float { val x = sin(i * 12.9898f) * 43758.5453f; return x - floor(x) }
-        val step = 60.dp.toPx()
+        val step = 92.dp.toPx()
         var row = 0; var y = step / 2f
         while (y < size.height) {
             var col = 0; var x = step / 2f
             while (x < size.width) {
                 val seed = row * 131 + col * 19
-                val cx = x + (n(seed) - 0.5f) * step
-                val cy = y + (n(seed + 1) - 0.5f) * step
-                val r = (2.5f + n(seed + 2) * 4f) * density
+                val cx = x + (n(seed) - 0.5f) * step * 0.8f
+                val cy = y + (n(seed + 1) - 0.5f) * step * 0.8f
+                val big = n(seed + 5) > 0.82f
+                val r = (if (big) 18f + n(seed + 2) * 26f else 5f + n(seed + 2) * 9f) * density
                 val tint = (if (n(seed + 3) > 0.5f) Color(0xFF7FE8FF) else Color(0xFFFFFFFF))
-                    .copy(alpha = 0.05f + n(seed + 4) * 0.08f)
-                val w = 1f * density
+                    .copy(alpha = if (big) 0.05f + n(seed + 4) * 0.05f else 0.07f + n(seed + 4) * 0.09f)
+                val w = (if (big) 1.4f else 1f) * density
                 drawLine(tint, Offset(cx, cy - r), Offset(cx + r, cy), w)
                 drawLine(tint, Offset(cx + r, cy), Offset(cx, cy + r), w)
                 drawLine(tint, Offset(cx, cy + r), Offset(cx - r, cy), w)
                 drawLine(tint, Offset(cx - r, cy), Offset(cx, cy - r), w)
+                if (big) {
+                    drawLine(tint, Offset(cx - r, cy), Offset(cx + r, cy), w)
+                    drawLine(tint, Offset(cx, cy - r), Offset(cx, cy + r), w)
+                }
                 x += step; col++
             }
             y += step; row++
         }
     }
-
     // star field
     UiTheme.Master -> drawBehind {
         fun sparkle(i: Int): Float {
