@@ -85,7 +85,8 @@ fun CelebrationOverlay(
                 MaterialTheme.colorScheme.secondary
             }
 
-            val appear = remember {
+            // keyed on the popup so every queued celebration replays the entrance
+            val appear = remember(popup) {
                 MutableTransitionState(false).apply { targetState = true }
             }
             AnimatedVisibility(
@@ -114,8 +115,8 @@ fun CelebrationOverlay(
                     Spacer(modifier = Modifier.weight(1f))
 
                     // the badge is the star of the show
-                    val badgeScale = remember { Animatable(0f) }
-                    LaunchedEffect(Unit) {
+                    val badgeScale = remember(popup) { Animatable(0f) }
+                    LaunchedEffect(popup) {
                         delay(150)
                         badgeScale.animateTo(
                             1f,
