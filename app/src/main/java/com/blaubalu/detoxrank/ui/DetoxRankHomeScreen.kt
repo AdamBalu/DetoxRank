@@ -1,8 +1,13 @@
 package com.blaubalu.detoxrank.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.R
@@ -276,10 +282,6 @@ fun DetoxRankBottomNavigationBar(
     val themeStyle = LocalThemeStyle.current
     Surface(
         shape = themeStyle.cardShape ?: RoundedCornerShape(26.dp),
-        border = themeStyle.cardBorder ?: BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
-        ),
         color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
         modifier = modifier
             .fillMaxWidth()
@@ -317,24 +319,11 @@ fun DetoxRankBottomNavigationBar(
                     animationSpec = tween(250),
                     label = ""
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(50))
+                        .clip(RoundedCornerShape(18.dp))
                         .background(pillColor)
-                        .then(
-                            if (selected) {
-                                Modifier.border(
-                                    BorderStroke(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
-                                    ),
-                                    RoundedCornerShape(50)
-                                )
-                            } else {
-                                Modifier
-                            }
-                        )
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -345,7 +334,7 @@ fun DetoxRankBottomNavigationBar(
                                 stiffness = Spring.StiffnessMediumLow
                             )
                         )
-                        .padding(horizontal = 13.dp, vertical = 8.dp)
+                        .padding(horizontal = 15.dp, vertical = 5.dp)
                 ) {
                     Image(
                         imageVector = navItem.image,
@@ -355,14 +344,26 @@ fun DetoxRankBottomNavigationBar(
                             .scale(iconScale)
                             .alpha(iconAlpha)
                     )
-                    if (selected) {
+                    // tiny hint label slides out under the selected icon
+                    AnimatedVisibility(
+                        visible = selected,
+                        enter = expandVertically(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
+                        ) + fadeIn(animationSpec = tween(220)),
+                        exit = shrinkVertically() + fadeOut(animationSpec = tween(120))
+                    ) {
                         Text(
                             text = navItem.text,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 9.sp,
+                            letterSpacing = 0.8.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
                             maxLines = 1,
-                            modifier = Modifier.padding(start = 7.dp)
+                            modifier = Modifier.padding(top = 1.dp)
                         )
                     }
                 }

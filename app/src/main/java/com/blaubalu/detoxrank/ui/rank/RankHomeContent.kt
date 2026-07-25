@@ -242,16 +242,17 @@ fun RankMainScreenBody(
 //                        achievementViewModel.deleteAllAchievementsInDb()
 //                    }
         },
+        // floating capsule stacked above the nav dock, mirroring its language
         shape = MaterialTheme.shapes.extraLarge.let {
-            // mirror the top-start corner so asymmetric themes (Cyber) stay symmetric here
+            // mirror every corner from top-start so asymmetric themes (Cyber) stay symmetric
             it.copy(
               topEnd = it.topStart,
-              bottomStart = CornerSize(0.dp),
-              bottomEnd = CornerSize(0.dp)
+              bottomStart = it.topStart,
+              bottomEnd = it.topStart
             )
           },
         modifier = Modifier
-          .padding(top = 5.dp)
+          .padding(top = 5.dp, bottom = 2.dp)
           .fillMaxWidth(0.75f),
         colors = ButtonDefaults.buttonColors(
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -269,7 +270,7 @@ fun RankMainScreenBody(
             stringResource(R.string.achievements),
             modifier = Modifier.padding(
               top = achievementsPadding,
-              bottom = achievementsPadding + 4.dp
+              bottom = achievementsPadding
             ),
             style = MaterialTheme.typography.bodyMedium
           )
@@ -339,16 +340,17 @@ fun RankMainScreenBodyLarge(
         onClick = {
           rankViewModel.setAchievementsDisplayed(true)
         },
+        // floating capsule stacked above the nav dock, mirroring its language
         shape = MaterialTheme.shapes.extraLarge.let {
-            // mirror the top-start corner so asymmetric themes (Cyber) stay symmetric here
+            // mirror every corner from top-start so asymmetric themes (Cyber) stay symmetric
             it.copy(
               topEnd = it.topStart,
-              bottomStart = CornerSize(0.dp),
-              bottomEnd = CornerSize(0.dp)
+              bottomStart = it.topStart,
+              bottomEnd = it.topStart
             )
           },
         modifier = Modifier
-          .padding(top = 5.dp)
+          .padding(top = 5.dp, bottom = 2.dp)
           .fillMaxWidth(0.55f)
           .height(50.dp),
         colors = ButtonDefaults.buttonColors(
