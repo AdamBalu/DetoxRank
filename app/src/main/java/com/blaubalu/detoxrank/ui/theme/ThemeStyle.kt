@@ -406,7 +406,9 @@ private fun baseStyleFor(theme: UiTheme): ThemeStyle = when (theme) {
     UiTheme.Pixel -> ThemeStyle(
         cardBorder = BorderStroke(3.dp, Color(0xFF0F1020)),
         cardShape = PixelCornerShape(stepDp = 4f),
-        customTaskColor = Color(0xFF7E2553)
+        customTaskColor = Color(0xFF7E2553),
+        // PressStart2P digits are extremely wide, keep them inside the timer arcs
+        timerDigitScale = 0.8f
     )
     UiTheme.Master -> ThemeStyle(
         // aurora-gradient ink around every card
