@@ -8,7 +8,9 @@ import com.blaubalu.detoxrank.data.Converters
 import com.blaubalu.detoxrank.data.TimerDifficulty
 
 enum class UiTheme {
-    Default, Light, Dark, Monochrome, GreenShades, BlueShades
+    Default, Light, Dark, Monochrome, GreenShades, BlueShades,
+    Luxury, Comic, Sketch, Cartoon, Paper, Blueprint, Pixel, Master,
+    Fire, Water, Wind, Earth, Avatar, Princess, Scorched, Ninja, Medieval, Cyber, Bronze, Silver, Gold, Platinum, Diamond
 }
 
 enum class Rank(val rankName: String) {
@@ -49,5 +51,13 @@ data class UserData(
     @ColumnInfo(name = "available_task_refreshes", defaultValue = "0")
     val availableTaskRefreshes: Int,
     @ColumnInfo(name = "last_timer_rp_gather_time", defaultValue = "0")
-    val lastTimerRpGatherTime: Long = 0
+    val lastTimerRpGatherTime: Long = 0,
+    @param:TypeConverters(Converters::class)
+    @ColumnInfo(name = "selected_theme", defaultValue = "Default")
+    val selectedTheme: UiTheme = UiTheme.Default,
+    @ColumnInfo(name = "purchased_themes", defaultValue = "Default,Light,Dark")
+    val purchasedThemes: String = "Default,Light,Dark",
+    @ColumnInfo(name = "coins", defaultValue = "0")
+    val coins: Int = 0
 )
+

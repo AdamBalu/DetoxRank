@@ -390,6 +390,15 @@
     <string name="category">Category</string>
     <string name="difficulty">DIFFICULTY</string>
     <string name="difficulty_select_heading">Difficulty select</string>
+    <string name="difficulty_select_subheading">Higher difficulty, bigger RP boost!</string>
+    <string name="difficulty_easy_title">Apprentice</string>
+    <string name="difficulty_medium_title">Runner</string>
+    <string name="difficulty_hard_title">Master</string>
+    <string name="difficulty_avoid_label">AVOID</string>
+    <string name="difficulty_locked_while_running">Stop the timer to change the difficulty</string>
+    <string name="difficulty_selected">Selected difficulty</string>
+    <string name="close">Close</string>
+    <string name="help_heading">Help</string>
     <string name="task_delete">Delete task?</string>
     <string name="task_refresh">Refresh task?</string>
 </resources>

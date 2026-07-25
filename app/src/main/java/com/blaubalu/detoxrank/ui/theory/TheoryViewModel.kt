@@ -8,8 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blaubalu.detoxrank.data.chapter.Chapter
 import com.blaubalu.detoxrank.data.chapter.ChaptersRepository
-import com.blaubalu.detoxrank.ui.DetoxRankUiState
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class TheoryViewModel(
@@ -28,19 +31,8 @@ class TheoryViewModel(
         private const val TIMEOUT_MILLIS = 5_000L
     }
 
-    private val chapterId: Int = 0
-
     var chapterUiState by mutableStateOf(ChapterUiState())
         private set
-
-    init {
-        viewModelScope.launch {
-            chapterUiState = chaptersRepository.getChapterById(chapterId)
-                .filterNotNull()
-                .first()
-                .toChapterUiState()
-        }
-    }
 
     fun updateUiState(newChapterUiState: ChapterUiState) {
         chapterUiState = newChapterUiState.copy()
@@ -50,8 +42,7 @@ class TheoryViewModel(
         chaptersRepository.insertChapter(chapterUiState.toChapter())
     }
 
-    // migrated
-    private val _uiState = MutableStateFlow(DetoxRankUiState())
+    private val _progressBarProgression = mutableStateOf(0f)
     private val _currentChapterScreenNum = mutableStateOf(0)
     val currentChapterScreenNum: MutableState<Int>
         get() = _currentChapterScreenNum
@@ -59,7 +50,6 @@ class TheoryViewModel(
     private val _currentChapterName = mutableStateOf("")
     val currentChapterName: MutableState<String>
         get() = _currentChapterName
-//    val uiState: StateFlow<DetoxRankUiState> = _uiState.asStateFlow()
 
     fun setCurrentChapterName(name: String) {
         _currentChapterName.value = name
@@ -67,9 +57,8 @@ class TheoryViewModel(
     fun getChapterByName(name: String) = chaptersRepository.getChapterByName(name)
 
     suspend fun setCurrentChapterScreenNum() {
-        getChapterByName(_currentChapterName.value).collect {
-            _currentChapterScreenNum.value = it?.screenNum ?: 0
-        }
+        val chapter = getChapterByName(_currentChapterName.value).first()
+        _currentChapterScreenNum.value = chapter?.screenNum ?: 0
     }
 
     fun setChapterCompletionValue(chapter: Chapter?) {
@@ -81,28 +70,19 @@ class TheoryViewModel(
     }
 
     fun getProgressBarValue(): Float {
-        return _uiState.value.progressBarProgression
+        return _progressBarProgression.value
     }
 
     fun updateProgressBarProgression(valueToAdd: Float) {
-        val progression = getProgressBarValue() + valueToAdd
-        _uiState.update {
-            it.copy(
-                progressBarProgression = progression
-            )
-        }
+        _progressBarProgression.value += valueToAdd
     }
 
     fun resetProgressBarProgression() {
-        _uiState.update {
-            it.copy(
-                progressBarProgression = 0f
-            )
-        }
+        _progressBarProgression.value = 0f
     }
 
     fun calculateProgressBarAddition(screenNum: Int): Float =
-        if (screenNum != 0)
+        if (screenNum > 1)
             (1 / (screenNum - 1).toFloat())
         else 0f
 }

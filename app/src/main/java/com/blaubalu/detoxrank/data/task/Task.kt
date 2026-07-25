@@ -59,5 +59,11 @@ data class Task(
     @ColumnInfo(name = "special_task_id")
     val specialTaskID: Int = 0,
     @ColumnInfo(name = "was_selected_last_time")
-    val wasSelectedLastTime: Boolean = false
+    val wasSelectedLastTime: Boolean = false,
+    /** when the task was last picked into the current selection; drives LRU rotation */
+    @ColumnInfo(name = "last_selected_time", defaultValue = "0")
+    val lastSelectedTime: Long = 0,
+    /** display slot inherited from a refreshed task; 0 = fall back to id order */
+    @ColumnInfo(name = "sort_order", defaultValue = "0")
+    val sortOrder: Int = 0
 )

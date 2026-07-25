@@ -6,14 +6,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.TimerDifficulty
 import com.blaubalu.detoxrank.data.achievements.AchievementRepository
+import com.blaubalu.detoxrank.data.billing.PromoCodes
+import com.blaubalu.detoxrank.data.billing.ThemeBilling
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.data.task.TasksRepository
 import com.blaubalu.detoxrank.data.user.Rank
+import com.blaubalu.detoxrank.data.user.UiTheme
 import com.blaubalu.detoxrank.data.user.UserDataRepository
 import com.blaubalu.detoxrank.ui.utils.Constants
 import com.blaubalu.detoxrank.ui.utils.Constants.BRONZE_III_LOWER_CAP
@@ -52,8 +54,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
 import java.util.Calendar
+import com.blaubalu.detoxrank.ui.utils.PopupManager
+import com.blaubalu.detoxrank.ui.utils.getCurrentLevelFromXP
+import com.blaubalu.detoxrank.ui.utils.getCurrentLevelFromXP
+import com.blaubalu.detoxrank.R
+import androidx.core.content.edit
 
 /**
  * View Model for the main app. Handles task refreshes and rank icons with rank points.
@@ -76,7 +82,16 @@ class DetoxRankViewModel(
     private val _userDataUiState = MutableStateFlow(UserDataUiState())
     val userDataUiState: StateFlow<UserDataUiState> = _userDataUiState.asStateFlow()
 
+    init {
+        userDataRepository.getUserStream()
+            .onEach { user ->
+                _userDataUiState.update { user.toUserDataUiState() }
+            }
+            .launchIn(viewModelScope)
+    }
+
     var achievementUiState by mutableStateOf(AchievementUiState())
+
         private set
 
     /**
@@ -161,8 +176,28 @@ class DetoxRankViewModel(
         }
     }
 
+    /** number of freshly added catalog tasks to announce, 0 = nothing to show */
+    val newCatalogTasksCount = mutableStateOf(0)
+
+    fun dismissNewCatalogTasks() {
+        newCatalogTasksCount.value = 0
+    }
+
     suspend fun firstRunGetTasks() {
         val firstRun = sharedPrefs.getBoolean("first_run", true)
+        // catalog sync: new tasks are always added; existing users get an
+        // announcement dialog, fresh installs seed silently
+        if (sharedPrefs.getInt("task_catalog_version", 0) < Constants.TASK_CATALOG_VERSION) {
+            tasksRepository.applyCatalogRenames()
+            val missing = tasksRepository.countMissingCatalogTasks()
+            if (missing > 0) {
+                tasksRepository.insertMissingCatalogTasks()
+                if (!firstRun) {
+                    newCatalogTasksCount.value = missing
+                }
+            }
+            sharedPrefs.edit { putInt("task_catalog_version", Constants.TASK_CATALOG_VERSION) }
+        }
         if (firstRun) {
             getNewTasksWithoutProgress(TaskDurationCategory.Daily, Constants.NUMBER_OF_TASKS_DAILY)
             getNewTasksWithoutProgress(
@@ -179,7 +214,7 @@ class DetoxRankViewModel(
                 userDataRepository.updateMonthlyTasksLastRefreshTime(System.currentTimeMillis())
                 addTaskRefreshes(5)
             }
-            sharedPrefs.edit().putBoolean("first_run", false).apply()
+            sharedPrefs.edit { putBoolean("first_run", false) }
         }
     }
 
@@ -248,7 +283,7 @@ class DetoxRankViewModel(
 
         val isFromYesterday = currYear > yearDaily || (currYear == yearDaily && currDayOfYear > day)
         val isFromLastWeek =
-            currYear > yearDaily || (currYear == yearWeekly && currWeekOfYear > week)
+            currYear > yearWeekly || (currYear == yearWeekly && currWeekOfYear > week)
         val isFromLastMonth =
             currYear > yearMonthly || (currYear == yearMonthly && currMonth > month)
 
@@ -277,21 +312,61 @@ class DetoxRankViewModel(
     }
 
     suspend fun updateUserRankPoints(toAdd: Int) {
+        // Get current rank before update
+        val currentRankPoints = userDataRepository.getUserStream().first().rankPoints
+        val oldRankInfo = getCurrentRank(currentRankPoints)
+        val oldRank = oldRankInfo.first
+        
+        // Update rank points
         withContext(Dispatchers.IO) {
             userDataRepository.updateRankPoints(toAdd)
+        }
+        
+        // Check if rank changed
+        val newRankPoints = currentRankPoints + toAdd
+        val newRankInfo = getCurrentRank(newRankPoints)
+        val newRank = newRankInfo.first
+        
+        if (newRank != oldRank && toAdd > 0) {
+            // Rank up! Show popup
+            val rankIcon = getRankDrawableId(newRank)
+            PopupManager.showRankUp(newRank, rankIcon)
+        }
+    }
+    
+    /**
+     * Returns drawable ID of a rank
+     */
+    private fun getRankDrawableId(rank: Rank): Int {
+        return when (rank) {
+            Rank.Bronze1 -> R.drawable.bronze1
+            Rank.Bronze2 -> R.drawable.bronze2
+            Rank.Bronze3 -> R.drawable.bronze3
+            Rank.Silver1 -> R.drawable.silver1
+            Rank.Silver2 -> R.drawable.silver2
+            Rank.Silver3 -> R.drawable.silver3
+            Rank.Gold1 -> R.drawable.gold1
+            Rank.Gold2 -> R.drawable.gold2
+            Rank.Gold3 -> R.drawable.gold3
+            Rank.Platinum1 -> R.drawable.plat1
+            Rank.Platinum2 -> R.drawable.plat2
+            Rank.Platinum3 -> R.drawable.plat3
+            Rank.Diamond1 -> R.drawable.diamond1
+            Rank.Diamond2 -> R.drawable.diamond2
+            Rank.Diamond3 -> R.drawable.diamond3
+            Rank.Master -> R.drawable.master
+            Rank.Legend -> R.drawable.legend
         }
     }
 
     suspend fun completeAchievement(achievementId: Int) {
-        achievementRepository.getAchievementById(achievementId).collect { achievement ->
-            if (achievement != null && !achievement.achieved)
-                achievementRepository.update(achievement.copy(achieved = true))
+        val achievement = achievementRepository.getAchievementById(achievementId).first()
+        if (achievement != null && !achievement.achieved) {
+            achievementRepository.update(achievement.copy(achieved = true))
+            PopupManager.showAchievement(achievement.name, achievement.description, achievement.id)
         }
     }
 
-    suspend fun getUserXPPoints(): Int {
-        return userDataRepository.getUserStream().first().xpPoints
-    }
 
     suspend fun getAvailableTaskRefreshes(): Int {
         return userDataRepository.getUserStream().first().availableTaskRefreshes
@@ -371,6 +446,90 @@ class DetoxRankViewModel(
         }
     }
 
+    fun selectTheme(theme: UiTheme) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDataRepository.updateSelectedTheme(theme)
+            }
+        }
+    }
+
+    /** Credits coins earned from a rewarded ad */
+    fun addCoins(amount: Int) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDataRepository.updateCoins(amount)
+            }
+        }
+    }
+
+    /**
+     * Redeems a promo code: VIP codes unlock every theme outright, the
+     * Legend code only for players at the Legend rank and max level.
+     * [onResult] receives a user-facing message.
+     */
+    fun redeemPromoCode(code: String, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val message = withContext(Dispatchers.IO) {
+                val type = PromoCodes.classify(code)
+                if (type == PromoCodes.CodeType.INVALID) {
+                    return@withContext "Invalid code"
+                }
+                if (PromoCodes.wasRedeemed(code)) {
+                    return@withContext "This code was already redeemed on this device"
+                }
+                val user = userDataRepository.getUserStream().first()
+                if (type == PromoCodes.CodeType.LEGEND) {
+                    val rank = getCurrentRank(user.rankPoints).first
+                    val level = getCurrentLevelFromXP(user.xpPoints)
+                    if (rank != Rank.Legend || level < Constants.MAX_LEVEL) {
+                        return@withContext "Only true Legends at level " +
+                                "${Constants.MAX_LEVEL} can redeem this code"
+                    }
+                }
+                val owned = user.purchasedThemes
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .toMutableSet()
+                if (owned.add("ALL")) {
+                    userDataRepository.updatePurchasedThemes(owned.joinToString(","))
+                }
+                PromoCodes.markRedeemed(code)
+                PopupManager.showCodeRedeemed()
+                "Code accepted — every theme is yours!"
+            }
+            onResult(message)
+        }
+    }
+
+    /**
+     * Unlocks a premium theme for its coin price (mirrors the cash price),
+     * if the balance covers it
+     */
+    fun buyThemeWithCoins(theme: UiTheme) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val cost = ThemeBilling.coinCostFor(theme)
+                val user = userDataRepository.getUserStream().first()
+                if (user.coins < cost) return@withContext
+                val owned = user.purchasedThemes
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .toMutableSet()
+                if (owned.add(theme.name)) {
+                    userDataRepository.updateCoins(-cost)
+                    userDataRepository.updatePurchasedThemes(owned.joinToString(","))
+                    PopupManager.showThemeUnlock(theme.name)
+                }
+            }
+        }
+    }
+
+
+
+
     suspend fun addTaskRefreshes(refreshesToAdd: Int) {
         val user = userDataRepository.getUserStream().first()
         val refreshesAfter = minOf(user.availableTaskRefreshes + refreshesToAdd, 10)
@@ -386,6 +545,8 @@ class DetoxRankViewModel(
      * @return false - if there are no available task refreshes
      */
     suspend fun decrementTaskRefreshes(): Boolean {
+        // testing mode: refresh away without burning through the stock
+        if (Constants.ALL_THEMES_UNLOCKED_FOR_TESTING) return true
         val user = userDataRepository.getUserStream().first()
         if (user.availableTaskRefreshes <= 0) {
             return false

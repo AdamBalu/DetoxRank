@@ -1,15 +1,20 @@
 package com.blaubalu.detoxrank.ui.theory.screens
 
+import androidx.compose.material3.MaterialTheme
+
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Grade
 import androidx.compose.material.icons.twotone.DoneOutline
@@ -26,13 +31,10 @@ import com.blaubalu.detoxrank.data.chapter.Chapter
 import com.blaubalu.detoxrank.data.chapter.ChapterDifficulty
 import com.blaubalu.detoxrank.data.chapter.ChapterTag
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
-import com.blaubalu.detoxrank.ui.theme.md_theme_dark_tertiary
-import com.blaubalu.detoxrank.ui.theme.md_theme_light_tertiary
+import com.blaubalu.detoxrank.ui.LocalSectionSlideDirection
 import com.blaubalu.detoxrank.ui.theme.rank_color
 import com.blaubalu.detoxrank.ui.theme.*
 import com.blaubalu.detoxrank.ui.theory.TheoryViewModel
-import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.Constants.CHAPTER_DIFFICULTY_EASY_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.CHAPTER_DIFFICULTY_EASY_XP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.CHAPTER_DIFFICULTY_HARD_RP_GAIN
@@ -63,6 +65,15 @@ fun TheoryChapterSelectScreen(
     modifier: Modifier = Modifier
 ) {
     val theoryUiState by theoryViewModel.theoryHomeUiState.collectAsState()
+    // chapters load async: slide them in from the navigation direction once
+    // ready, so a late load still matches the unified section motion
+    val slideDirection = LocalSectionSlideDirection.current
+    AnimatedVisibility(
+        visible = theoryUiState.chapterList.isNotEmpty(),
+        enter = slideInHorizontally(
+            animationSpec = tween(320, easing = FastOutSlowInEasing)
+        ) { fullWidth -> slideDirection * fullWidth / 3 } + fadeIn(animationSpec = tween(260))
+    ) {
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
@@ -76,19 +87,18 @@ fun TheoryChapterSelectScreen(
                 ChapterTag.HedonicCircuit -> onCHHedonicCircuitSelected
                 ChapterTag.Solutions -> onCHSolutionSelected
             }
-            AnimationBox(
-                enter = expandHorizontally() + fadeIn()
-            ) {
-                TheoryChapter(
-                    onChapterSelected = chapterButtonBehavior,
-                    theoryViewModel = theoryViewModel,
-                    chapter = chapter
-                )
-            }
+            // no per-chapter entrance: the unified section slide-in is the
+            // only screen-change motion
+            TheoryChapter(
+                onChapterSelected = chapterButtonBehavior,
+                theoryViewModel = theoryViewModel,
+                chapter = chapter
+            )
         }
         item {
             Spacer(modifier = Modifier.height(15.dp))
         }
+    }
     }
 }
 
@@ -102,7 +112,10 @@ fun TheoryChapter(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    val themeStyle = LocalThemeStyle.current
     Card(
+        shape = themeStyle.cardShape ?: CardDefaults.shape,
+        border = themeStyle.cardBorder,
         colors = CardDefaults.cardColors(
             containerColor = if (chapter.wasCompleted) {
                 MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
@@ -132,7 +145,7 @@ fun TheoryChapter(
             ) {
                 Text(
                     text = chapter.name,
-                    style = Typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Icon(
@@ -146,11 +159,11 @@ fun TheoryChapter(
             if (expanded) {
                 Text(
                     text = chapter.description,
-                    style = Typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .padding(bottom = 20.dp)
                 )
-                FilledTonalButton(
+                Button(
                     onClick = {
                         onChapterSelected()
                         theoryViewModel.setCurrentChapterName(chapter.name)
@@ -158,9 +171,11 @@ fun TheoryChapter(
                             theoryViewModel.setCurrentChapterScreenNum()
                         }
                     },
+                    shape = MaterialTheme.shapes.medium,
                     modifier = Modifier
                         .padding(bottom = 16.dp)
                         .fillMaxWidth()
+                        .height(46.dp)
                 ) {
                     Text(text = chapter.startChapterButtonLabel)
                 }
@@ -177,9 +192,9 @@ fun TheoryChapterFooter(
     modifier: Modifier = Modifier
 ) {
     val rankPointsGain = when (chapter.difficulty) {
-        ChapterDifficulty.Easy -> 200
-        ChapterDifficulty.Medium -> 350
-        ChapterDifficulty.Hard -> 500
+        ChapterDifficulty.Easy -> CHAPTER_DIFFICULTY_EASY_RP_GAIN
+        ChapterDifficulty.Medium -> CHAPTER_DIFFICULTY_MEDIUM_RP_GAIN
+        ChapterDifficulty.Hard -> CHAPTER_DIFFICULTY_HARD_RP_GAIN
     }
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -232,7 +247,7 @@ fun TheoryChapterFooter(
             Icon(
                 imageVector = Icons.TwoTone.DoneOutline,
                 contentDescription = null,
-                tint = if (isSystemInDarkTheme()) md_theme_dark_tertiary else md_theme_light_tertiary
+                tint = MaterialTheme.colorScheme.tertiary
             )
         }
     }
@@ -243,28 +258,31 @@ fun ContinueIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedIconButton(
+    FilledIconButton(
         onClick = onClick,
+        shape = MaterialTheme.shapes.large,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 35.dp, start = 16.dp, end = 16.dp, bottom = 25.dp)
             .height(60.dp)
     ) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(R.string.button_continue),
-                style = Typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 letterSpacing = 1.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
+                maxLines = 1
             )
             Icon(
-                imageVector = Icons.Filled.ArrowRight,
+                imageVector = Icons.AutoMirrored.Filled.ArrowRight,
                 contentDescription = null
             )
         }
-
     }
 }
 
@@ -321,7 +339,7 @@ fun CompleteChapterIconButton(
         Row {
             Text(
                 text = stringResource(R.string.button_complete_chapter),
-                style = Typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 letterSpacing = 1.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier

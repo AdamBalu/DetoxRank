@@ -1,7 +1,6 @@
 package com.blaubalu.detoxrank.ui.tasks.home
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,10 +36,6 @@ class TasksHomeViewModel(tasksRepository: TasksRepository) : ViewModel() {
     fun setFirstTimeOpened() {
         _firstTimeOpened.value = false
     }
-
-    private val _availableRefreshes = mutableIntStateOf(0)
-    val availableRefreshes: MutableState<Int>
-        get() = _availableRefreshes
 
     private val _createTaskMenuShown = mutableStateOf(false)
     val createTaskMenuShown: Boolean

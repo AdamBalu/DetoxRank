@@ -23,15 +23,28 @@ interface TaskDao {
     @Query("SELECT * FROM task")
     fun getAllTasks(): Flow<List<Task>>
 
+    /**
+     * Picks the tasks the user has seen the longest ago (random among equally
+     * old ones), so the rotation cycles the whole pool before repeating
+     */
     @Transaction
-    @Query("UPDATE task SET selected = 1 WHERE duration_category = :durationCategory AND id IN (SELECT id FROM task WHERE duration_category = :durationCategory AND was_selected_last_time = 0 AND selected = 0 ORDER BY RANDOM() LIMIT :numberOfTasks)")
+    @Query("UPDATE task SET selected = 1, last_selected_time = :now, sort_order = 0 WHERE duration_category = :durationCategory AND id IN (SELECT id FROM task WHERE duration_category = :durationCategory AND was_selected_last_time = 0 AND selected = 0 ORDER BY last_selected_time ASC, RANDOM() LIMIT :numberOfTasks)")
     suspend fun selectNRandomTasksByDuration(durationCategory: TaskDurationCategory,
-                                             numberOfTasks: Int)
+                                             numberOfTasks: Int,
+                                             now: Long)
+
+    /** Picks one least-recently-seen task into the display slot of a refreshed task */
     @Transaction
-    @Query("UPDATE task SET selected = 0, completed = 0 WHERE duration_category = :durationCategory")
+    @Query("UPDATE task SET selected = 1, last_selected_time = :now, sort_order = :slot WHERE duration_category = :durationCategory AND id IN (SELECT id FROM task WHERE duration_category = :durationCategory AND was_selected_last_time = 0 AND selected = 0 ORDER BY last_selected_time ASC, RANDOM() LIMIT 1)")
+    suspend fun selectReplacementTask(durationCategory: TaskDurationCategory,
+                                      now: Long,
+                                      slot: Int)
+
+    @Transaction
+    @Query("UPDATE task SET selected = 0, completed = 0, sort_order = 0 WHERE duration_category = :durationCategory")
     suspend fun resetTasksFromCategory(durationCategory: TaskDurationCategory)
 
-    @Query("SELECT * FROM task WHERE selected = 1")
+    @Query("SELECT * FROM task WHERE selected = 1 ORDER BY CASE WHEN sort_order = 0 THEN id ELSE sort_order END")
     fun getSelectedTasks(): Flow<List<Task>>
 
     @Query("SELECT COUNT(*) FROM task WHERE duration_category = :taskDurationCategory AND completed = 1")
@@ -50,4 +63,10 @@ interface TaskDao {
     @Transaction
     @Query("UPDATE task SET was_selected_last_time = 0 WHERE duration_category = :taskDurationCategory AND was_selected_last_time = 1")
     fun resetSelectedLastTime(taskDurationCategory: TaskDurationCategory)
+
+    @Query("SELECT COUNT(*) FROM task WHERE description = :description")
+    suspend fun countByDescription(description: String): Int
+
+    @Query("UPDATE task SET description = :newDescription WHERE description = :oldDescription")
+    suspend fun renameTaskDescription(oldDescription: String, newDescription: String)
 }

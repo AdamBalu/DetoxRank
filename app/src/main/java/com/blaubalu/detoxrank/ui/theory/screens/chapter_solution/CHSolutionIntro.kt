@@ -1,7 +1,8 @@
 package com.blaubalu.detoxrank.ui.theory.screens.chapter_solution
 
+import androidx.compose.material3.MaterialTheme
+
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,9 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
-import com.blaubalu.detoxrank.ui.theme.Typography
-import com.blaubalu.detoxrank.ui.theme.md_theme_dark_tertiary
-import com.blaubalu.detoxrank.ui.theme.md_theme_light_tertiary
 import com.blaubalu.detoxrank.ui.theory.TheoryImage
 import com.blaubalu.detoxrank.ui.theory.screens.ContinueIconButton
 
@@ -51,7 +49,7 @@ fun CHSolutionIntroBody(
     modifier: Modifier = Modifier
 ) {
     val boldStyle = SpanStyle(
-        color = if (isSystemInDarkTheme()) md_theme_dark_tertiary else md_theme_light_tertiary,
+        color = MaterialTheme.colorScheme.tertiary,
         fontWeight = FontWeight.Bold
     )
     Text(
@@ -61,7 +59,7 @@ fun CHSolutionIntroBody(
             append(".\n\n")
             append(text = stringResource(id = R.string.chapter_solution_screen_1_pt_2))
         },
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 
     Column(

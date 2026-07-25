@@ -5,11 +5,13 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -45,6 +47,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -57,9 +60,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.data.local.LocalTasksDataProvider
+import com.blaubalu.detoxrank.data.task.Task
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.LocalSectionSlideDirection
+import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankTopAppBar
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
@@ -70,8 +76,6 @@ import com.blaubalu.detoxrank.ui.NavigationItemContent
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
 import com.blaubalu.detoxrank.ui.tasks.task.TaskList
 import com.blaubalu.detoxrank.ui.tasks.task.TaskViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
-import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
 import kotlinx.coroutines.delay
 import java.util.Calendar
@@ -166,6 +170,7 @@ fun TasksContent(
       )
     }
     Scaffold(
+        containerColor = Color.Transparent,
         floatingActionButton = {
           FloatingActionButton(onClick = {
 //                    coroutineScope.launch { // FILLDB uncomment to fill task db
@@ -184,36 +189,33 @@ fun TasksContent(
           }
         },
         topBar = {
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.SpaceBetween
-          ) {
-            DetoxRankTopAppBar(detoxRankViewModel)
-            Row {
-              Icon(
-                  imageVector = Icons.Filled.Refresh,
-                  contentDescription = null,
-                  tint = MaterialTheme.colorScheme.primary,
-                  modifier = modifier.padding(end = 5.dp)
-              )
-              AnimatedContent(
-                  targetState = userDataUiState.availableTaskRefreshes,
-                  transitionSpec = {
-                    expandVertically() + fadeIn() togetherWith
-                        slideOutVertically() + fadeOut()
-                  },
-                  label = ""
-              ) { targetState ->
-                Text(
-                    "$targetState",
-                    fontWeight = FontWeight.Bold,
-                    modifier = modifier.padding(end = 30.dp)
-                )
+          DetoxRankTopAppBar(
+              detoxRankViewModel = detoxRankViewModel,
+              actions = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                      imageVector = Icons.Filled.Refresh,
+                      contentDescription = null,
+                      tint = MaterialTheme.colorScheme.primary,
+                      modifier = Modifier.padding(end = 5.dp)
+                  )
+                  AnimatedContent(
+                      targetState = userDataUiState.availableTaskRefreshes,
+                      transitionSpec = {
+                        expandVertically() + fadeIn() togetherWith
+                            slideOutVertically() + fadeOut()
+                      },
+                      label = ""
+                  ) { targetState ->
+                    Text(
+                        "$targetState",
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 15.dp)
+                    )
+                  }
+                }
               }
-
-            }
-          }
+          )
         },
         bottomBar = {
           if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION)
@@ -243,8 +245,8 @@ fun TasksContent(
                   .padding(start = 6.dp, end = 6.dp)
           )
         }
-        AnimationBox {
-          TaskList(
+        SectionContentEntrance {
+          AnimatedTaskList(
               timerService = timerService,
               taskList = tasksHomeUiState.taskList,
               detoxRankViewModel = detoxRankViewModel,
@@ -274,8 +276,8 @@ fun TasksContent(
                   )
           )
         }
-        AnimationBox {
-          TaskList(
+        SectionContentEntrance {
+          AnimatedTaskList(
               timerService = timerService,
               taskList = tasksHomeUiState.taskList,
               detoxRankViewModel = detoxRankViewModel,
@@ -288,6 +290,37 @@ fun TasksContent(
       }
 
     }
+  }
+}
+
+/**
+ * Task list that plays its entrance animation only once the tasks have
+ * actually loaded — sliding in from the same direction as the section
+ * change, so a late load still matches the unified motion
+ */
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun AnimatedTaskList(
+    timerService: TimerService,
+    taskList: List<Task>,
+    detoxRankViewModel: DetoxRankViewModel,
+    achievementViewModel: AchievementViewModel,
+    modifier: Modifier = Modifier
+) {
+  val direction = LocalSectionSlideDirection.current
+  AnimatedVisibility(
+      visible = taskList.isNotEmpty(),
+      enter = slideInHorizontally(
+          animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
+      ) { fullWidth -> direction * fullWidth / 3 } + fadeIn(animationSpec = tween(durationMillis = 260))
+  ) {
+    TaskList(
+        timerService = timerService,
+        taskList = taskList,
+        detoxRankViewModel = detoxRankViewModel,
+        achievementViewModel = achievementViewModel,
+        modifier = modifier
+    )
   }
 }
 
@@ -355,7 +388,7 @@ fun TasksHeading(
     ) {
       Text(
           text = stringResource(headingRes),
-          style = Typography.bodyLarge,
+          style = MaterialTheme.typography.bodyLarge,
           modifier = Modifier.padding(end = 10.dp),
           fontSize = 22.sp
       )
@@ -385,27 +418,14 @@ fun TaskTimer(
 
     else -> 7 - (dayOfWeekEu - 1)
   }
-  var isVisible by remember { mutableStateOf(false) }
   val hoursRemaining by timerService.hoursDay
   val minutesRemaining by timerService.minutesDay
   val secondsRemaining by timerService.secondsDay
 
   val daysRemainingMonth by timerService.daysMonth
 
-  LaunchedEffect(Unit) {
-    delay(800)
-    isVisible = true
-  }
-
-  AnimatedVisibility(
-      visible = isVisible,
-      enter = fadeIn() + slideInVertically(
-          tween(
-              700,
-              easing = LinearOutSlowInEasing
-          )
-      ) { height -> height / 5 }
-  ) {
+  // no delayed drop-from-top: the labels ride the unified section slide
+  run {
     when (category) {
       TaskDurationCategory.Daily -> {
         Text(
@@ -414,7 +434,7 @@ fun TaskTimer(
                 "${hoursRemaining}h ${minutesRemaining}min ${secondsRemaining}s"
             ),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
       }
 
@@ -427,7 +447,7 @@ fun TaskTimer(
         Text(
             stringResource(id = R.string.tasklist_time_left, formattedTimer),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
       }
 
@@ -440,7 +460,7 @@ fun TaskTimer(
         Text(
             stringResource(id = R.string.tasklist_time_left, formattedTimer),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
         )
       }
 

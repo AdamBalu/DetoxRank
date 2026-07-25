@@ -1,19 +1,28 @@
 package com.blaubalu.detoxrank.ui.timer
 
 import android.content.Context
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,15 +34,17 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material3.Button
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
@@ -47,9 +58,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.inset
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -70,10 +92,12 @@ import com.blaubalu.detoxrank.service.TimerState
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.theme.rank_color
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.theme.rank_color_ultra_dark
 import com.blaubalu.detoxrank.ui.utils.Constants
+import com.blaubalu.detoxrank.ui.utils.Constants.ALL_THEMES_UNLOCKED_FOR_TESTING
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_START_TIMER
 import com.blaubalu.detoxrank.ui.utils.calculateTimerFloatAddition
 import com.blaubalu.detoxrank.ui.utils.calculateTimerRPGain
@@ -86,32 +110,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
-
-/**
- * UI for a single item from the ban list in timer difficulty select
- */
-@Composable
-fun BannedItem(
-  @StringRes item: Int,
-  modifier: Modifier = Modifier
-) {
-  Row(
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    Icon(
-      imageVector = Icons.Filled.ArrowRight,
-      contentDescription = null,
-      modifier = modifier.width(26.dp),
-      tint = MaterialTheme.colorScheme.error
-    )
-    Text(
-      stringResource(item),
-      style = Typography.bodyMedium,
-      fontStyle = FontStyle.Normal,
-      modifier = Modifier.padding(bottom = 4.dp, start = 5.dp, end = 8.dp)
-    )
-  }
-}
 
 @ExperimentalAnimationApi
 @Composable
@@ -240,13 +238,16 @@ fun TimerTimeUnitDigitAnimatedPair(timeUnit: String, color: Color, label: String
       addAnimation().using(SizeTransform(clip = false))
     }, label = label
   ) {
+    // digits follow the theme's display typeface; scaled per theme so wide
+    // fonts (e.g. the pixel or serif ones) still fit three digit groups
     Text(
       text = it,
-      style = TextStyle(
-        fontSize = 55.sp,
-        fontWeight = FontWeight.Bold,
-        color = color,
+      style = MaterialTheme.typography.headlineLarge.copy(
+        fontSize = MaterialTheme.typography.headlineLarge.fontSize *
+                (55f / 40f) * LocalThemeStyle.current.timerDigitScale,
+        color = color
       ),
+      maxLines = 1,
       modifier = Modifier.padding(end = 15.dp)
     )
   }
@@ -336,44 +337,176 @@ fun TimerStartStopButton(
 fun CollectAccumulatedRpButton(
   detoxRankViewModel: DetoxRankViewModel,
   timerService: TimerService,
-  modifier: Modifier
+  modifier: Modifier,
+  onCollected: () -> Unit = {}
 ) {
   val timerRpGain = calculateTimerRPGain(detoxRankViewModel, timerService)
   val coroutineScope = rememberCoroutineScope()
   val scale = remember {
     Animatable(1f)
   }
-  IconButton(
-    onClick = {
-      coroutineScope.launch {
-        scale.animateTo(
-          0.85f,
-          animationSpec = tween(200),
-        )
-        scale.animateTo(
-          1f,
-          animationSpec = tween(200),
-        )
-
-        detoxRankViewModel.updateLastRpGatherTime()
-        detoxRankViewModel.updateUserRankPoints(timerRpGain.toInt())
-      }
-    },
-    enabled = timerRpGain.toInt() > 0,
-    colors = IconButtonDefaults.iconButtonColors(
-      containerColor = MaterialTheme.colorScheme.onPrimary,
-      disabledContainerColor = Color.LightGray
+  // 0 = lid closed, 1 = lid fully open
+  val lidOpen = remember { Animatable(0f) }
+  val chestEnabled = ALL_THEMES_UNLOCKED_FOR_TESTING || timerRpGain.toInt() > 0
+  // breathing glow behind the chest: the "this is tappable loot" signal
+  val glowTransition = rememberInfiniteTransition(label = "")
+  val glowPulse by glowTransition.animateFloat(
+    initialValue = 0.8f,
+    targetValue = 1.15f,
+    animationSpec = infiniteRepeatable(
+      animation = tween(900, easing = FastOutSlowInEasing),
+      repeatMode = RepeatMode.Reverse
     ),
-    modifier = modifier
-      .padding(top = 18.dp)
+    label = ""
+  )
+  val chestColor = if (chestEnabled) {
+    MaterialTheme.colorScheme.onPrimaryContainer
+  } else {
+    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+  }
+  val platformColor = if (chestEnabled) {
+    MaterialTheme.colorScheme.primaryContainer
+  } else {
+    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+  }
+  val platformStroke = if (chestEnabled) {
+    MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
+  } else {
+    Color.Transparent
+  }
+  val glowColor = MaterialTheme.colorScheme.primary
+  Box(
+    contentAlignment = Alignment.Center,
+    modifier = Modifier
+      .padding(top = 8.dp)
       .scale(scale.value)
-      .size(48.dp)
+      .size(64.dp)
   ) {
+    // circular ripple pad UNDER the drawing, so the tap feedback stays round
+    // while the chest itself is never clipped (the open lid swings past it)
+    Box(
+      modifier = Modifier
+        .size(64.dp)
+        .clip(CircleShape)
+        .clickable(enabled = chestEnabled) {
+          onCollected()
+          coroutineScope.launch {
+            scale.animateTo(
+              0.85f,
+              animationSpec = tween(200),
+            )
+            scale.animateTo(
+              1f,
+              animationSpec = tween(200),
+            )
 
-    Image(
-      painter = painterResource(id = R.drawable.store_rp),
-      contentDescription = null,
-      modifier = modifier.size(48.dp)
+            detoxRankViewModel.updateLastRpGatherTime()
+            detoxRankViewModel.updateUserRankPoints(timerRpGain.toInt())
+          }
+          coroutineScope.launch {
+            // lid swings open, waits for the shields to fly in, then snaps shut
+            lidOpen.animateTo(1f, tween(220, easing = FastOutSlowInEasing))
+            delay(800)
+            lidOpen.animateTo(
+              0f,
+              spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium
+              )
+            )
+          }
+        }
+    )
+    Canvas(modifier = Modifier.size(52.dp)) {
+      val w = size.width
+      val h = size.height
+      // pulsing halo while there is something to collect
+      if (chestEnabled) {
+        drawCircle(
+          brush = Brush.radialGradient(
+            colors = listOf(glowColor.copy(alpha = 0.38f * glowPulse), Color.Transparent),
+            center = Offset(w * 0.5f, h * 0.45f),
+            radius = w * 0.62f * glowPulse
+          ),
+          radius = w * 0.62f * glowPulse,
+          center = Offset(w * 0.5f, h * 0.45f)
+        )
+      }
+      // the dais the chest sits on
+      drawOval(
+        color = platformColor,
+        topLeft = Offset(0f, h * 0.80f),
+        size = Size(w, h * 0.18f)
+      )
+      drawOval(
+        color = platformStroke,
+        topLeft = Offset(0f, h * 0.80f),
+        size = Size(w, h * 0.18f),
+        style = Stroke(width = 1.5.dp.toPx())
+      )
+      // the chest itself, resting slightly into the dais
+      inset(left = w * 0.14f, top = h * 0.10f, right = w * 0.14f, bottom = h * 0.14f) {
+        drawChest(open = lidOpen.value, chestColor = chestColor)
+      }
+    }
+  }
+}
+
+/** Draws the treasure chest; [open] 0 = lid closed, 1 = lid fully open */
+private fun DrawScope.drawChest(open: Float, chestColor: Color) {
+  val w = size.width
+  val h = size.height
+
+  // dark opening revealed while the lid is up
+  if (open > 0.05f) {
+    drawRoundRect(
+      color = Color.Black.copy(alpha = 0.45f * open),
+      topLeft = Offset(w * 0.10f, h * 0.40f),
+      size = Size(w * 0.80f, h * 0.18f),
+      cornerRadius = CornerRadius(w * 0.08f, w * 0.08f)
+    )
+  }
+  // chest base
+  drawPath(
+    Path().apply {
+      addRoundRect(
+        RoundRect(
+          rect = Rect(w * 0.04f, h * 0.54f, w * 0.96f, h),
+          bottomLeft = CornerRadius(w * 0.12f, w * 0.12f),
+          bottomRight = CornerRadius(w * 0.12f, w * 0.12f)
+        )
+      )
+    },
+    chestColor
+  )
+  // lid + clasp swing together on a hinge at the lid's bottom-left
+  withTransform({
+    rotate(degrees = -80f * open, pivot = Offset(w * 0.02f, h * 0.46f))
+  }) {
+    // domed lid
+    drawPath(
+      Path().apply {
+        addRoundRect(
+          RoundRect(
+            rect = Rect(0f, 0f, w, h * 0.46f),
+            topLeft = CornerRadius(w * 0.30f, h * 0.42f),
+            topRight = CornerRadius(w * 0.30f, h * 0.42f)
+          )
+        )
+      },
+      chestColor
+    )
+    // clasp bridging the lid gap, with a dark keyhole
+    drawRoundRect(
+      color = chestColor,
+      topLeft = Offset(w * 0.38f, h * 0.34f),
+      size = Size(w * 0.24f, h * 0.38f),
+      cornerRadius = CornerRadius(w * 0.07f, w * 0.07f)
+    )
+    drawCircle(
+      color = Color.Black.copy(alpha = 0.5f),
+      radius = w * 0.055f,
+      center = Offset(w * 0.50f, h * 0.52f)
     )
   }
 }
@@ -402,9 +535,14 @@ fun TimerStartButton(
       }
     }
   }
-  FilledIconButton(
+  val themeStyle = LocalThemeStyle.current
+  Button(
     onClick = { startTimerService() },
-    modifier = Modifier.fillMaxWidth()
+    shape = MaterialTheme.shapes.large,
+    border = themeStyle.cardBorder,
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(52.dp)
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically
@@ -416,7 +554,7 @@ fun TimerStartButton(
       )
       Text(
         text = "Start Detox",
-        style = Typography.bodySmall,
+        style = MaterialTheme.typography.bodySmall,
         fontStyle = FontStyle.Normal,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp,
@@ -428,9 +566,14 @@ fun TimerStartButton(
 
 @Composable
 fun TimerStopButton(handleTimerStopButtonPress: () -> Unit) {
+  val themeStyle = LocalThemeStyle.current
   OutlinedIconButton(
     onClick = { handleTimerStopButtonPress() },
-    modifier = Modifier.fillMaxWidth()
+    shape = MaterialTheme.shapes.large,
+    border = themeStyle.cardBorder ?: IconButtonDefaults.outlinedIconButtonBorder(true),
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(52.dp)
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically
@@ -442,7 +585,7 @@ fun TimerStopButton(handleTimerStopButtonPress: () -> Unit) {
       )
       Text(
         text = "Finish",
-        style = Typography.bodySmall,
+        style = MaterialTheme.typography.bodySmall,
         fontStyle = FontStyle.Normal,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp,
@@ -480,10 +623,28 @@ fun TimerFooter(
       0f
     }
 
-  Column(
+  var collectPulse by remember { mutableStateOf(0) }
+  val shieldAnims = remember { List(4) { Animatable(0f) } }
+  LaunchedEffect(collectPulse) {
+    if (collectPulse > 0) {
+      shieldAnims.forEachIndexed { i, anim ->
+        launch {
+          anim.snapTo(0f)
+          delay(i * 70L)
+          anim.animateTo(1f, tween(durationMillis = 600, easing = FastOutSlowInEasing))
+          anim.snapTo(0f)
+        }
+      }
+    }
+  }
+
+  Box(
     modifier = modifier
       .fillMaxWidth()
-      .graphicsLayer { translationY = timerTranslationY },
+      .graphicsLayer { translationY = timerTranslationY }
+  ) {
+  Column(
+    modifier = Modifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     AccumulatedRp(
@@ -504,18 +665,18 @@ fun TimerFooter(
       ) {
         Text(
           text = "DAY STREAK",
-          style = Typography.bodySmall,
+          style = MaterialTheme.typography.bodySmall,
           fontSize = getParamDependingOnScreenSizeSp(
             p1 = 10.sp,
             p2 = 12.sp,
             p3 = 14.sp,
-            p4 = Typography.bodySmall.fontSize,
-            otherwise = Typography.bodySmall.fontSize
+            p4 = MaterialTheme.typography.bodySmall.fontSize,
+            otherwise = MaterialTheme.typography.bodySmall.fontSize
           )
         )
         Text(
           days,
-          style = Typography.headlineLarge,
+          style = MaterialTheme.typography.headlineLarge,
           textAlign = TextAlign.Center,
           fontSize = getParamDependingOnScreenSizeSp(
             p1 = 23.sp,
@@ -528,19 +689,22 @@ fun TimerFooter(
         )
       }
       if (currentTimerState == TimerState.Started)
-        CollectAccumulatedRpButton(detoxRankViewModel, timerService, modifier)
+        CollectAccumulatedRpButton(
+          detoxRankViewModel, timerService, modifier,
+          onCollected = { collectPulse++ }
+        )
       Column(
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Text(
           text = stringResource(R.string.difficulty),
-          style = Typography.bodySmall,
+          style = MaterialTheme.typography.bodySmall,
           fontSize = getParamDependingOnScreenSizeSp(
             p1 = 10.sp,
             p2 = 12.sp,
             p3 = 14.sp,
-            p4 = Typography.bodySmall.fontSize,
-            otherwise = Typography.bodySmall.fontSize
+            p4 = MaterialTheme.typography.bodySmall.fontSize,
+            otherwise = MaterialTheme.typography.bodySmall.fontSize
           )
         )
         DifficultySelect(
@@ -551,6 +715,23 @@ fun TimerFooter(
         )
       }
     }
+  }
+
+  // shields flying from the accumulated RP down into the collect button
+  shieldAnims.forEachIndexed { i, anim ->
+    val p = anim.value
+    if (p > 0f && p < 1f) {
+      Image(
+        painter = painterResource(id = R.drawable.rank_points_icon),
+        contentDescription = null,
+        modifier = Modifier
+          .align(Alignment.TopCenter)
+          .offset(x = ((i - 1.5f) * 26 * (1f - p)).dp, y = (30 + 105 * p).dp)
+          .size(18.dp)
+          .alpha(1f - p * p)
+      )
+    }
+  }
   }
 }
 
@@ -609,10 +790,10 @@ fun AccumulatedRp(
   ) {
     Text(
       stringResource(R.string.timer_accumulated_points_heading),
-      style = Typography.bodySmall,
+      style = MaterialTheme.typography.bodySmall,
       fontSize = getParamDependingOnScreenSizeSp(
-        10.sp, 12.sp, 14.sp, Typography.bodySmall.fontSize,
-        otherwise = Typography.bodySmall.fontSize
+        10.sp, 12.sp, 14.sp, MaterialTheme.typography.bodySmall.fontSize,
+        otherwise = MaterialTheme.typography.bodySmall.fontSize
       )
     )
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -624,7 +805,7 @@ fun AccumulatedRp(
         Text(
           it,
           modifier = Modifier.padding(top = 5.dp, end = 3.dp),
-          style = Typography.headlineLarge,
+          style = MaterialTheme.typography.headlineLarge,
           letterSpacing = 1.sp,
           fontSize = getParamDependingOnScreenSizeSp(21.sp, 25.sp, 40.sp, 45.sp, 45.sp)
         )
@@ -636,7 +817,7 @@ fun AccumulatedRp(
       ) {
         Text(
           ".$it",
-          style = Typography.headlineSmall,
+          style = MaterialTheme.typography.headlineSmall,
           fontSize = 12.sp,
           modifier = Modifier.padding(end = 4.dp)
         )

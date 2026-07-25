@@ -10,23 +10,27 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardDefaults.cardElevation
 import androidx.compose.material3.CardDefaults.elevatedCardColors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.achievements.AchievementDifficulty
 import com.blaubalu.detoxrank.data.local.LocalAchievementDataProvider
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.theme.common_green
 import com.blaubalu.detoxrank.ui.theme.epic_purple
 import com.blaubalu.detoxrank.ui.theme.legendary_orange
@@ -54,8 +58,8 @@ fun AchievementsScreen(
 
     AnimatedVisibility(
         visible = rankViewModel.achievementsDisplayed.value,
-        enter = slideInVertically(initialOffsetY = { 2 * (it / 2) }, animationSpec = tween(durationMillis = 600)),
-        exit = slideOutVertically(targetOffsetY = {-it * 2}, animationSpec = tween(durationMillis = 600) {x -> -x})
+        enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(durationMillis = 600)),
+        exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(durationMillis = 600))
     ) {
         BackHandler {
             rankViewModel.setAchievementsDisplayed(false)
@@ -78,29 +82,29 @@ fun AchievementsScreen(
 //                ) {
 //                    Text("Fill db")
 //                }
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown,
-                    tint = MaterialTheme.colorScheme.inversePrimary,
-                    contentDescription = null,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
-                        .size(30.dp)
-                        .clickable {
-                            rankViewModel.setAchievementsDisplayed(false)
-                        }
-                )
-                LazyColumn {
-                    item {
-                        Text(
-                            "Achievements",
-                            style = Typography.headlineLarge,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 10.dp, top = 2.dp)
+                        // edge-to-edge (target SDK 36): stay below the status bar
+                        .statusBarsPadding()
+                        .padding(start = 20.dp, end = 12.dp, top = 10.dp, bottom = 4.dp)
+                ) {
+                    Text(
+                        "Achievements",
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                    FilledTonalIconButton(
+                        onClick = { rankViewModel.setAchievementsDisplayed(false) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.close)
                         )
                     }
+                }
+                LazyColumn {
                     items(state.achievementList) { achievement ->
                         val cardBorderColor = when (achievement.difficulty) {
                             AchievementDifficulty.EASY -> common_green
@@ -111,23 +115,43 @@ fun AchievementsScreen(
                             AchievementDifficulty.LEGENDARY -> legendary_orange
                         }
                         Card(
-                            elevation = cardElevation(8.dp),
+                            shape = LocalThemeStyle.current.cardShape ?: CardDefaults.shape,
+                            // tonal separation instead of drop shadows
+                            elevation = cardElevation(0.dp),
                             colors = elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
+                                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
                                 contentColor = MaterialTheme.colorScheme.onSurface
                             ),
                             border = if (achievement.achieved) {
-                                BorderStroke(4.dp, cardBorderColor)
+                                null
                             } else { BorderStroke(2.dp, MaterialTheme.colorScheme.surfaceVariant) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                         ) {
-                            Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(
+                                        if (achievement.achieved) {
+                                            // rarity glow flowing in from the right, fading
+                                            // out before it reaches the icon
+                                            Modifier.background(
+                                                Brush.horizontalGradient(
+                                                    0f to Color.Transparent,
+                                                    0.4f to cardBorderColor.copy(alpha = 0.08f),
+                                                    1f to cardBorderColor.copy(alpha = 0.5f)
+                                                )
+                                            )
+                                        } else Modifier
+                                    )
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 if (!achievement.achieved) {
                                     Box(modifier = Modifier.padding(10.dp)) {
                                         Image(
-                                            painterResource(id = getAchievementDrawableFromId(achievement.id, isSystemInDarkTheme())),
+                                            painterResource(id = getAchievementDrawableFromId(achievement.id, LocalThemeIsDark.current)),
                                             contentDescription = null,
                                             colorFilter = ColorFilter.tint(Color.Gray),
                                             modifier = Modifier.size(80.dp)
@@ -142,7 +166,7 @@ fun AchievementsScreen(
                                 } else {
                                     Box(modifier = Modifier.padding(start = 0.dp, end = 10.dp, bottom = 10.dp, top = 2.dp)) {
                                         Image(
-                                            painterResource(id = getAchievementDrawableFromId(achievement.id, isSystemInDarkTheme())),
+                                            painterResource(id = getAchievementDrawableFromId(achievement.id, LocalThemeIsDark.current)),
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(90.dp)
@@ -151,8 +175,8 @@ fun AchievementsScreen(
                                     }
                                 }
                                 Column(modifier = Modifier.padding(end = 10.dp, bottom = 6.dp, start = 10.dp)) {
-                                    Text(achievement.name, style = Typography.headlineSmall, modifier = Modifier.padding(bottom = 7.dp))
-                                    Text(achievement.description, style = Typography.bodyMedium)
+                                    Text(achievement.name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 7.dp))
+                                    Text(achievement.description, style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
                         }

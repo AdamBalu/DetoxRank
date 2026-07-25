@@ -1,6 +1,37 @@
 package com.blaubalu.detoxrank.ui.utils
 
 object Constants {
+    /**
+     * Testing switch: while true, every theme is selectable regardless of level
+     * or purchases. Set to false to re-enable the level wall + per-theme paywall.
+     */
+    const val ALL_THEMES_UNLOCKED_FOR_TESTING = false
+
+    /**
+     * Testing switch: while true, buy buttons skip Google Play and instantly
+     * "succeed", exercising the full unlock flow (DB write + celebration
+     * popup). Real billing only works once the app and its products exist in
+     * the Play Console and the build is installed through a Play test track.
+     * Set to false to ship.
+     */
+    const val FAKE_BILLING_FOR_TESTING = false
+
+    /**
+     * Coin economy: ~140 coins mirror EUR 1 of a theme's cash price (per-theme
+     * costs live in ThemeBilling.coinCostFor), so a EUR 4 theme is 55 watched
+     * ads — a week of hitting the daily cap. That earns the dev only
+     * ~EUR 1-2 of ad revenue versus the cash price — ads stay the cheaper
+     * route, since a revenue-accurate grind (~200 ads per theme) would
+     * demotivate everyone. The cap sits at the top of the productive range:
+     * per-user ad revenue plateaus after ~5-8 rewarded views a day, so views
+     * beyond that would earn next to nothing anyway.
+     */
+    const val COINS_PER_AD = 10
+    const val MAX_REWARDED_ADS_PER_DAY = 8
+
+    /** bump when LocalTasksDataProvider gains tasks or renames, to re-run the catalog sync */
+    const val TASK_CATALOG_VERSION = 2
+
     const val ACTION_SERVICE_START = "ACTION_SERVICE_START"
     const val ACTION_SERVICE_CANCEL = "ACTION_SERVICE_CANCEL"
 
@@ -145,4 +176,6 @@ object Constants {
     const val LOW_LEVEL_UPPER_CAP = 14
     const val HIGH_LEVEL_LOWER_CAP = 15
     const val HIGH_LEVEL_UPPER_CAP = 25
+
+    const val MAX_LEVEL = 25
 }

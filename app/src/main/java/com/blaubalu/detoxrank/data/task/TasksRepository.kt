@@ -20,7 +20,7 @@ interface TasksRepository {
 
     fun getCompletedTaskNum(taskDurationCategory: TaskDurationCategory): Int
 
-    suspend fun refreshTask(taskDurationCategory: TaskDurationCategory)
+    suspend fun refreshTask(oldTask: Task)
 
     suspend fun getNewTasks(taskDurationCategory: TaskDurationCategory)
 
@@ -43,4 +43,12 @@ interface TasksRepository {
     fun updateTasksSelectedLastTime(taskDurationCategory: TaskDurationCategory, value: Boolean)
 
     suspend fun resetSelectedLastTime(taskDurationCategory: TaskDurationCategory)
+
+    suspend fun syncTaskCatalog()
+
+    suspend fun applyCatalogRenames()
+
+    suspend fun countMissingCatalogTasks(): Int
+
+    suspend fun insertMissingCatalogTasks()
 }

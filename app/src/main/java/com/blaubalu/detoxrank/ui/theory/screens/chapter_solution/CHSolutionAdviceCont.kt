@@ -1,5 +1,7 @@
 package com.blaubalu.detoxrank.ui.theory.screens.chapter_solution
 
+import androidx.compose.material3.MaterialTheme
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theory.TheoryImage
 import com.blaubalu.detoxrank.ui.theory.screens.ContinueIconButton
 
@@ -45,7 +46,7 @@ fun CHSolutionAdviceContBody(
 ) {
     Text(
         text = stringResource(id = R.string.chapter_solution_screen_3_pt_1),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 
     Column(
@@ -59,6 +60,6 @@ fun CHSolutionAdviceContBody(
 
     Text(
         text = stringResource(id = R.string.chapter_solution_screen_3_pt_2),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 }

@@ -2,6 +2,7 @@ package com.blaubalu.detoxrank.data.task
 
 import com.blaubalu.detoxrank.data.TimerDifficulty
 import com.blaubalu.detoxrank.data.achievements.AchievementRepository
+import com.blaubalu.detoxrank.data.local.LocalTasksDataProvider
 import com.blaubalu.detoxrank.data.user.UserDataRepository
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.utils.Constants.DAILY_TASK_RP_GAIN
@@ -21,6 +22,7 @@ import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_10_KM
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_3_KM
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_5_KM
 import com.blaubalu.detoxrank.ui.utils.Constants.ID_RUN_7_KM
+import com.blaubalu.detoxrank.ui.utils.Constants.MONTHLY_TASK_RP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.MONTHLY_TASK_XP_GAIN
 import com.blaubalu.detoxrank.ui.utils.Constants.NUMBER_OF_TASKS_DAILY
 import com.blaubalu.detoxrank.ui.utils.Constants.NUMBER_OF_TASKS_MONTHLY
@@ -58,7 +60,11 @@ class OfflineTasksRepository(
 
     override suspend fun selectNRandomTasksByDuration(durationCategory: TaskDurationCategory,
                                                       numberOfTasks: Int) =
-        taskDao.selectNRandomTasksByDuration(durationCategory, numberOfTasks)
+        taskDao.selectNRandomTasksByDuration(
+            durationCategory,
+            numberOfTasks,
+            System.currentTimeMillis()
+        )
 
     override suspend fun resetTasksFromCategory(durationCategory: TaskDurationCategory) =
         taskDao.resetTasksFromCategory(durationCategory)
@@ -74,11 +80,44 @@ class OfflineTasksRepository(
     override suspend fun resetSelectedLastTime(taskDurationCategory: TaskDurationCategory) =
         taskDao.resetSelectedLastTime(taskDurationCategory)
 
-    override suspend fun refreshTask(
-        taskDurationCategory: TaskDurationCategory
-    ) {
-        selectNRandomTasksByDuration(taskDurationCategory, 1)
-        resetSelectedLastTime(taskDurationCategory)
+    /** Applies the catalog's grammar renames to already-seeded descriptions */
+    override suspend fun applyCatalogRenames() {
+        LocalTasksDataProvider.renamedTasks.forEach { (old, new) ->
+            taskDao.renameTaskDescription(old, new)
+        }
+    }
+
+    override suspend fun countMissingCatalogTasks(): Int =
+        LocalTasksDataProvider.tasks.count { taskDao.countByDescription(it.description) == 0 }
+
+    override suspend fun insertMissingCatalogTasks() {
+        LocalTasksDataProvider.tasks.forEach { task ->
+            if (taskDao.countByDescription(task.description) == 0) {
+                taskDao.insert(task)
+            }
+        }
+    }
+
+    /**
+     * Brings a database fully up to date with the task catalog: grammar
+     * renames plus any missing tasks. Purely additive — user progress is
+     * never touched.
+     */
+    override suspend fun syncTaskCatalog() {
+        applyCatalogRenames()
+        insertMissingCatalogTasks()
+    }
+
+    override suspend fun refreshTask(oldTask: Task) {
+        // the replacement inherits the swiped task's display slot, so it shows
+        // up exactly where the old one was instead of reshuffling the list
+        val slot = if (oldTask.sortOrder != 0) oldTask.sortOrder else oldTask.id
+        taskDao.selectReplacementTask(
+            oldTask.durationCategory,
+            System.currentTimeMillis(),
+            slot
+        )
+        resetSelectedLastTime(oldTask.durationCategory)
     }
 
     override suspend fun getNewTasks(taskDurationCategory: TaskDurationCategory)  {
@@ -113,7 +152,7 @@ class OfflineTasksRepository(
             TaskDurationCategory.Monthly -> {
                 handleTaskRotation(
                     MONTHLY_TASK_XP_GAIN,
-                    MONTHLY_TASK_XP_GAIN,
+                    MONTHLY_TASK_RP_GAIN,
                     NUMBER_OF_TASKS_MONTHLY,
                     TaskDurationCategory.Monthly,
                     completedTasksNum
@@ -157,44 +196,11 @@ class OfflineTasksRepository(
         val taskList = getCompletedTasksByDuration(taskDurationCategory).first()
         taskList.forEach {
             when (it.specialTaskID) {
-                ID_RUN_3_KM -> {
-                    val achievement = achievementRepository.getAchievementById(ID_RUN_3_KM).first()
+                ID_RUN_3_KM, ID_RUN_5_KM, ID_RUN_7_KM, ID_RUN_10_KM -> {
+                    val achievement =
+                        achievementRepository.getAchievementById(it.specialTaskID).first()
                     if ((achievement != null) && !achievement.achieved) {
-                        achievementRepository.update(
-                            achievement = achievement.copy(
-                                achieved = true
-                            )
-                        )
-                    }
-                }
-                ID_RUN_5_KM -> {
-                    val achievement = achievementRepository.getAchievementById(ID_RUN_5_KM).first()
-                    if ((achievement != null) && !achievement.achieved) {
-                        achievementRepository.update(
-                            achievement = achievement.copy(
-                                achieved = true
-                            )
-                        )
-                    }
-                }
-                ID_RUN_7_KM -> {
-                    val achievement = achievementRepository.getAchievementById(ID_RUN_7_KM).first()
-                    if ((achievement != null) && !achievement.achieved) {
-                        achievementRepository.update(
-                            achievement = achievement.copy(
-                                achieved = true
-                            )
-                        )
-                    }
-                }
-                ID_RUN_10_KM -> {
-                    val achievement = achievementRepository.getAchievementById(ID_RUN_10_KM).first()
-                    if ((achievement != null) && !achievement.achieved) {
-                        achievementRepository.update(
-                            achievement = achievement.copy(
-                                achieved = true
-                            )
-                        )
+                        achievementRepository.update(achievement.copy(achieved = true))
                     }
                 }
                 ID_READ_10_PAGES, ID_READ_50_PAGES, ID_READ_100_PAGES, ID_READ_250_PAGES -> {

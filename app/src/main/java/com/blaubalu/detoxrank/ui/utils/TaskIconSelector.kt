@@ -1,6 +1,8 @@
 package com.blaubalu.detoxrank.ui.utils
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.blaubalu.detoxrank.data.task.TaskIconCategory
@@ -12,8 +14,8 @@ fun getIcon(iconCategory: TaskIconCategory): ImageVector {
     return when (iconCategory) {
         TaskIconCategory.Exercise -> Icons.Filled.FitnessCenter
         TaskIconCategory.Health -> Icons.Filled.PersonAdd
-        TaskIconCategory.Running -> Icons.Filled.DirectionsRun
-        TaskIconCategory.Walking -> Icons.Filled.DirectionsWalk
+        TaskIconCategory.Running -> Icons.AutoMirrored.Filled.DirectionsRun
+        TaskIconCategory.Walking -> Icons.AutoMirrored.Filled.DirectionsWalk
         TaskIconCategory.Swimming -> Icons.Filled.Pool
         TaskIconCategory.Meditation -> Icons.Filled.SelfImprovement
         TaskIconCategory.HealthyFood -> Icons.Filled.DinnerDining
@@ -29,6 +31,5 @@ fun getIcon(iconCategory: TaskIconCategory): ImageVector {
         TaskIconCategory.Music -> Icons.Filled.MusicNote
         TaskIconCategory.Sports -> Icons.Filled.SportsBasketball
         TaskIconCategory.Photography -> Icons.Filled.PhotoCamera
-        else -> Icons.Filled.Task
     }
 }

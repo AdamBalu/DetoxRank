@@ -1,7 +1,10 @@
 package com.blaubalu.detoxrank.ui.theory.screens.chapter_introduction
 
+import androidx.compose.material3.MaterialTheme
+
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -17,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theme.md_theme_dark_tertiary
 import com.blaubalu.detoxrank.ui.theme.md_theme_light_tertiary
 import com.blaubalu.detoxrank.ui.theory.TheoryImage
@@ -49,7 +51,7 @@ fun CHIntroIntro(
 fun CHIntroIntroBody(
     modifier: Modifier = Modifier
 ) {
-    val darkTheme = isSystemInDarkTheme()
+    val darkTheme = LocalThemeIsDark.current
     Text(
         buildAnnotatedString {
             append(text = stringResource(id = R.string.chapter_intro_screen_1_pt_1))
@@ -63,7 +65,7 @@ fun CHIntroIntroBody(
             }
             append(text = ".")
         },
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 
     TheoryImage(
@@ -71,6 +73,6 @@ fun CHIntroIntroBody(
     )
     Text(
         text = stringResource(id = R.string.chapter_intro_screen_1_pt_2),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 }

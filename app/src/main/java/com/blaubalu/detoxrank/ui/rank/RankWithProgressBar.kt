@@ -1,13 +1,16 @@
 package com.blaubalu.detoxrank.ui.rank
 
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
@@ -37,7 +39,8 @@ import androidx.compose.ui.unit.sp
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.user.Rank
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
+import com.blaubalu.detoxrank.ui.theme.ThemedProgressBar
 import com.blaubalu.detoxrank.ui.theme.rank_color
 import com.blaubalu.detoxrank.ui.theme.rank_color_shade
 import com.blaubalu.detoxrank.ui.theme.rank_color_ultra_dark
@@ -49,12 +52,18 @@ fun RankWithProgressBar(
     rankViewModel: RankViewModel,
     modifier: Modifier = Modifier
 ) {
-    val animatedProgress = animateFloatAsState(
-        targetValue = detoxRankViewModel.getRankProgressBarValue(),
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-    ).value
-
     val currentRank = detoxRankViewModel.getCurrentRank()
+
+    // restart the fill animation whenever the rank changes, so ranking up fills
+    // the fresh bar upward from zero instead of sliding backwards from ~100%
+    val progressAnim = remember(currentRank) { Animatable(0f) }
+    LaunchedEffect(currentRank, detoxRankViewModel.getRankProgressBarValue()) {
+        progressAnim.animateTo(
+            detoxRankViewModel.getRankProgressBarValue(),
+            ProgressIndicatorDefaults.ProgressAnimationSpec
+        )
+    }
+    val animatedProgress = progressAnim.value
 
     val currentScreenHeight = LocalConfiguration.current.screenHeightDp
 
@@ -77,7 +86,7 @@ fun RankWithProgressBar(
         Text(
             stringResource(R.string.rank_label),
             textAlign = TextAlign.Center,
-            style = Typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Bold,
             fontStyle = FontStyle.Normal,
             color = MaterialTheme.colorScheme.outline,
@@ -86,44 +95,50 @@ fun RankWithProgressBar(
         Text(
             currentRank.rankName,
             textAlign = TextAlign.Center,
-            style = Typography.headlineLarge,
+            style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(bottom = 20.dp)
         )
         Image(
             painterResource(id = getRankDrawableId(currentRank)),
             contentDescription = null,
-            modifier = Modifier.padding(bottom = 25.dp, start = 16.dp, end = 16.dp).fillMaxWidth(rankWidthFraction)
+            modifier = Modifier
+                .padding(bottom = 25.dp, start = 16.dp, end = 16.dp)
+                .fillMaxWidth(rankWidthFraction)
+                .clickable { rankViewModel.setRanksDisplayed(true) }
         )
         Box {
             Text(
                 stringResource(R.string.rank_points_label),
-                style = Typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.align(Alignment.TopCenter),
                 fontStyle = FontStyle.Normal
             )
-            LinearProgressIndicator(
+            val angledBars = LocalThemeStyle.current.angledBars
+            ThemedProgressBar(
                 progress = animatedProgress,
                 color = rank_color,
                 trackColor = rank_color_ultra_dark,
+                angled = angledBars,
+                straightShape = RoundedCornerShape(19.dp),
+                border = BorderStroke(4.dp, rank_color),
                 modifier = Modifier
                     .fillMaxWidth(0.85f)
                     .height(47.dp)
                     .padding(start = 16.dp, end = 16.dp, top = 17.dp)
-                    .clip(RoundedCornerShape(19.dp))
-                    .border(BorderStroke(4.dp, rank_color), RoundedCornerShape(19.dp))
             )
-            LinearProgressIndicator(
+            ThemedProgressBar(
                 progress = animatedProgress - 0.1f,
                 color = rank_color_shade,
                 trackColor = Color.Transparent,
+                angled = angledBars,
+                straightShape = RoundedCornerShape(29.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.75f)
                     .height(31.dp)
                     .padding(start = 30.dp, top = 23.dp)
-                    .clip(RoundedCornerShape(29.dp))
             )
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 AnimationBox(
@@ -167,12 +182,18 @@ fun RankWithProgressBarLarge(
     rankViewModel: RankViewModel,
     modifier: Modifier = Modifier
 ) {
-    val animatedProgress = animateFloatAsState(
-        targetValue = detoxRankViewModel.getRankProgressBarValue(),
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-    ).value
-
     val currentRank = detoxRankViewModel.getCurrentRank()
+
+    // restart the fill animation whenever the rank changes, so ranking up fills
+    // the fresh bar upward from zero instead of sliding backwards from ~100%
+    val progressAnim = remember(currentRank) { Animatable(0f) }
+    LaunchedEffect(currentRank, detoxRankViewModel.getRankProgressBarValue()) {
+        progressAnim.animateTo(
+            detoxRankViewModel.getRankProgressBarValue(),
+            ProgressIndicatorDefaults.ProgressAnimationSpec
+        )
+    }
+    val animatedProgress = progressAnim.value
     val rankImageWidth = minOf(LocalConfiguration.current.screenHeightDp / (2.0), LocalConfiguration.current.screenWidthDp / 2.9).toInt().dp
 
     Column(modifier = modifier.fillMaxWidth().padding(top = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -180,13 +201,16 @@ fun RankWithProgressBarLarge(
             Image(
                 painterResource(id = getRankDrawableId(currentRank)),
                 contentDescription = null,
-                modifier = Modifier.padding(bottom = 5.dp, start = 16.dp, end = 16.dp).width(rankImageWidth)
+                modifier = Modifier
+                    .padding(bottom = 5.dp, start = 16.dp, end = 16.dp)
+                    .width(rankImageWidth)
+                    .clickable { rankViewModel.setRanksDisplayed(true) }
             )
             Column {
                 Text(
                     stringResource(R.string.rank_label),
                     textAlign = TextAlign.Center,
-                    style = Typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold,
                     fontStyle = FontStyle.Normal,
                     color = MaterialTheme.colorScheme.outline,
@@ -195,7 +219,7 @@ fun RankWithProgressBarLarge(
                 Text(
                     currentRank.rankName,
                     textAlign = TextAlign.Center,
-                    style = Typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineLarge,
                     modifier = Modifier.padding(end = 50.dp)
                 )
             }
@@ -204,33 +228,36 @@ fun RankWithProgressBarLarge(
         Box {
             Text(
                 stringResource(R.string.rank_points_label),
-                style = Typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.align(Alignment.TopCenter),
                 fontStyle = FontStyle.Normal
             )
-            LinearProgressIndicator(
+            val angledBars = LocalThemeStyle.current.angledBars
+            ThemedProgressBar(
                 progress = animatedProgress,
                 color = rank_color,
                 trackColor = rank_color_ultra_dark,
+                angled = angledBars,
+                straightShape = RoundedCornerShape(19.dp),
+                border = BorderStroke(4.dp, rank_color),
                 modifier = Modifier
                     .fillMaxWidth(0.75f)
                     .height(47.dp)
                     .padding(start = 16.dp, end = 16.dp, top = 17.dp)
-                    .clip(RoundedCornerShape(19.dp))
-                    .border(BorderStroke(4.dp, rank_color), RoundedCornerShape(19.dp))
             )
-            LinearProgressIndicator(
+            ThemedProgressBar(
                 progress = animatedProgress - 0.1f,
                 color = rank_color_shade,
                 trackColor = Color.Transparent,
+                angled = angledBars,
+                straightShape = RoundedCornerShape(29.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.65f)
                     .height(31.dp)
                     .padding(start = 30.dp, top = 23.dp)
-                    .clip(RoundedCornerShape(29.dp))
             )
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 AnimationBox(

@@ -1,19 +1,21 @@
 package com.blaubalu.detoxrank.ui.theory
 
+import androidx.compose.material3.MaterialTheme
+
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -25,6 +27,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
 import com.blaubalu.detoxrank.ui.NavigationDrawerContent
@@ -34,9 +37,6 @@ import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
 import com.blaubalu.detoxrank.ui.DetoxRankViewModelProvider
 import com.blaubalu.detoxrank.ui.*
-import com.blaubalu.detoxrank.ui.theme.Typography
-import com.blaubalu.detoxrank.ui.theme.md_theme_dark_tertiary
-import com.blaubalu.detoxrank.ui.theme.md_theme_light_tertiary
 import com.blaubalu.detoxrank.ui.theory.screens.chapter_dopamine.*
 import com.blaubalu.detoxrank.ui.theory.screens.chapter_reinforcement.*
 import com.blaubalu.detoxrank.ui.theory.screens.chapter_solution.*
@@ -118,6 +118,7 @@ fun TheoryContent(
             )
         }
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 TheoryAppBar(
                     currentScreen = currentScreen,
@@ -143,15 +144,7 @@ fun TheoryContent(
                 }
             }
         ) { paddingValues ->
-            // keep everything centered when on mobile screen size
-            if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
-                TheoryMainNavigation(
-                    theoryViewModel = theoryViewModel,
-                    detoxRankViewModel = detoxRankViewModel,
-                    navController = navController,
-                    modifier = Modifier.padding(paddingValues)
-                )
-            } else {
+            SectionContentEntrance {
                 TheoryMainNavigation(
                     theoryViewModel = theoryViewModel,
                     detoxRankViewModel = detoxRankViewModel,
@@ -159,7 +152,6 @@ fun TheoryContent(
                     modifier = Modifier.padding(paddingValues)
                 )
             }
-
         }
     }
 }
@@ -176,27 +168,38 @@ fun TheoryImage(
     @StringRes contentDescription: Int? = null,
     @StringRes imageLabel: Int? = null
 ) {
+    val themeStyle = com.blaubalu.detoxrank.ui.theme.LocalThemeStyle.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 20.dp)
     ) {
-        Image(
-            painterResource(id = imageRes),
-            contentDescription = stringResource(contentDescription ?: R.string.empty_message),
-            modifier = Modifier
-                .padding(top = 25.dp, bottom = 12.dp)
-        )
-
-        if (imageLabel != null)
-            Text(
-                text = "Image: " + stringResource(id = imageLabel),
-                style = Typography.bodySmall,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .padding(bottom = 25.dp)
+        // illustrations sit in a themed frame so they feel like part of the page
+        Card(
+            shape = MaterialTheme.shapes.medium,
+            border = themeStyle.cardBorder,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+                contentColor = MaterialTheme.colorScheme.onSurface
             )
-        else
-            Spacer(Modifier.height(25.dp))
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painterResource(id = imageRes),
+                    contentDescription = stringResource(contentDescription ?: R.string.empty_message),
+                    modifier = Modifier.padding(16.dp)
+                )
+                if (imageLabel != null)
+                    Text(
+                        text = stringResource(id = imageLabel),
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                    )
+            }
+        }
     }
 }
 
@@ -234,14 +237,14 @@ fun TheoryAppBar(
             title = {
                 Text(
                     text = stringResource(currentScreen.title),
-                    style = Typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium
                 )
             },
             navigationIcon = {
                 if (canNavigateBack) {
                     IconButton(onClick = navigateUp) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back_button)
                         )
                     }
@@ -251,7 +254,7 @@ fun TheoryAppBar(
         if (currentScreen != TheoryScreen.Chapters)
             LinearProgressIndicator(
                 progress = animatedProgress,
-                color = if (isSystemInDarkTheme()) md_theme_dark_tertiary else md_theme_light_tertiary,
+                color = MaterialTheme.colorScheme.tertiary,
                 modifier = modifier
                     .fillMaxWidth()
                     .height(12.dp)

@@ -38,7 +38,7 @@ class RankViewModel(
         private const val TIMEOUT_MILLIS = 5_000L
     }
 
-    private val _ranksDisplayed = mutableStateOf(true)
+    private val _ranksDisplayed = mutableStateOf(false)
     val ranksDisplayed: MutableState<Boolean>
         get() = _ranksDisplayed
 
@@ -46,20 +46,12 @@ class RankViewModel(
     val achievementsDisplayed: MutableState<Boolean>
         get() = _achievementsDisplayed
 
-    private val _helpDisplayed = mutableStateOf(false)
-    val helpDisplayed: MutableState<Boolean>
-        get() = _helpDisplayed
-
     fun setRanksDisplayed(isDisplayed: Boolean) {
         _ranksDisplayed.value = isDisplayed
     }
 
     fun setAchievementsDisplayed(isDisplayed: Boolean) {
         _achievementsDisplayed.value = isDisplayed
-    }
-
-    fun setHelpDisplayed(isDisplayed: Boolean) {
-        _helpDisplayed.value = isDisplayed
     }
 
     suspend fun setLocalRankPoints() {

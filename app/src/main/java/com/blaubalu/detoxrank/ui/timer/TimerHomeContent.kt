@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.IntOffset
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankTopAppBar
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
@@ -30,7 +32,6 @@ import com.blaubalu.detoxrank.ui.NavigationItemContent
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
-import com.blaubalu.detoxrank.ui.utils.AnimationBox
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
 
 @ExperimentalAnimationApi
@@ -106,6 +107,7 @@ fun TimerContent(
             )
         }
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = { DetoxRankTopAppBar(detoxRankViewModel = detoxRankViewModel) },
             bottomBar = {
                 if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION)
@@ -129,25 +131,27 @@ fun TimerContent(
                     }
             }
         ) { paddingValues ->
-            // keep everything centered when on mobile screen size
-            if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
-                TimerBody(
-                    timerService = timerService,
-                    detoxRankUiState = detoxRankUiState,
-                    timerViewModel = timerViewModel,
-                    detoxRankViewModel = detoxRankViewModel,
-                    achievementViewModel = achievementViewModel,
-                    modifier = Modifier.padding(paddingValues),
-                )
-            } else {
-                TimerBodyLarge(
-                    timerService = timerService,
-                    detoxRankUiState = detoxRankUiState,
-                    achievementViewModel = achievementViewModel,
-                    timerViewModel = timerViewModel,
-                    detoxRankViewModel = detoxRankViewModel,
-                    modifier = Modifier.padding(paddingValues)
-                )
+            SectionContentEntrance {
+                // keep everything centered when on mobile screen size
+                if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
+                    TimerBody(
+                        timerService = timerService,
+                        detoxRankUiState = detoxRankUiState,
+                        timerViewModel = timerViewModel,
+                        detoxRankViewModel = detoxRankViewModel,
+                        achievementViewModel = achievementViewModel,
+                        modifier = Modifier.padding(paddingValues),
+                    )
+                } else {
+                    TimerBodyLarge(
+                        timerService = timerService,
+                        detoxRankUiState = detoxRankUiState,
+                        achievementViewModel = achievementViewModel,
+                        timerViewModel = timerViewModel,
+                        detoxRankViewModel = detoxRankViewModel,
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                }
             }
         }
     }
@@ -179,34 +183,25 @@ fun TimerBody(
             .fillMaxHeight(),
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        AnimationBox(
-            enter = expandHorizontally(animationSpec = tween(durationMillis = 700)) +
-                    fadeIn(animationSpec = tween(durationMillis = 1200))
-        ) {
-            Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.height(320.dp)) {
-                TimerClock(timerService)
-                TimerStartStopButton(
-                    timerService = timerService,
-                    detoxRankViewModel = detoxRankViewModel,
-                    achievementViewModel = achievementViewModel,
-                    modifier = Modifier
-                        .padding(start = 60.dp, end = 60.dp, top = 150.dp)
-                        .align(Alignment.Center)
-                )
-            }
-        }
-        AnimationBox(
-            enter = slideInHorizontally(animationSpec = tween(durationMillis = 700)) + fadeIn(
-                animationSpec = tween(durationMillis = 1200)
-            )
-        ) {
-            TimerFooter(
+        // no internal entrance animations: the unified section slide-in
+        // (SectionContentEntrance) is the only screen-change motion
+        Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.height(320.dp)) {
+            TimerClock(timerService)
+            TimerStartStopButton(
                 timerService = timerService,
-                detoxRankUiState = detoxRankUiState,
                 detoxRankViewModel = detoxRankViewModel,
-                timerViewModel = timerViewModel,
+                achievementViewModel = achievementViewModel,
+                modifier = Modifier
+                    .padding(start = 60.dp, end = 60.dp, top = 150.dp)
+                    .align(Alignment.Center)
             )
         }
+        TimerFooter(
+            timerService = timerService,
+            detoxRankUiState = detoxRankUiState,
+            detoxRankViewModel = detoxRankViewModel,
+            timerViewModel = timerViewModel,
+        )
     }
 }
 
@@ -246,38 +241,31 @@ fun TimerBodyLarge(
             .padding(top = 0.dp, start = 40.dp)
     ) {
         Column {
-            AnimationBox(
-                enter = expandVertically(animationSpec = tween(durationMillis = 700)) +
-                        fadeIn(animationSpec = tween(durationMillis = 1200))
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .graphicsLayer { translationY = timerTranslationY.toFloat() }) {
+                TimerClockLarge(timerService)
+                TimerStartStopButton(
+                    timerService = timerService,
+                    detoxRankViewModel = detoxRankViewModel,
+                    achievementViewModel = achievementViewModel,
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .graphicsLayer { translationY = timerTranslationY.toFloat() }) {
-                    TimerClockLarge(timerService)
-                    TimerStartStopButton(
-                        timerService = timerService,
-                        detoxRankViewModel = detoxRankViewModel,
-                        achievementViewModel = achievementViewModel,
-                        modifier = Modifier
-                            .padding(start = 0.dp, end = 0.dp, top = 130.dp)
-                            .fillMaxWidth(0.5f)
-                            .align(Alignment.Center)
-                    )
-                }
+                        .padding(start = 0.dp, end = 0.dp, top = 130.dp)
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.Center)
+                )
             }
         }
 
-        AnimationBox(enter = slideInVertically { x -> x - 400 } + fadeIn()) {
-            TimerFooterLarge(
-                timerService = timerService,
-                detoxRankUiState = detoxRankUiState,
-                detoxRankViewModel = detoxRankViewModel,
-                timerViewModel = timerViewModel,
-                modifier = Modifier.padding(top = 0.dp)
-            )
-        }
+        TimerFooterLarge(
+            timerService = timerService,
+            detoxRankUiState = detoxRankUiState,
+            detoxRankViewModel = detoxRankViewModel,
+            timerViewModel = timerViewModel,
+            modifier = Modifier.padding(top = 0.dp)
+        )
     }
 }
 

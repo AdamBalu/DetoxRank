@@ -1,7 +1,10 @@
 package com.blaubalu.detoxrank.ui.theory.screens.chapter_solution
 
+import androidx.compose.material3.MaterialTheme
+
+import com.blaubalu.detoxrank.ui.theme.LocalThemeIsDark
+
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.blaubalu.detoxrank.R
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.theory.TheoryImage
 import com.blaubalu.detoxrank.ui.theory.screens.ContinueIconButton
 
@@ -46,7 +48,7 @@ fun CHSolutionAdviceContContBody(
 ) {
     Text(
         text = stringResource(id = R.string.chapter_solution_screen_4_pt_1),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 
     Column(
@@ -54,7 +56,7 @@ fun CHSolutionAdviceContContBody(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TheoryImage(
-            imageRes = if (isSystemInDarkTheme())
+            imageRes = if (LocalThemeIsDark.current)
                 R.drawable.endurance
             else
                 R.drawable.endurance_light
@@ -63,6 +65,6 @@ fun CHSolutionAdviceContContBody(
 
     Text(
         text = stringResource(id = R.string.chapter_solution_screen_4_pt_2),
-        style = Typography.bodyLarge
+        style = MaterialTheme.typography.bodyLarge
     )
 }

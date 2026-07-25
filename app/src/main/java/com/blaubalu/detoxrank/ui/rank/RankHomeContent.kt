@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Help
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -21,6 +23,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.ui.DetoxRankBottomNavigationBar
+import com.blaubalu.detoxrank.ui.SectionContentEntrance
 import com.blaubalu.detoxrank.ui.DetoxRankNavigationRail
 import com.blaubalu.detoxrank.ui.DetoxRankTopAppBar
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
@@ -30,8 +33,9 @@ import com.blaubalu.detoxrank.ui.NavigationDrawerContent
 import com.blaubalu.detoxrank.ui.NavigationItemContent
 import com.blaubalu.detoxrank.data.Section
 import com.blaubalu.detoxrank.ui.*
-import com.blaubalu.detoxrank.ui.theme.Typography
+import com.blaubalu.detoxrank.ui.theme.LocalThemeStyle
 import com.blaubalu.detoxrank.ui.utils.AnimationBox
+import com.blaubalu.detoxrank.ui.utils.AppGuideState
 import com.blaubalu.detoxrank.ui.utils.Constants.LEGEND_LOWER_CAP
 import com.blaubalu.detoxrank.ui.utils.DetoxRankNavigationType
 
@@ -107,40 +111,25 @@ fun RankContent(
       )
     }
     Scaffold(
+      containerColor = Color.Transparent,
       topBar = {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-          DetoxRankTopAppBar(detoxRankViewModel = detoxRankViewModel)
-          Row {
+        DetoxRankTopAppBar(
+          detoxRankViewModel = detoxRankViewModel,
+          actions = {
             IconButton(
-              onClick = { rankViewModel.setRanksDisplayed(true) },
+              onClick = { AppGuideState.start() },
               modifier = Modifier
-                .padding(end = 15.dp)
-                .size(27.dp)
-            ) {
-              Icon(
-                Icons.Filled.Shield,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondaryContainer,
-              )
-            }
-            IconButton(
-              onClick = { rankViewModel.setHelpDisplayed(true) },
-              modifier = Modifier
-                .padding(end = 15.dp)
+                .padding(end = 5.dp)
                 .size(27.dp)
             ) {
               Icon(
                 Icons.AutoMirrored.Rounded.Help,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondaryContainer,
+                tint = MaterialTheme.colorScheme.primary,
               )
             }
           }
-        }
+        )
       },
       bottomBar = {
         if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION)
@@ -152,7 +141,8 @@ fun RankContent(
           )
       }
     ) { paddingValues ->
-      // keep everything centered when on mobile screen size
+      // the section slide is applied inside the bodies so the achievements
+      // handle can keep its own always-from-the-navbar entrance
       if (navigationType == DetoxRankNavigationType.BOTTOM_NAVIGATION) {
         RankMainScreenBody(
           detoxRankViewModel = detoxRankViewModel,
@@ -168,9 +158,28 @@ fun RankContent(
           modifier = Modifier.padding(paddingValues)
         )
       }
-
     }
   }
+}
+
+/**
+ * Loads the rank, its bounds and the rank progress bar percentage into the ui state
+ */
+private suspend fun initRankScreenState(
+  detoxRankViewModel: DetoxRankViewModel,
+  rankViewModel: RankViewModel
+) {
+  rankViewModel.setLocalRankPoints()
+  val rankPoints = detoxRankViewModel.getUserRankPoints()
+  val (currentRank, rankBounds) = detoxRankViewModel.getCurrentRank(rankPoints)
+  rankViewModel.setLocalRankBounds(rankBounds)
+  detoxRankViewModel.setCurrentRank(currentRank)
+  val progressBarPercentage = if (rankPoints >= LEGEND_LOWER_CAP) {
+    1.0f
+  } else {
+    (rankPoints - rankBounds.first).toFloat() / (rankBounds.second + 1 - rankBounds.first)
+  }
+  detoxRankViewModel.setRankProgressBar(progressBarPercentage)
 }
 
 /**
@@ -183,8 +192,6 @@ fun RankMainScreenBody(
   rankViewModel: RankViewModel,
   modifier: Modifier = Modifier
 ) {
-  val coroutineScope = rememberCoroutineScope()
-
   val currentScreenHeight = LocalConfiguration.current.screenHeightDp
   val achievementsPadding = if (currentScreenHeight < 500) 4.dp
   else if (currentScreenHeight < 600) 8.dp
@@ -193,26 +200,7 @@ fun RankMainScreenBody(
   else 15.dp
 
   LaunchedEffect(Unit) {
-    rankViewModel.setLocalRankPoints()
-    val rankPoints = detoxRankViewModel.getUserRankPoints()
-    val currRankPair = detoxRankViewModel.getCurrentRank(rankPoints)
-    val currentRank = currRankPair.first
-    rankViewModel.setLocalRankBounds(currRankPair.second)
-    detoxRankViewModel.setCurrentRank(currentRank)
-    val progressBarPercentage = if (rankPoints >= LEGEND_LOWER_CAP) {
-      1.0f
-    } else {
-      (rankPoints - currRankPair.second.first).toFloat() / (currRankPair.second.second - currRankPair.second.first)
-    }
-    detoxRankViewModel.setRankProgressBar(progressBarPercentage)
-  }
-
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .zIndex(1f)
-  ) {
-    DetoxRankHelp(rankViewModel = rankViewModel)
+    initRankScreenState(detoxRankViewModel, rankViewModel)
   }
 
   Box(
@@ -240,13 +228,15 @@ fun RankMainScreenBody(
     verticalArrangement = Arrangement.SpaceBetween,
     modifier = modifier.fillMaxSize()
   ) {
-    AnimationBox(enter = slideInVertically { x -> x / 40 } + fadeIn()) {
+    SectionContentEntrance {
       RankWithProgressBar(
         detoxRankViewModel = detoxRankViewModel,
         rankViewModel = rankViewModel
       )
     }
 
+    // exception to the directional slide: the achievements handle always
+    // rises from the navbar it tucks under
     AnimationBox(enter = slideInVertically { x -> x / 2 }) {
       Button(
         onClick = {
@@ -255,10 +245,21 @@ fun RankMainScreenBody(
 //                        achievementViewModel.deleteAllAchievementsInDb()
 //                    }
         },
-        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        // themed drawer handle tucked under the nav dock; on Medieval the
+        // battlemented card shape over the masonry dock reads as a castle
+        shape = LocalThemeStyle.current.cardShape ?: MaterialTheme.shapes.extraLarge.let {
+            // mirror the top-start corner so asymmetric themes stay symmetric
+            it.copy(
+              topEnd = it.topStart,
+              bottomStart = CornerSize(0.dp),
+              bottomEnd = CornerSize(0.dp)
+            )
+          },
+        border = LocalThemeStyle.current.cardBorder,
         modifier = Modifier
           .padding(top = 5.dp)
-          .fillMaxWidth(0.75f),
+          .fillMaxWidth(0.75f)
+          .offset(y = 18.dp),
         colors = ButtonDefaults.buttonColors(
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -275,9 +276,9 @@ fun RankMainScreenBody(
             stringResource(R.string.achievements),
             modifier = Modifier.padding(
               top = achievementsPadding,
-              bottom = achievementsPadding + 4.dp
+              bottom = achievementsPadding
             ),
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
           )
           Icon(
             Icons.Filled.KeyboardArrowUp,
@@ -305,26 +306,7 @@ fun RankMainScreenBodyLarge(
   modifier: Modifier = Modifier
 ) {
   LaunchedEffect(Unit) {
-    rankViewModel.setLocalRankPoints()
-    val rankPoints = detoxRankViewModel.getUserRankPoints()
-    val currRankPair = detoxRankViewModel.getCurrentRank(rankPoints)
-    val currentRank = currRankPair.first
-    rankViewModel.setLocalRankBounds(currRankPair.second)
-    detoxRankViewModel.setCurrentRank(currentRank)
-    val progressBarPercentage = if (rankPoints >= LEGEND_LOWER_CAP) {
-      1.0f
-    } else {
-      (rankPoints - currRankPair.second.first).toFloat() / (currRankPair.second.second - currRankPair.second.first)
-    }
-    detoxRankViewModel.setRankProgressBar(progressBarPercentage)
-  }
-
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .zIndex(1f)
-  ) {
-    DetoxRankHelp(rankViewModel = rankViewModel)
+    initRankScreenState(detoxRankViewModel, rankViewModel)
   }
 
   Box(
@@ -352,23 +334,36 @@ fun RankMainScreenBodyLarge(
     verticalArrangement = Arrangement.SpaceBetween,
     modifier = modifier.fillMaxSize()
   ) {
-    AnimationBox(enter = slideInVertically() { x -> x / 40 } + fadeIn()) {
+    SectionContentEntrance {
       RankWithProgressBarLarge(
         detoxRankViewModel = detoxRankViewModel,
         rankViewModel = rankViewModel
       )
     }
 
-    AnimationBox(enter = slideInVertically() { x -> x / 2 }) {
+    // exception to the directional slide: the achievements handle always
+    // rises from the navbar it tucks under
+    AnimationBox(enter = slideInVertically { x -> x / 2 }) {
       Button(
         onClick = {
           rankViewModel.setAchievementsDisplayed(true)
         },
-        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+        // themed drawer handle tucked under the nav dock; on Medieval the
+        // battlemented card shape over the masonry dock reads as a castle
+        shape = LocalThemeStyle.current.cardShape ?: MaterialTheme.shapes.extraLarge.let {
+            // mirror the top-start corner so asymmetric themes stay symmetric
+            it.copy(
+              topEnd = it.topStart,
+              bottomStart = CornerSize(0.dp),
+              bottomEnd = CornerSize(0.dp)
+            )
+          },
+        border = LocalThemeStyle.current.cardBorder,
         modifier = Modifier
           .padding(top = 5.dp)
           .fillMaxWidth(0.55f)
-          .height(50.dp),
+          .height(60.dp)
+          .offset(y = 14.dp),
         colors = ButtonDefaults.buttonColors(
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -384,7 +379,7 @@ fun RankMainScreenBodyLarge(
           Text(
             stringResource(R.string.achievements),
             modifier = Modifier.padding(top = 9.dp, bottom = 5.dp),
-            style = Typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium
           )
           Icon(
             Icons.Filled.KeyboardArrowUp,

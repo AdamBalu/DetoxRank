@@ -23,13 +23,17 @@ import com.blaubalu.detoxrank.data.user.UserDataDao
  */
 @Database(
     entities = [Task::class, Chapter::class, UserData::class, Achievement::class],
-    version = 17,
+    version = 20,
     autoMigrations = [
         AutoMigration(from = 14, to = 15),
         AutoMigration(from = 15, to = 16),
-        AutoMigration(from = 16, to = 17, spec = AppDatabase.MigrationFrom16To17::class)
+        AutoMigration(from = 16, to = 17, spec = AppDatabase.MigrationFrom16To17::class),
+        AutoMigration(from = 17, to = 18),
+        AutoMigration(from = 18, to = 19),
+        AutoMigration(from = 19, to = 20)
     ]
 )
+
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao

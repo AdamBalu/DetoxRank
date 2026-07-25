@@ -28,7 +28,6 @@ import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.service.TimerService
 import com.blaubalu.detoxrank.ui.DetoxRankUiState
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
 import com.blaubalu.detoxrank.ui.utils.calculateTimerFloatAddition
 import com.blaubalu.detoxrank.ui.utils.calculateTimerRPGain
 import com.blaubalu.detoxrank.ui.utils.getParamDependingOnScreenSizeDp
@@ -177,11 +176,11 @@ fun TimerFooterLarge(
         ) {
             Text(
                 text = "DAY STREAK",
-                style = Typography.bodySmall
+                style = MaterialTheme.typography.bodySmall
             )
             Text(
                 days,
-                style = Typography.headlineLarge,
+                style = MaterialTheme.typography.headlineLarge,
                 textAlign = TextAlign.Center,
                 fontSize = getParamDependingOnScreenSizeSpLarge(
                     p1 = 21.sp,
@@ -207,7 +206,7 @@ fun TimerFooterLarge(
         ) {
             Text(
                 text = stringResource(R.string.difficulty),
-                style = Typography.bodySmall
+                style = MaterialTheme.typography.bodySmall
             )
             DifficultySelect(
                 onClick = { timerViewModel.setDifficultySelectShown(true) },

@@ -1,8 +1,8 @@
 package com.blaubalu.detoxrank.ui.tasks.task
 
+import androidx.compose.material3.MaterialTheme
+
 import android.content.Context
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +29,7 @@ import com.blaubalu.detoxrank.R
 import com.blaubalu.detoxrank.data.task.Task
 import com.blaubalu.detoxrank.data.task.TaskDurationCategory
 import com.blaubalu.detoxrank.ui.DetoxRankViewModel
-import com.blaubalu.detoxrank.ui.theme.Typography
+import com.blaubalu.detoxrank.ui.rank.AchievementViewModel
 import com.blaubalu.detoxrank.ui.utils.RankPointsGain
 import com.blaubalu.detoxrank.ui.utils.getIcon
 import com.blaubalu.detoxrank.ui.utils.toastShort
@@ -44,6 +44,7 @@ fun TaskContents(
   task: Task,
   taskViewModel: TaskViewModel,
   detoxRankViewModel: DetoxRankViewModel,
+  achievementViewModel: AchievementViewModel,
   taskToBeEdited: MutableState<Boolean>,
   rankPointsGain: Int,
   isVisible: MutableState<Boolean>,
@@ -70,6 +71,7 @@ fun TaskContents(
       coroutineScope = coroutineScope,
       context = context,
       detoxRankViewModel = detoxRankViewModel,
+      achievementViewModel = achievementViewModel,
       rankPointsGain = rankPointsGain,
       modifier
     )
@@ -84,7 +86,7 @@ private fun Modifier.buildTaskContentModifier(
   val paddingTopBottom = when {
     task.completed -> 2.dp
     taskToBeEdited.value -> 15.dp
-    else -> if (task.completed) 2.dp else 14.dp
+    else -> 14.dp
   }
 
   return this
@@ -99,17 +101,18 @@ private fun Modifier.buildTaskContentModifier(
 
 @Composable
 fun TaskText(
-  visibleState: MutableTransitionState<Boolean>,
+  visible: Boolean,
   fontStyle: FontStyle,
   modifier: Modifier,
   text: String
 ) {
-  AnimatedVisibility(
-    visibleState = visibleState
-  ) {
+  // instant swap on purpose: animating the texts would make both take up space at
+  // once, which briefly inflates the card; the card's animateContentSize handles
+  // the height transition instead
+  if (visible) {
     Text(
       text = text,
-      style = Typography.bodyMedium,
+      style = MaterialTheme.typography.bodyMedium,
       fontSize = 16.sp,
       fontStyle = fontStyle,
       modifier = modifier
@@ -124,14 +127,12 @@ fun TaskTexts(
   modifier: Modifier
 ) {
   TaskText(
-    visibleState = MutableTransitionState(
-      !task.completed && !taskToBeDeleted(
-        task,
-        taskToBeEdited
-      ) && !taskToBeRefreshed(
-        task,
-        taskToBeEdited
-      )
+    visible = !task.completed && !taskToBeDeleted(
+      task,
+      taskToBeEdited
+    ) && !taskToBeRefreshed(
+      task,
+      taskToBeEdited
     ),
     fontStyle = FontStyle.Normal,
     modifier = modifier.padding(bottom = 5.dp, start = 16.dp),
@@ -139,21 +140,21 @@ fun TaskTexts(
   )
 
   TaskText(
-    visibleState = MutableTransitionState(task.completed),
+    visible = task.completed,
     fontStyle = FontStyle.Italic,
     modifier = modifier.padding(start = 38.dp),
     text = stringResource(R.string.task_completed)
   )
 
   TaskText(
-    visibleState = MutableTransitionState(taskToBeDeleted(task, taskToBeEdited)),
+    visible = taskToBeDeleted(task, taskToBeEdited),
     fontStyle = FontStyle.Italic,
     modifier = modifier.padding(start = 38.dp),
     text = stringResource(R.string.task_delete)
   )
 
   TaskText(
-    visibleState = MutableTransitionState(taskToBeRefreshed(task, taskToBeEdited)),
+    visible = taskToBeRefreshed(task, taskToBeEdited),
     fontStyle = FontStyle.Italic,
     modifier = modifier.padding(start = 38.dp),
     text = stringResource(R.string.task_refresh)
@@ -169,6 +170,7 @@ fun TaskHandlingTrailingIcon(
   coroutineScope: CoroutineScope,
   context: Context,
   detoxRankViewModel: DetoxRankViewModel,
+  achievementViewModel: AchievementViewModel,
   rankPointsGain: Int,
   modifier: Modifier
 ) {
@@ -199,6 +201,7 @@ fun TaskHandlingTrailingIcon(
       taskViewModel = taskViewModel,
       coroutineScope = coroutineScope,
       detoxRankViewModel = detoxRankViewModel,
+      achievementViewModel = achievementViewModel,
       rankPointsGain = rankPointsGain
     )
   }
@@ -273,7 +276,7 @@ fun TaskIconRefresh(
                 taskToBeEdited.value = false
                 delay(600)
                 taskViewModel.updateTask()
-                taskViewModel.refreshTask(task.durationCategory)
+                taskViewModel.refreshTask(task)
                 withContext(Dispatchers.Main) {
                   toastShort("Task refreshed", context)
                 }
@@ -325,34 +328,55 @@ fun TaskCheckbox(
   taskViewModel: TaskViewModel,
   coroutineScope: CoroutineScope,
   detoxRankViewModel: DetoxRankViewModel,
+  achievementViewModel: AchievementViewModel,
   rankPointsGain: Int
 ) {
   Checkbox(
     checked = task.completed,
     onCheckedChange = {
-      taskViewModel.updateUiState(
-        task
-          .copy(completed = !task.completed)
-          .toTaskUiState()
-      )
-      coroutineScope.launch {
-        taskViewModel.updateTask()
-      }
-      if (task.durationCategory == TaskDurationCategory.Uncategorized || task.durationCategory == TaskDurationCategory.Special) {
-        coroutineScope.launch {
-          if (task.durationCategory == TaskDurationCategory.Uncategorized) {
-            taskViewModel.deleteTask(task)
-          } else { // special tasks get updated completion parameter
-            taskViewModel.updateUiState(
-              task.copy(
-                completed = true,
-                selectedAsCurrentTask = false
-              ).toTaskUiState()
-            )
-            delay(600)
+      when (task.durationCategory) {
+        TaskDurationCategory.Uncategorized -> {
+          // custom tasks are one-shot: complete, reward and remove
+          if (!task.completed) {
+            coroutineScope.launch {
+              taskViewModel.updateUiState(task.copy(completed = true).toTaskUiState())
+              taskViewModel.updateTask()
+              taskViewModel.deleteTask(task)
+              detoxRankViewModel.updateUserRankPoints(rankPointsGain)
+            }
+          }
+        }
+
+        TaskDurationCategory.Special -> {
+          // special tasks are one-shot as well and also grant their achievement
+          if (!task.completed) {
+            coroutineScope.launch {
+              taskViewModel.updateUiState(task.copy(completed = true).toTaskUiState())
+              taskViewModel.updateTask()
+              taskViewModel.updateUiState(
+                task.copy(
+                  completed = true,
+                  selectedAsCurrentTask = false
+                ).toTaskUiState()
+              )
+              delay(600)
+              taskViewModel.updateTask()
+              achievementViewModel.achieveAchievement(task.specialTaskID)
+              detoxRankViewModel.updateUserRankPoints(rankPointsGain)
+            }
+          }
+        }
+
+        else -> {
+          // daily/weekly/monthly tasks can be toggled freely until they rotate
+          taskViewModel.updateUiState(
+            task
+              .copy(completed = !task.completed)
+              .toTaskUiState()
+          )
+          coroutineScope.launch {
             taskViewModel.updateTask()
           }
-          detoxRankViewModel.updateUserRankPoints(rankPointsGain)
         }
       }
     }

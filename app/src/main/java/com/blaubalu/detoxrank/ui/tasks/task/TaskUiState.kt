@@ -12,7 +12,11 @@ data class TaskUiState(
     val iconCategory: TaskIconCategory = TaskIconCategory.Other,
     val selectedAsCurrentTask: Boolean = false,
     val language: String = "EN",
-    val specialTaskID: Int = 0
+    val specialTaskID: Int = 0,
+    // carried through so a ui-state round trip never wipes them in the db
+    val wasSelectedLastTime: Boolean = false,
+    val lastSelectedTime: Long = 0,
+    val sortOrder: Int = 0
 )
 
 fun TaskUiState.toTask(): Task = Task(
@@ -23,7 +27,10 @@ fun TaskUiState.toTask(): Task = Task(
     iconCategory = iconCategory,
     selectedAsCurrentTask = selectedAsCurrentTask,
     language = language,
-    specialTaskID = specialTaskID
+    specialTaskID = specialTaskID,
+    wasSelectedLastTime = wasSelectedLastTime,
+    lastSelectedTime = lastSelectedTime,
+    sortOrder = sortOrder
 )
 
 fun Task.toTaskUiState(): TaskUiState = TaskUiState(
@@ -34,7 +41,10 @@ fun Task.toTaskUiState(): TaskUiState = TaskUiState(
     iconCategory = iconCategory,
     selectedAsCurrentTask = selectedAsCurrentTask,
     language = language,
-    specialTaskID = specialTaskID
+    specialTaskID = specialTaskID,
+    wasSelectedLastTime = wasSelectedLastTime,
+    lastSelectedTime = lastSelectedTime,
+    sortOrder = sortOrder
 )
 
 fun TaskUiState.isValid(): Boolean = description.isNotBlank()
