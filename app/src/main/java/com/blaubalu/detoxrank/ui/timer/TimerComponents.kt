@@ -214,12 +214,13 @@ fun TimerTimeUnitDigitAnimatedPair(timeUnit: String, color: Color, label: String
       addAnimation().using(SizeTransform(clip = false))
     }, label = label
   ) {
+    // digits follow the theme's display typeface; scaled per theme so wide
+    // fonts (e.g. the pixel one) still fit three digit groups
     Text(
       text = it,
-      style = TextStyle(
-        fontSize = 55.sp,
-        fontWeight = FontWeight.Bold,
-        color = color,
+      style = MaterialTheme.typography.headlineLarge.copy(
+        fontSize = MaterialTheme.typography.headlineLarge.fontSize * (55f / 40f),
+        color = color
       ),
       modifier = Modifier.padding(end = 15.dp)
     )
