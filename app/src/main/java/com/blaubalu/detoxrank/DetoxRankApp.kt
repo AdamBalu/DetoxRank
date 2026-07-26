@@ -46,7 +46,7 @@ class DetoxRankApp: Application() {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .toMutableSet()
-        // the Awesome Supporter grants a permanent all-themes flag so that themes
+        // the Supporter grants a permanent all-themes flag so that themes
         // added in future updates unlock automatically
         if (bundleTitle != null && themes.isEmpty()) {
             if (owned.add("ALL")) {

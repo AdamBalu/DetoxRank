@@ -53,14 +53,8 @@ class AchievementViewModel(
             ch4?.achieved == true &&
             ch5?.achieved == true &&
             ch6?.achieved == true) {
-            val achievement = achievementRepository.getAchievementById(ID_FINISH_ALL_CH).first()
-            if ((achievement != null) && !achievement.achieved) {
-                achievementRepository.update(
-                    achievement = achievement.copy(
-                        achieved = true
-                    )
-                )
-            }
+            // route through the wrapper so it enqueues its popup like every other one
+            achieveAchievement(ID_FINISH_ALL_CH)
         }
     }
 

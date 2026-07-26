@@ -32,7 +32,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -81,8 +84,17 @@ fun CelebrationOverlay(
     systemBarPadding: PaddingValues,
     onDismiss: () -> Unit
 ) {
+    // a brief grace period after each popup appears: stops a lingering or rapid
+    // tap from cascading through the queue and skipping the next celebration's
+    // entrance animation before it's even seen
+    var dismissable by remember(popup) { mutableStateOf(false) }
+    LaunchedEffect(popup) {
+        delay(450)
+        dismissable = true
+    }
+    val guardedDismiss: () -> Unit = { if (dismissable) onDismiss() }
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = guardedDismiss,
         properties = DialogProperties(
             dismissOnBackPress = true,
             dismissOnClickOutside = true,
@@ -120,7 +132,7 @@ fun CelebrationOverlay(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
-                        ) { onDismiss() }
+                        ) { guardedDismiss() }
                         .padding(systemBarPadding)
                         .padding(horizontal = 32.dp, vertical = 16.dp)
                 ) {

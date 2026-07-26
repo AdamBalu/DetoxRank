@@ -3,6 +3,7 @@ package com.blaubalu.detoxrank.ui.timer
 import android.content.Context
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,6 +58,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -232,27 +236,58 @@ fun TimerClock(
 @ExperimentalAnimationApi
 @Composable
 fun TimerTimeUnitDigitAnimatedPair(timeUnit: String, color: Color, label: String = "") {
-  AnimatedContent(
-    targetState = timeUnit,
-    transitionSpec = {
-      addAnimation().using(SizeTransform(clip = false))
-    }, label = label
-  ) {
-    // digits follow the theme's display typeface; scaled per theme so wide
-    // fonts (e.g. the pixel or serif ones) still fit three digit groups
-    Text(
-      text = it,
-      style = MaterialTheme.typography.headlineLarge.copy(
-        fontSize = MaterialTheme.typography.headlineLarge.fontSize *
-                (55f / 40f) * LocalThemeStyle.current.timerDigitScale,
-        color = color,
-        // tabular figures: every digit gets the same advance width, so the
-        // group doesn't slide sideways as the digits tick over
-        fontFeatureSettings = "tnum"
-      ),
-      maxLines = 1,
-      modifier = Modifier.padding(end = 15.dp)
-    )
+  // digits follow the theme's display typeface; scaled per theme so wide
+  // fonts (e.g. the pixel or serif ones) still fit three digit groups
+  val style = MaterialTheme.typography.headlineLarge.copy(
+    fontSize = MaterialTheme.typography.headlineLarge.fontSize *
+            (55f / 40f) * LocalThemeStyle.current.timerDigitScale,
+    color = color
+  )
+  // each digit sits in a cell as wide as the widest digit in this font, so the
+  // ticking numbers never shift the centred row sideways — works even for
+  // typefaces that have no tabular figures (tnum), e.g. the ninja theme
+  val measurer = rememberTextMeasurer()
+  val density = LocalDensity.current
+  val cellWidthPx = remember(style) {
+    (0..9).maxOf { measurer.measure(it.toString(), style).size.width }
+  }
+  val cellWidth = with(density) { cellWidthPx.toDp() }
+  // the iconic slide distance (matches the old height/20), measured once
+  val slideOffsetPx = remember(style) { measurer.measure("0", style).size.height / 20f }
+  Row(modifier = Modifier.padding(end = 15.dp)) {
+    timeUnit.forEach { ch ->
+      // fixed slot pins the digit's position; the animated glyph inside is
+      // unbounded and generously padded so nothing clips its slide or the
+      // overhang of a slanted glyph (the clip region is far wider than the cell)
+      Box(modifier = Modifier.width(cellWidth), contentAlignment = Alignment.Center) {
+        AnimatedContent(
+          targetState = ch,
+          modifier = Modifier.wrapContentSize(unbounded = true),
+          // fade at the container (no clip); the slide is a manual graphicsLayer
+          // translation below, since every built-in slide clips-to-bounds
+          transitionSpec = {
+            (fadeIn(animationSpec = tween(durationMillis = 600)) togetherWith
+                    fadeOut(animationSpec = tween(durationMillis = 600)))
+              .using(SizeTransform(clip = false))
+          },
+          label = label
+        ) { c ->
+          val translateY by transition.animateFloat(
+            transitionSpec = { tween(durationMillis = 600) },
+            label = "digitSlide"
+          ) { state -> if (state == EnterExitState.Visible) 0f else slideOffsetPx }
+          Text(
+            text = c.toString(),
+            style = style,
+            maxLines = 1,
+            softWrap = false,
+            modifier = Modifier
+              .graphicsLayer { translationY = translateY }
+              .padding(horizontal = 16.dp)
+          )
+        }
+      }
+    }
   }
 }
 

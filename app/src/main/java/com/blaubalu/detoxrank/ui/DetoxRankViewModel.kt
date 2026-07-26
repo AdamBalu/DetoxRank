@@ -359,11 +359,23 @@ class DetoxRankViewModel(
         }
     }
 
+    private val chapterFinishIds = listOf(
+        Constants.ID_FINISH_CH_1, Constants.ID_FINISH_CH_2, Constants.ID_FINISH_CH_3,
+        Constants.ID_FINISH_CH_4, Constants.ID_FINISH_CH_5, Constants.ID_FINISH_CH_6
+    )
+
     suspend fun completeAchievement(achievementId: Int) {
         val achievement = achievementRepository.getAchievementById(achievementId).first()
         if (achievement != null && !achievement.achieved) {
             achievementRepository.update(achievement.copy(achieved = true))
             PopupManager.showAchievement(achievement.name, achievement.description, achievement.id)
+        }
+        // finishing the last chapter also earns the "all chapters" achievement;
+        // route it through this same wrapper so it pops the moment it's earned
+        if (achievementId in chapterFinishIds && chapterFinishIds.all {
+                achievementRepository.getAchievementById(it).first()?.achieved == true
+            }) {
+            completeAchievement(Constants.ID_FINISH_ALL_CH)
         }
     }
 
@@ -471,7 +483,13 @@ class DetoxRankViewModel(
     fun redeemPromoCode(code: String, onResult: (String) -> Unit) {
         viewModelScope.launch {
             val message = withContext(Dispatchers.IO) {
-                val type = PromoCodes.classify(code)
+                // codes are verified against the live list; if it can't be
+                // reached nothing is redeemable, so a code disabled remotely
+                // can never be used from a stale copy
+                val active = PromoCodes.fetchActiveCodes()
+                    ?: return@withContext "Couldn't verify the code right now — " +
+                            "check your internet connection and try again"
+                val type = PromoCodes.classify(code, active)
                 if (type == PromoCodes.CodeType.INVALID) {
                     return@withContext "Invalid code"
                 }

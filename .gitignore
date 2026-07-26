@@ -3,3 +3,7 @@
 local.properties
 /build
 app/build
+keystore.properties
+*.jks
+*.keystore
+play-product-icons/

@@ -52,24 +52,27 @@ class HandDrawnShape(
 
         val w = size.width
         val h = size.height
+        // the wobble is inset by one jitter unit on every side so the hand-drawn
+        // edge never spills past the card bounds (which clipped the border,
+        // most visibly along the bottom) — the iconic shape is unchanged
         val path = Path().apply {
-            moveTo(r, noise(1) * j)
+            moveTo(r, j + noise(1) * j)
             // top edge
-            quadraticBezierTo(w / 2f, noise(2) * j, w - r, noise(3) * j)
+            quadraticBezierTo(w / 2f, j + noise(2) * j, w - r, j + noise(3) * j)
             // top-right corner
-            quadraticBezierTo(w + noise(4) * j, noise(5) * j, w + noise(6) * j, r)
+            quadraticBezierTo(w - j + noise(4) * j, j + noise(5) * j, w - j + noise(6) * j, r)
             // right edge
-            quadraticBezierTo(w + noise(7) * j, h / 2f, w + noise(8) * j, h - r)
+            quadraticBezierTo(w - j + noise(7) * j, h / 2f, w - j + noise(8) * j, h - r)
             // bottom-right corner
-            quadraticBezierTo(w + noise(9) * j, h + noise(10) * j, w - r, h + noise(11) * j)
+            quadraticBezierTo(w - j + noise(9) * j, h - j + noise(10) * j, w - r, h - j + noise(11) * j)
             // bottom edge
-            quadraticBezierTo(w / 2f, h + noise(12) * j, r, h + noise(13) * j)
+            quadraticBezierTo(w / 2f, h - j + noise(12) * j, r, h - j + noise(13) * j)
             // bottom-left corner
-            quadraticBezierTo(noise(14) * j, h + noise(15) * j, noise(16) * j, h - r)
+            quadraticBezierTo(j + noise(14) * j, h - j + noise(15) * j, j + noise(16) * j, h - r)
             // left edge
-            quadraticBezierTo(noise(17) * j, h / 2f, noise(18) * j, r)
+            quadraticBezierTo(j + noise(17) * j, h / 2f, j + noise(18) * j, r)
             // top-left corner
-            quadraticBezierTo(noise(19) * j, noise(20) * j, r, noise(1) * j)
+            quadraticBezierTo(j + noise(19) * j, j + noise(20) * j, r, j + noise(1) * j)
             close()
         }
         return Outline.Generic(path)

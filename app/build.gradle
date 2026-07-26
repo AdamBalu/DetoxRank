@@ -6,6 +6,13 @@ plugins {
     id 'kotlin-kapt'
 }
 
+// upload-key credentials live in keystore.properties (git-ignored), never in the repo
+def keystorePropsFile = rootProject.file("keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
 android {
     namespace 'com.blaubalu.detoxrank'
     compileSdk 36
@@ -14,7 +21,7 @@ android {
         applicationId "com.blaubalu.detoxrank"
         minSdk 21
         targetSdk 36
-        versionCode 11
+        versionCode 15
         versionName "2.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -28,11 +35,26 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropsFile.exists()) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // only sign when the keystore is configured, so debug builds still work without it
+            if (keystorePropsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 

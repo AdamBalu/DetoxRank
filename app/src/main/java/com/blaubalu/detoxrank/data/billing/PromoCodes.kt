@@ -3,39 +3,41 @@ package com.blaubalu.detoxrank.data.billing
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import java.security.MessageDigest
 
 /**
- * Offline promo codes that unlock every theme, validated against SHA-256
- * hashes so the plaintext codes never ship in the APK.
+ * Promo codes that unlock every theme. Codes are validated against SHA-256
+ * hashes so the plaintext never ships in the APK, and the active set is fetched
+ * live from a remote list so codes can be added or disabled without an app
+ * update.
  *
- * To mint a new code, hash the UPPERCASE trimmed code and add it below —
- * PowerShell:
+ * The list must be reachable to redeem: if the device is offline (or the list
+ * is missing) the fetch fails and no code is accepted. That is deliberate — it
+ * means a code disabled in the list can never be redeemed from a stale copy,
+ * and there is no baked-in fallback set to work around.
+ *
+ * To mint a new code, hash the UPPERCASE trimmed code and add it to the remote
+ * JSON — PowerShell:
  *   $sha=[System.Security.Cryptography.SHA256]::Create()
  *   ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes('MY-NEW-CODE')) |
  *       % { $_.ToString('x2') }) -join ''
  *
- * Without a backend a code can't be tied to one account; hand each person
- * their own code and it's only redeemable once per device.
+ * Without a backend a redemption can't be counted across devices, so a code
+ * works on any number of devices (once each); remove it from the remote list to
+ * retire it.
  */
 object PromoCodes {
 
-    /** codes for the dev and friends: unlock everything, no conditions */
-    private val vipCodeHashes = setOf(
-        "0a55eabd387cd18665f7490c263e159f15c49af7fd86c8e83b419f039a2ec020",
-        "4e16fc169cfda6abc16ec990401e7132b0f8bca8c855abf65f6946ec40c4160c",
-        "fc7b0f7e8aadf4bed5714f9c7fe2e238b56411bd5dc20a957f1eca630da149c1",
-        "eee1decd271a1eada42e6f35ff14013ac1e3a81b3ccdb64a493d4a6f0d026b36",
-        "4ec31086c81316f3e88b317697ce16288e5b69602e92be4e70367a98b42f1c94",
-        "9c22ba4ed9dae9ae0c3330355fe0af90710709024ca69e8cea0da50cb9398864"
-    )
-
-    /** publicly shareable, but only redeems at the Legend rank + max level */
-    private val legendCodeHashes = setOf(
-        "97f0532f3ed228540f8b3fa2844ab49da562ebb97f0bab0724dbbb45f4ffb055"
-    )
+    /** the live code list; editable without republishing the app */
+    private const val REMOTE_URL = "https://adambalu.github.io/detoxrank/promo-codes.json"
 
     enum class CodeType { VIP, LEGEND, INVALID }
+
+    /** the active code hashes from one successful fetch of the remote list */
+    class ActiveCodes(val vipHashes: Set<String>, val legendHashes: Set<String>)
 
     private const val PREFS = "promo_codes"
     private const val KEY_REDEEMED = "redeemed"
@@ -46,9 +48,43 @@ object PromoCodes {
         prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     }
 
-    fun classify(code: String): CodeType = when (hash(code)) {
-        in vipCodeHashes -> CodeType.VIP
-        in legendCodeHashes -> CodeType.LEGEND
+    /**
+     * Fetches the live code list. Blocking, so call off the main thread.
+     * Returns null when the list can't be reached (offline, missing, malformed)
+     * — in which case no code may be redeemed.
+     */
+    fun fetchActiveCodes(): ActiveCodes? {
+        var connection: HttpURLConnection? = null
+        return try {
+            connection = (URL(REMOTE_URL).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 5000
+                readTimeout = 5000
+                requestMethod = "GET"
+            }
+            val body = connection.inputStream.bufferedReader().use { it.readText() }
+            val codes = JSONObject(body).getJSONArray("codes")
+            val vip = mutableSetOf<String>()
+            val legend = mutableSetOf<String>()
+            for (i in 0 until codes.length()) {
+                val entry = codes.getJSONObject(i)
+                val hashHex = entry.getString("hash").trim().lowercase()
+                if (hashHex.isEmpty()) continue
+                when (entry.optString("type", "vip").lowercase()) {
+                    "legend" -> legend.add(hashHex)
+                    else -> vip.add(hashHex)
+                }
+            }
+            ActiveCodes(vip, legend)
+        } catch (e: Exception) {
+            null
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
+    fun classify(code: String, active: ActiveCodes): CodeType = when (hash(code)) {
+        in active.vipHashes -> CodeType.VIP
+        in active.legendHashes -> CodeType.LEGEND
         else -> CodeType.INVALID
     }
 

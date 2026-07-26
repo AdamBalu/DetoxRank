@@ -3,6 +3,7 @@ package com.blaubalu.detoxrank.ui.theme
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,6 +47,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Storefront
@@ -55,6 +58,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.IconButton
@@ -127,8 +131,6 @@ data class ThemeOption(
     val isPremium: Boolean = false,
     /** the theme whose purchase unlocks this one (bundled variants) */
     val purchaseKey: UiTheme = theme,
-    /** human-readable name of the purchase this theme is bundled in */
-    val bundleLabel: String? = null,
     /** unlocked upon reaching this rank */
     val requiredRank: Rank? = null,
     /** unlocked only at the Legend rank */
@@ -246,8 +248,7 @@ val themeOptions = listOf(
         primaryColor = Color(0xFFFF6B35),
         secondaryColor = Color(0xFFFFC15E),
         backgroundColor = Color(0xFF1C0A05),
-        isPremium = true,
-        bundleLabel = "Avatar Bundle"
+        isPremium = true
     ),
     ThemeOption(
         theme = UiTheme.Water,
@@ -255,8 +256,7 @@ val themeOptions = listOf(
         primaryColor = Color(0xFF4DD0E1),
         secondaryColor = Color(0xFF80DEEA),
         backgroundColor = Color(0xFF041F24),
-        isPremium = true,
-        bundleLabel = "Avatar Bundle"
+        isPremium = true
     ),
     ThemeOption(
         theme = UiTheme.Wind,
@@ -264,8 +264,7 @@ val themeOptions = listOf(
         primaryColor = Color(0xFF4A7A8C),
         secondaryColor = Color(0xFF7FA8B8),
         backgroundColor = Color(0xFFF2F7F7),
-        isPremium = true,
-        bundleLabel = "Avatar Bundle"
+        isPremium = true
     ),
     ThemeOption(
         theme = UiTheme.Earth,
@@ -273,8 +272,7 @@ val themeOptions = listOf(
         primaryColor = Color(0xFFC77B4A),
         secondaryColor = Color(0xFF8FA05A),
         backgroundColor = Color(0xFF171208),
-        isPremium = true,
-        bundleLabel = "Avatar Bundle"
+        isPremium = true
     ),
     ThemeOption(
         theme = UiTheme.Avatar,
@@ -282,8 +280,7 @@ val themeOptions = listOf(
         primaryColor = Color(0xFFFF8A50),
         secondaryColor = Color(0xFF55C6D8),
         backgroundColor = Color(0xFF10131A),
-        isPremium = true,
-        bundleLabel = "Avatar Bundle"
+        isPremium = true
     ),
     ThemeOption(
         theme = UiTheme.Princess,
@@ -421,14 +418,42 @@ fun ThemeSelectorSheet(
     onCoinsEarned: (Int) -> Unit,
     onCoinUnlock: (UiTheme) -> Unit,
     onThemeSelected: (UiTheme) -> Unit,
-    onOpenShop: () -> Unit,
+    onRedeemCode: (String, (String) -> Unit) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
+    var showRedeemDialog by remember { mutableStateOf(false) }
+    var showFontCredits by remember { mutableStateOf(false) }
+    var ownedOnly by remember { mutableStateOf(false) }
+    var shopTab by remember { mutableStateOf(ShopTab.Themes) }
     // captured here: dialog windows report zero system-bar insets to their
     // own content, so we pad with the activity-scope insets instead
     val systemBars = WindowInsets.systemBars.asPaddingValues()
+
+    fun buyProduct(productId: String) {
+        val activity = context.findActivity()
+        val launched = activity != null && ThemeBilling.purchaseProduct(activity, productId)
+        if (!launched) toastShort("Google Play is not available right now", context)
+    }
+
+    // resolve each theme's unlocked state up front so the "owned only" filter
+    // and the cards stay in agreement
+    val themeEntries = themeOptions.map { option ->
+        val unlocked = ALL_THEMES_UNLOCKED_FOR_TESTING ||
+                when {
+                    option.requiresMastery -> currentRank == Rank.Legend
+                    option.requiredRank != null ->
+                        currentRank.ordinal >= option.requiredRank.ordinal
+                    option.isPremium ->
+                        purchasedThemes.contains(option.theme) ||
+                                purchasedThemes.contains(option.purchaseKey)
+                    else -> option.requiredLevel <= currentLevel ||
+                            purchasedThemes.contains(option.theme)
+                }
+        option to unlocked
+    }
+    val visibleThemes = if (ownedOnly) themeEntries.filter { it.second } else themeEntries
 
     if (isVisible) {
         Dialog(
@@ -439,84 +464,121 @@ fun ThemeSelectorSheet(
                 color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.fillMaxSize()
             ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    // the dialog decor already insets content below the status bar,
-                    // so only the horizontal margin goes here
-                    .padding(start = 16.dp, end = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                PanelHeader(
-                    title = "Select Theme",
-                    onClose = onDismiss,
-                    modifier = Modifier.padding(top = 8.dp, start = 4.dp)
-                )
-                Text(
-                    text = if (ALL_THEMES_UNLOCKED_FOR_TESTING) {
-                        "All themes unlocked for testing"
-                    } else {
-                        "Level up to unlock themes — or grab a premium one to support the dev!"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
-                )
-                CoinBalanceRow(coins = coins, onCoinsEarned = onCoinsEarned)
-                TextButton(onClick = onOpenShop, modifier = Modifier.padding(bottom = 8.dp)) {
-                    Icon(
-                        imageVector = Icons.Filled.Storefront,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(" Theme Shop", fontWeight = FontWeight.Bold)
-                }
-
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f),
-                    // the grid fills to the screen edge so items scroll naturally;
-                    // a generous bottom inset keeps the last row clear of the nav bar
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
-                        bottom = systemBars.calculateBottomPadding() + 56.dp
+                        start = 16.dp,
+                        end = 16.dp,
+                        // the dialog decor insets below the status bar already; only
+                        // the nav bar (drawn behind the content) needs clearance
+                        top = 8.dp,
+                        bottom = systemBars.calculateBottomPadding() + 40.dp
                     )
                 ) {
-                    items(themeOptions) { option ->
-                        val isUnlocked = ALL_THEMES_UNLOCKED_FOR_TESTING ||
-                                when {
-                                    option.requiresMastery -> currentRank == Rank.Legend
-
-                                    option.requiredRank != null ->
-                                        currentRank.ordinal >= option.requiredRank.ordinal
-
-                                    option.isPremium ->
-                                        purchasedThemes.contains(option.theme) ||
-                                                purchasedThemes.contains(option.purchaseKey)
-
-                                    else -> option.requiredLevel <= currentLevel ||
-                                            purchasedThemes.contains(option.theme)
+                    item(span = { GridItemSpan(2) }) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            PanelHeader(
+                                title = "Themes",
+                                onClose = onDismiss,
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
+                            ShopTabs(
+                                selected = shopTab,
+                                onSelect = { shopTab = it },
+                                modifier = Modifier.padding(top = 6.dp)
+                            )
+                            // coins spend on themes only; the bundles tab stays
+                            // money-focused with a short pitch in place of the wallet
+                            if (shopTab == ShopTab.Themes) {
+                                // wallet on the left, the single catalog filter on the
+                                // right — one tidy toolbar instead of stacked controls
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 12.dp, start = 4.dp, end = 4.dp)
+                                ) {
+                                    CoinBalanceRow(coins = coins, onCoinsEarned = onCoinsEarned)
+                                    FilterChip(
+                                        selected = ownedOnly,
+                                        onClick = { ownedOnly = !ownedOnly },
+                                        label = { Text("Owned only") },
+                                        leadingIcon = if (ownedOnly) {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Check,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        } else null
+                                    )
                                 }
-
-                        ThemeCard(
-                            option = option,
-                            isSelected = currentTheme == option.theme,
-                            isUnlocked = isUnlocked,
-                            onClick = {
-                                if (isUnlocked) {
-                                    onThemeSelected(option.theme)
-                                } else {
-                                    // locked: show a live preview with the unlock action
-                                    previewOption = option
-                                }
+                            } else {
+                                Text(
+                                    text = "Save on a set, or unlock everything",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(top = 10.dp)
+                                )
                             }
-                        )
+                        }
+                    }
+
+                    if (shopTab == ShopTab.Themes) {
+                        items(visibleThemes) { (option, isUnlocked) ->
+                            ThemeCard(
+                                option = option,
+                                isSelected = currentTheme == option.theme,
+                                isUnlocked = isUnlocked,
+                                onClick = {
+                                    if (isUnlocked) {
+                                        onThemeSelected(option.theme)
+                                    } else {
+                                        // locked: show a live preview with the unlock action
+                                        previewOption = option
+                                    }
+                                }
+                            )
+                        }
+                    } else {
+                        items(
+                            items = ThemeBilling.themeBundles,
+                            span = { GridItemSpan(2) }
+                        ) { bundle ->
+                            ThemeBundleCard(bundle = bundle, onBuy = ::buyProduct)
+                        }
+                    }
+
+                    // utility links live at the foot of both tabs, on one quiet line
+                    item(span = { GridItemSpan(2) }) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 20.dp)
+                        ) {
+                            ShopFooterLink(text = "Redeem code") { showRedeemDialog = true }
+                            ShopFooterDot()
+                            // EEA users must be able to revisit their ad consent choice
+                            if (AdsConsentManager.privacyOptionsRequired.value) {
+                                ShopFooterLink(text = "Ad privacy") {
+                                    context.findActivity()?.let {
+                                        AdsConsentManager.showPrivacyOptions(it)
+                                    }
+                                }
+                                ShopFooterDot()
+                            }
+                            ShopFooterLink(text = "Fonts") { showFontCredits = true }
+                        }
                     }
                 }
-
-            }
             }
         }
     }
@@ -545,166 +607,104 @@ fun ThemeSelectorSheet(
             onDismiss = { previewOption = null }
         )
     }
-}
-
-/**
- * The full theme store: curated theme bundles up top, every purchasable theme
- * below; tapping a theme opens its live preview with the buy action
- */
-@Composable
-fun ThemeShopDialog(
-    currentTheme: UiTheme,
-    purchasedThemes: Set<UiTheme>,
-    coins: Int,
-    onCoinsEarned: (Int) -> Unit,
-    onCoinUnlock: (UiTheme) -> Unit,
-    onRedeemCode: (String, (String) -> Unit) -> Unit,
-    onThemeSelected: (UiTheme) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    var previewOption by remember { mutableStateOf<ThemeOption?>(null) }
-    var showRedeemDialog by remember { mutableStateOf(false) }
-    // captured here: dialog windows report zero system-bar insets to their
-    // own content, so we pad with the activity-scope insets instead
-    val systemBars = WindowInsets.systemBars.asPaddingValues()
-
-    fun buyProduct(productId: String) {
-        val activity = context.findActivity()
-        val launched = activity != null && ThemeBilling.purchaseProduct(activity, productId)
-        if (!launched) toastShort("Google Play is not available right now", context)
-    }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    // the dialog decor insets below the status bar already; only the
-                    // nav bar (drawn behind the content) needs explicit clearance
-                    top = 8.dp,
-                    bottom = systemBars.calculateBottomPadding() + 28.dp
-                )
-            ) {
-                item(span = { GridItemSpan(2) }) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        PanelHeader(
-                            title = "Theme Shop",
-                            onClose = onDismiss
-                        )
-                        Text(
-                            text = "Buy themes one by one, or grab a themed bundle — " +
-                                    "thank you for keeping this app alive! 💛",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 6.dp)
-                        )
-                        CoinBalanceRow(coins = coins, onCoinsEarned = onCoinsEarned)
-                        ThemeBilling.themeBundles.forEach { bundle ->
-                            ThemeBundleCard(bundle = bundle, onBuy = ::buyProduct)
-                        }
-                        Text(
-                            text = "Single Themes",
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                        )
-                    }
-                }
-
-                items(themeOptions.filter { it.isPremium }) { option ->
-                    val isUnlocked = purchasedThemes.contains(option.theme) ||
-                            purchasedThemes.contains(option.purchaseKey)
-                    ThemeCard(
-                        option = option,
-                        isSelected = currentTheme == option.theme,
-                        isUnlocked = isUnlocked,
-                        onClick = {
-                            if (isUnlocked) onThemeSelected(option.theme)
-                            else previewOption = option
-                        }
-                    )
-                }
-
-                item(span = { GridItemSpan(2) }) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        TextButton(
-                            onClick = { showRedeemDialog = true },
-                            modifier = Modifier.padding(top = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Redeem,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = " Redeem promo code",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        // EEA users must be able to revisit their ad consent choice
-                        if (AdsConsentManager.privacyOptionsRequired.value) {
-                            TextButton(
-                                onClick = {
-                                    context.findActivity()?.let {
-                                        AdsConsentManager.showPrivacyOptions(it)
-                                    }
-                                },
-                                modifier = Modifier.padding(top = 2.dp, bottom = 6.dp)
-                            ) {
-                                Text(
-                                    text = "Ad privacy settings",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    previewOption?.let { option ->
-        ThemePreviewDialog(
-            option = option,
-            onUnlock = {
-                val activity = context.findActivity()
-                val launched = activity != null &&
-                        ThemeBilling.purchase(activity, option.purchaseKey)
-                if (!launched) toastShort("Google Play is not available right now", context)
-                previewOption = null
-            },
-            coins = coins,
-            onCoinUnlock = {
-                onCoinUnlock(option.purchaseKey)
-                previewOption = null
-            },
-            onDismiss = { previewOption = null }
-        )
-    }
 
     if (showRedeemDialog) {
         RedeemCodeDialog(
             onRedeem = onRedeemCode,
             onDismiss = { showRedeemDialog = false }
         )
+    }
+
+    if (showFontCredits) {
+        FontCreditsDialog(onDismiss = { showFontCredits = false })
+    }
+}
+
+/**
+ * Attribution for the bundled theme typefaces. Every font shipped with the app
+ * is a Google Fonts release under the SIL Open Font License, which asks that the
+ * fonts be credited; this dialog is that credit.
+ */
+@Composable
+private fun FontCreditsDialog(onDismiss: () -> Unit) {
+    // font name to author(s), as published on Google Fonts
+    val fonts = listOf(
+        "Baloo 2" to "Ek Type",
+        "Bangers" to "Vernon Adams",
+        "Black Ops One" to "Google",
+        "Cinzel" to "Natanael Gama",
+        "Comic Neue" to "Craig Rozynski",
+        "DM Sans" to "Colophon Foundry",
+        "EB Garamond" to "Georg Duffner, Octavio Pardo",
+        "Great Vibes" to "TypeSETit",
+        "Josefin Sans" to "Santiago Orozco",
+        "Marcellus" to "Astigmatic",
+        "Oswald" to "Vernon Adams, Kalapi Gajjar, Cyreal",
+        "Patrick Hand" to "Patrick Wagesreiter",
+        "Philosopher" to "Jovanny Lemonad",
+        "Press Start 2P" to "CodeMan38",
+        "Quicksand" to "Andrew Paglinawan",
+        "Share Tech Mono" to "Carrois Apostrophe",
+        "VT323" to "Peter Hull"
+    )
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = "Fonts & licenses",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Text(
+                    text = "The typefaces used across DetoxRank's themes are provided by their authors under the SIL Open Font License (OFL).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
+                )
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    fonts.forEach { (name, author) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 5.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = name,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = author,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
+                        }
+                    }
+                }
+                Text(
+                    text = "SIL Open Font License, Version 1.1 — scripts.sil.org/OFL",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(top = 8.dp)
+                ) {
+                    Text(text = "Close")
+                }
+            }
+        }
     }
 }
 
@@ -775,94 +775,194 @@ private fun RedeemCodeDialog(
 @Composable
 private fun CoinBalanceRow(
     coins: Int,
-    onCoinsEarned: (Int) -> Unit
+    onCoinsEarned: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val coinColor = Color(0xFFE5C558)
     val adsLeft =
         (MAX_REWARDED_ADS_PER_DAY - RewardedAdManager.watchedToday.intValue).coerceAtLeast(0)
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(bottom = 8.dp)
+    val canEarn = adsLeft > 0
+    // one connected pill: the wallet balance on the left, a tap-to-earn segment
+    // on the right, so earning coins reads as part of the wallet rather than a
+    // second free-floating button
+    Surface(
+        shape = CircleShape,
+        color = coinColor.copy(alpha = 0.15f),
+        border = BorderStroke(1.dp, coinColor.copy(alpha = 0.5f)),
+        modifier = modifier
     ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Surface(
-            shape = CircleShape,
-            color = coinColor.copy(alpha = 0.15f),
-            border = BorderStroke(1.dp, coinColor.copy(alpha = 0.5f))
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Filled.MonetizationOn,
+                contentDescription = null,
+                tint = coinColor,
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .size(18.dp)
+            )
+            Text(
+                text = "$coins",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 5.dp, end = 10.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .height(20.dp)
+                    .width(1.dp)
+                    .background(coinColor.copy(alpha = 0.35f))
+            )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(enabled = canEarn) {
+                        val activity = context.findActivity()
+                        when {
+                            activity == null -> {}
+
+                            adsLeft <= 0 -> {
+                                toastShort("Daily ad limit reached — come back tomorrow!", context)
+                            }
+
+                            !AdsConsentManager.canRequestAds(activity) -> {
+                                // first ad in the EEA: ask for consent right when it matters
+                                AdsConsentManager.gatherConsent(activity) {
+                                    RewardedAdManager.startAds(activity)
+                                    toastShort(
+                                        "Thanks! Your ad is loading — tap again in a moment",
+                                        context
+                                    )
+                                }
+                            }
+
+                            else -> {
+                                val shown = RewardedAdManager.showAd(activity) { onCoinsEarned(it) }
+                                if (!shown) {
+                                    toastShort(
+                                        "No ad available right now, try again in a moment",
+                                        context
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    .alpha(if (canEarn) 1f else 0.4f)
+                    .padding(start = 10.dp, end = 12.dp, top = 6.dp, bottom = 6.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.MonetizationOn,
-                    contentDescription = null,
+                    imageVector = Icons.Filled.OndemandVideo,
+                    contentDescription = "Watch an ad to earn coins",
                     tint = coinColor,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(15.dp)
                 )
                 Text(
-                    text = "$coins",
+                    text = " +$COINS_PER_AD",
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 5.dp)
+                    color = coinColor,
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         }
-        Spacer(modifier = Modifier.width(10.dp))
-        FilledTonalButton(
-            onClick = {
-                val activity = context.findActivity()
-                when {
-                    activity == null -> {}
+    }
+}
 
-                    adsLeft <= 0 -> {
-                        toastShort("Daily ad limit reached — come back tomorrow!", context)
-                    }
+/** the two faces of the shop: pick a single theme, or buy a curated pack */
+private enum class ShopTab(val label: String, val icon: ImageVector) {
+    Themes("Themes", Icons.Filled.Palette),
+    Bundles("Bundles", Icons.Filled.AutoAwesome)
+}
 
-                    !AdsConsentManager.canRequestAds(activity) -> {
-                        // first ad in the EEA: ask for consent right when it matters
-                        AdsConsentManager.gatherConsent(activity) {
-                            RewardedAdManager.startAds(activity)
-                            toastShort(
-                                "Thanks! Your ad is loading — tap again in a moment",
-                                context
-                            )
-                        }
-                    }
-
-                    else -> {
-                        val shown = RewardedAdManager.showAd(activity) { onCoinsEarned(it) }
-                        if (!shown) {
-                            toastShort(
-                                "No ad available right now, try again in a moment",
-                                context
-                            )
-                        }
-                    }
+/**
+ * Pill switch between the Themes catalog and the Bundles storefront. The
+ * selected side fills with the primary color and animates on change so the
+ * control reads as a real segmented tab rather than two loose buttons.
+ */
+@Composable
+private fun ShopTabs(
+    selected: ShopTab,
+    onSelect: (ShopTab) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(percent = 50),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+        modifier = modifier
+    ) {
+        Row(modifier = Modifier.padding(4.dp)) {
+            ShopTab.entries.forEach { tab ->
+                val isSelected = tab == selected
+                val bg by animateColorAsState(
+                    targetValue = if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        Color.Transparent
+                    },
+                    label = "shopTabBg"
+                )
+                val fg by animateColorAsState(
+                    targetValue = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    label = "shopTabFg"
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(percent = 50))
+                        .background(bg)
+                        .clickable { onSelect(tab) }
+                        .padding(horizontal = 22.dp, vertical = 9.dp)
+                ) {
+                    Icon(
+                        imageVector = tab.icon,
+                        contentDescription = null,
+                        tint = fg,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = tab.label,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = fg
+                    )
                 }
-            },
-            enabled = adsLeft > 0
-        ) {
-            Icon(
-                imageVector = Icons.Filled.OndemandVideo,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
-            )
-            Text(" +$COINS_PER_AD", fontWeight = FontWeight.Bold)
+            }
         }
     }
+}
+
+/** a quiet, tappable text link for the row of utility actions at the screen foot */
+@Composable
+private fun ShopFooterLink(text: String, onClick: () -> Unit) {
     Text(
-        text = if (adsLeft > 0) "$adsLeft ads left today" else "no ads left — back tomorrow!",
-        style = MaterialTheme.typography.labelSmall,
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 3.dp)
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 6.dp)
     )
-    }
+}
+
+/** middot separating the footer links */
+@Composable
+private fun ShopFooterDot() {
+    Text(
+        text = "·",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    )
 }
 
 /** distinctive glyph per bundle so each pack is recognizable at a glance */
 private fun bundleIcon(productId: String): ImageVector = when (productId) {
-    "theme_elements" -> Icons.Filled.Cyclone
+    "bundle_avatar" -> Icons.Filled.Cyclone
     "bundle_drawing" -> Icons.Filled.Draw
     "bundle_battle" -> Icons.Filled.Shield
     "bundle_future" -> Icons.Filled.Memory
@@ -872,7 +972,7 @@ private fun bundleIcon(productId: String): ImageVector = when (productId) {
 
 /** accent color giving each bundle its own identity */
 private fun bundleAccent(productId: String): Color = when (productId) {
-    "theme_elements" -> Color(0xFF4FC3F7)
+    "bundle_avatar" -> Color(0xFF4FC3F7)
     "bundle_drawing" -> Color(0xFFFFB74D)
     "bundle_battle" -> Color(0xFFEF5350)
     "bundle_future" -> Color(0xFF9575FF)
@@ -881,9 +981,10 @@ private fun bundleAccent(productId: String): Color = when (productId) {
 }
 
 /**
- * One curated theme bundle in the shop: identity icon, included-theme color
- * dots and the buy button. The all-unlocking supporter tier gets a rainbow
- * border so it stands apart.
+ * One curated theme bundle in the shop, sold as a single Play product. The card
+ * previews the pack as a ribbon of its real theme palettes so the reward is
+ * obvious at a glance; the all-unlocking Supporter tier gets a rainbow border
+ * and a value flag so it stands apart.
  */
 @Composable
 private fun ThemeBundleCard(
@@ -896,122 +997,161 @@ private fun ThemeBundleCard(
     // the raw accents are tuned for dark surfaces; ink them down on light ones
     val accentInk = if (isDark) accent else lerp(accent, Color.Black, 0.35f)
     val isEverything = bundle.themes.isEmpty()
-    val tintAlpha = if (isDark) 0.16f else 0.10f
+
+    // the pack previewed as its real theme palettes — its own themes, or a broad
+    // sweep of the whole collection for the everything tier
+    val previewThemes = if (isEverything) {
+        themeOptions.filter { it.isPremium }
+    } else {
+        bundle.themes.mapNotNull { t -> themeOptions.firstOrNull { it.theme == t } }
+    }
+    val themeCount = if (isEverything) themeOptions.count { it.isPremium } else bundle.themes.size
+    val rainbow = listOf(
+        Color(0xFFE5C558), Color(0xFFFF7AC6), Color(0xFF4FC3F7),
+        Color(0xFF81C784), Color(0xFFE5C558)
+    )
+    val tintAlpha = if (isDark) 0.14f else 0.08f
+
     Card(
         onClick = { onBuy(bundle.productId) },
-        shape = themeStyle.cardShape ?: MaterialTheme.shapes.medium,
+        shape = themeStyle.cardShape ?: RoundedCornerShape(20.dp),
         border = if (isEverything) {
-            BorderStroke(
-                2.dp,
-                Brush.sweepGradient(
-                    listOf(
-                        Color(0xFFE5C558), Color(0xFFFF7AC6), Color(0xFF4FC3F7),
-                        Color(0xFF81C784), Color(0xFFE5C558)
-                    )
-                )
-            )
+            BorderStroke(2.dp, Brush.sweepGradient(rainbow))
         } else {
-            BorderStroke(1.5.dp, accentInk.copy(alpha = if (isDark) 0.5f else 0.6f))
+            BorderStroke(1.5.dp, accentInk.copy(alpha = if (isDark) 0.45f else 0.55f))
         },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                // each bundle sweeps its accent across the card, fading out
                 .background(
-                    Brush.horizontalGradient(
+                    Brush.verticalGradient(
                         if (isEverything) {
-                            listOf(
-                                Color(0xFFE5C558).copy(alpha = tintAlpha),
-                                Color(0xFFFF7AC6).copy(alpha = tintAlpha * 0.7f),
-                                Color(0xFF4FC3F7).copy(alpha = tintAlpha)
-                            )
+                            rainbow.map { it.copy(alpha = tintAlpha) }
                         } else {
-                            listOf(accent.copy(alpha = tintAlpha * 1.6f), Color.Transparent)
+                            listOf(accent.copy(alpha = tintAlpha * 2f), Color.Transparent)
                         }
                     )
                 )
-                .padding(horizontal = 14.dp, vertical = 12.dp)
+                .padding(16.dp)
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(accent.copy(alpha = if (isDark) 0.20f else 0.16f))
-            ) {
+            // identity row: glyph + title, with the value flag on the top tier
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = bundleIcon(bundle.productId),
                     contentDescription = null,
                     tint = accentInk,
-                    modifier = Modifier.size(26.dp)
+                    modifier = Modifier.size(20.dp)
                 )
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp, end = 8.dp)
-            ) {
                 Text(
                     text = bundle.title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = accentInk
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = accentInk,
+                    modifier = Modifier.padding(start = 8.dp)
                 )
-                Text(
-                    text = bundle.tagline,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 6.dp)
-                ) {
-                    val allDots = if (isEverything) {
-                        themeOptions.filter { it.isPremium }.map { it.primaryColor }.distinct()
-                    } else {
-                        bundle.themes.mapNotNull { theme ->
-                            themeOptions.firstOrNull { it.theme == theme }?.primaryColor
-                        }
-                    }
-                    val shownDots = allDots.take(8)
-                    shownDots.forEach { dot ->
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 5.dp)
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(dot)
-                                .border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-                                    CircleShape
-                                )
-                        )
-                    }
-                    if (allDots.size > shownDots.size) {
+                Spacer(modifier = Modifier.weight(1f))
+                if (isEverything) {
+                    Surface(
+                        shape = RoundedCornerShape(percent = 50),
+                        color = Color(0xFFE5C558).copy(alpha = if (isDark) 0.22f else 0.18f)
+                    ) {
                         Text(
-                            text = "+${allDots.size - shownDots.size}",
+                            text = "BEST VALUE",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontWeight = FontWeight.Bold,
+                            color = if (isDark) Color(0xFFE5C558) else Color(0xFF8A6D00),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         )
                     }
                 }
             }
-            Text(
-                text = ThemeBilling.bundlePrices[bundle.productId] ?: bundle.fallbackPrice,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = accentInk,
-                modifier = Modifier.padding(start = 4.dp)
-            )
+
+            // palette ribbon: a real look at every theme the pack unlocks
+            val shown = previewThemes.take(if (previewThemes.size > 6) 5 else 6)
+            val remaining = previewThemes.size - shown.size
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+            ) {
+                shown.forEach { opt ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(46.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(opt.primaryColor, opt.secondaryColor)
+                                )
+                            )
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+                                RoundedCornerShape(10.dp)
+                            )
+                    )
+                }
+                if (remaining > 0) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(46.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(accent.copy(alpha = if (isDark) 0.18f else 0.14f))
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+                                RoundedCornerShape(10.dp)
+                            )
+                    ) {
+                        Text(
+                            text = "+$remaining",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = accentInk
+                        )
+                    }
+                }
+            }
+
+            // tagline + count on the left, the price standing bold on the right
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 14.dp)
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = bundle.tagline,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = if (isEverything) "Every theme + future ones" else "$themeCount themes",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+                Text(
+                    text = ThemeBilling.bundlePrices[bundle.productId] ?: bundle.fallbackPrice,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = accentInk,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            }
         }
     }
 }
@@ -1165,23 +1305,30 @@ fun ThemePreviewDialog(
                                     tint = Color(0xFFE5C558),
                                     modifier = Modifier.size(18.dp)
                                 )
+                                // the coin glyph already reads as "coins", so the
+                                // label just mirrors the money button above it
                                 Text(
-                                    text = " or $coinCost coins (you have $coins)",
+                                    text = " Unlock for $coinCost",
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-                            if (!canAfford) {
-                                Text(
-                                    text = "Earn coins by watching ads in the theme shop",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                        }
-                        if (option.bundleLabel != null) {
                             Text(
-                                text = "Included in the ${option.bundleLabel}",
+                                text = if (canAfford) {
+                                    "You have $coins coins"
+                                } else {
+                                    "You have $coins coins — earn more by watching ads in the shop"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                        // labelled from bundle membership so every packaged theme
+                        // shows its pack, not just the few with a hardcoded label
+                        ThemeBilling.bundleFor(option.purchaseKey)?.let { bundle ->
+                            Text(
+                                text = "Included in the ${bundle.title}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 6.dp)

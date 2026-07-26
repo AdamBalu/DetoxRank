@@ -540,7 +540,6 @@ fun DetoxRankTopAppBar(
     val uiState by detoxRankViewModel.uiState.collectAsState()
     val currentLevel = uiState.currentLevel
     var showThemeSelector by remember { mutableStateOf(false) }
-    var showThemeShop by remember { mutableStateOf(false) }
 
     // Get theme state
     val userState by detoxRankViewModel.userDataUiState.collectAsState()
@@ -549,7 +548,7 @@ fun DetoxRankTopAppBar(
     val purchasedThemes = remember(purchasedThemesString) {
         val names = purchasedThemesString.split(",").map { it.trim() }
         if ("ALL" in names) {
-            // Awesome Supporter flag: every theme, including future additions
+            // Supporter flag: every theme, including future additions
             UiTheme.values().toSet()
         } else {
             names.mapNotNull {
@@ -677,30 +676,11 @@ fun DetoxRankTopAppBar(
             detoxRankViewModel.selectTheme(theme)
             showThemeSelector = false
         },
-        onOpenShop = {
-            showThemeSelector = false
-            showThemeShop = true
+        onRedeemCode = { code, onResult ->
+            detoxRankViewModel.redeemPromoCode(code, onResult)
         },
         onDismiss = { showThemeSelector = false }
     )
-
-    if (showThemeShop) {
-        ThemeShopDialog(
-            currentTheme = currentTheme,
-            purchasedThemes = purchasedThemes,
-            coins = userState.coins,
-            onCoinsEarned = { amount -> detoxRankViewModel.addCoins(amount) },
-            onCoinUnlock = { theme -> detoxRankViewModel.buyThemeWithCoins(theme) },
-            onRedeemCode = { code, onResult ->
-                detoxRankViewModel.redeemPromoCode(code, onResult)
-            },
-            onThemeSelected = { theme ->
-                detoxRankViewModel.selectTheme(theme)
-                showThemeShop = false
-            },
-            onDismiss = { showThemeShop = false }
-        )
-    }
 }
 
 
