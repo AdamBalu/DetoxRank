@@ -291,9 +291,10 @@ object ThemeBilling : PurchasesUpdatedListener {
                 .build()
         }
         val params = QueryProductDetailsParams.newBuilder().setProductList(products).build()
-        billingClient?.queryProductDetailsAsync(params) { result, detailsList ->
+        // Billing 8: the callback delivers a QueryProductDetailsResult instead of a bare list
+        billingClient?.queryProductDetailsAsync(params) { result, detailsResult ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                detailsList.forEach { details ->
+                detailsResult.productDetailsList.forEach { details ->
                     productDetails[details.productId] = details
                     val price = details.oneTimePurchaseOfferDetails?.formattedPrice
                     if (price != null) {
